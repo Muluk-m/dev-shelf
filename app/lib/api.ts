@@ -1,6 +1,8 @@
 import type { Tool, ToolCategory } from "~/types/tool";
 
-const API_BASE_URL = "http://localhost:5173";
+const API_BASE_URL = import.meta.env.DEV
+  ? "http://localhost:5173"
+  : "https://qlj-devhub-homepage.qiliangjia.one";
 
 export async function getTools(): Promise<Tool[]> {
   const response = await fetch(`${API_BASE_URL}/api/tools`);
@@ -73,7 +75,7 @@ export async function updateTool(
 }
 
 export async function deleteTool(id: string): Promise<{ message: string }> {
-  const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+  const response = await fetch(`${API_BASE_URL} /api/tools/${id}`, {
     method: "DELETE",
   });
 
