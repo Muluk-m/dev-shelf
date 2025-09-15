@@ -83,7 +83,7 @@ export async function updateTool(
 }
 
 export async function deleteTool(id: string): Promise<{ message: string }> {
-	const response = await fetch(`${API_BASE_URL} /api/tools/${id}`, {
+	const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
 		method: "DELETE",
 	});
 

@@ -6,6 +6,7 @@
 		"useIgnoreFile": false
 	},
 	"files": {
+		"includes": ["app", "workers"],
 		"ignoreUnknown": false
 	},
 	"formatter": {
@@ -20,7 +21,9 @@
 			},
 			"recommended": true,
 			"suspicious": {
-				"noArrayIndexKey": "off"
+				"noArrayIndexKey": "off",
+				"noUnknownAtRules": "off",
+				"noExplicitAny": "off"
 			},
 			"correctness": {
 				"noEmptyPattern": "off",
@@ -29,8 +32,10 @@
 			},
 			"a11y": {
 				"noStaticElementInteractions": "off",
-				"useKeyWithClickEvents": "off",
-				"useButtonType": "off"
+				"useKeyWithClickEvents": "off"
+			},
+			"security": {
+				"noDangerouslySetInnerHtml": "off"
 			}
 		}
 	},

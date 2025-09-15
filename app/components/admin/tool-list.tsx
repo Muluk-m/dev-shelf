@@ -147,37 +147,37 @@ export function ToolList({
 							</div>
 
 							<div className="space-y-2">
-								{tool.environments?.production && (
+								{tool.environments?.[0] && (
 									<div className="flex items-center gap-2 text-sm">
 										<Globe className="h-4 w-4 text-muted-foreground" />
-										<span className="font-medium">生产环境:</span>
+										<span className="font-medium">{tool.environments[0].label}:</span>
 										<Badge variant="outline" className="text-xs">
-											{tool.environments.production.type === "internal"
-												? "内部路由"
-												: "外部链接"}
+											{tool.environments[0].isExternal
+												? "外部链接"
+												: "内部路由"}
 										</Badge>
 										<span className="text-muted-foreground">
-											{tool.environments.production.url}
+											{tool.environments[0].url}
 										</span>
-										{tool.environments.production.type === "external" && (
+										{tool.environments[0].isExternal && (
 											<ExternalLink className="h-3 w-3 text-muted-foreground" />
 										)}
 									</div>
 								)}
 
-								{tool.environments?.test && (
+								{tool.environments?.[1] && (
 									<div className="flex items-center gap-2 text-sm">
 										<Settings className="h-4 w-4 text-muted-foreground" />
-										<span className="font-medium">测试环境:</span>
+										<span className="font-medium">{tool.environments[1].label}:</span>
 										<Badge variant="outline" className="text-xs">
-											{tool.environments.test.type === "internal"
-												? "内部路由"
-												: "外部链接"}
+											{tool.environments[1].isExternal
+												? "外部链接"
+												: "内部路由"}
 										</Badge>
 										<span className="text-muted-foreground">
-											{tool.environments.test.url}
+											{tool.environments[1].url}
 										</span>
-										{tool.environments.test.type === "external" && (
+										{tool.environments[1].isExternal && (
 											<ExternalLink className="h-3 w-3 text-muted-foreground" />
 										)}
 									</div>

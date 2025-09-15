@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowLeft } from "lucide-react";
-import { Link, useLoaderData, useParams } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { CommandPanel } from "~/components/command-panel/command-panel";
 import { Header } from "~/components/layout/header";
 import { ToolDetailView } from "~/components/tool-detail-view";
@@ -12,16 +12,18 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import { useCommandPanel } from "~/hooks/use-command-panel";
-import { getToolById, getTools } from "~/lib/api";
+
 import type { Route } from "./+types/tools.$id";
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, context }: Route.LoaderArgs) {
 	try {
-		const [tool, tools] = await Promise.all([
-			getToolById(params.id),
-			getTools(),
-		]);
+		const toolsDb = await import("../../lib/database/tools");
+		const db = context.cloudflare.env.DB;
 
+		const [tool, tools] = await Promise.all([
+			toolsDb.getToolById(db, params.id),
+			toolsDb.getTools(db),
+		]);
 		return { tool, tools };
 	} catch (error) {
 		console.error("Failed to load tool:", error);

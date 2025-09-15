@@ -1,18 +1,12 @@
 import { Hono } from "hono";
-import {
-	createTool,
-	deleteTool,
-	getToolById,
-	getTools,
-	updateTool,
-} from "../lib/database";
+import * as toolsDb from "../../lib/database/tools";
 
 const toolsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
 // 获取所有工具
 toolsRouter.get("/", async (c) => {
 	try {
-		const tools = await getTools(c.env.DB);
+		const tools = await toolsDb.getTools(c.env.DB);
 		return c.json(tools);
 	} catch (error) {
 		console.error("Error fetching tools:", error);
@@ -24,7 +18,7 @@ toolsRouter.get("/", async (c) => {
 toolsRouter.get("/:id", async (c) => {
 	try {
 		const toolId = c.req.param("id");
-		const tool = await getToolById(c.env.DB, toolId);
+		const tool = await toolsDb.getToolById(c.env.DB, toolId);
 
 		if (!tool) {
 			return c.json({ error: "Tool not found" }, 404);
@@ -50,15 +44,14 @@ toolsRouter.post("/", async (c) => {
 		// 设置默认值
 		const tool = {
 			...toolData,
-			last_updated: new Date().toISOString().split("T")[0],
+			lastUpdated: new Date().toISOString().split("T")[0],
 			status: toolData.status || "active",
-			is_internal:
-				toolData.isInternal !== undefined ? toolData.isInternal : true,
+			isInternal: toolData.isInternal !== undefined ? toolData.isInternal : true,
 			environments: toolData.environments || [],
 			tags: toolData.tags || [],
 		};
 
-		const toolId = await createTool(c.env.DB, tool);
+		const toolId = await toolsDb.createTool(c.env.DB, tool);
 
 		return c.json({ id: toolId, message: "Tool created successfully" }, 201);
 	} catch (error) {
@@ -74,7 +67,7 @@ toolsRouter.put("/:id", async (c) => {
 		const toolData = (await c.req.json()) as any;
 
 		// 验证工具是否存在
-		const existingTool = await getToolById(c.env.DB, toolId);
+		const existingTool = await toolsDb.getToolById(c.env.DB, toolId);
 		if (!existingTool) {
 			return c.json({ error: "Tool not found" }, 404);
 		}
@@ -87,14 +80,13 @@ toolsRouter.put("/:id", async (c) => {
 		// 设置更新值
 		const tool = {
 			...toolData,
-			last_updated: new Date().toISOString().split("T")[0],
-			is_internal:
-				toolData.isInternal !== undefined ? toolData.isInternal : true,
+			lastUpdated: new Date().toISOString().split("T")[0],
+			isInternal: toolData.isInternal !== undefined ? toolData.isInternal : true,
 			environments: toolData.environments || [],
 			tags: toolData.tags || [],
 		};
 
-		await updateTool(c.env.DB, toolId, tool);
+		await toolsDb.updateTool(c.env.DB, toolId, tool);
 
 		return c.json({ message: "Tool updated successfully" });
 	} catch (error) {
@@ -109,12 +101,12 @@ toolsRouter.delete("/:id", async (c) => {
 		const toolId = c.req.param("id");
 
 		// 验证工具是否存在
-		const existingTool = await getToolById(c.env.DB, toolId);
+		const existingTool = await toolsDb.getToolById(c.env.DB, toolId);
 		if (!existingTool) {
 			return c.json({ error: "Tool not found" }, 404);
 		}
 
-		await deleteTool(c.env.DB, toolId);
+		await toolsDb.deleteTool(c.env.DB, toolId);
 
 		return c.json({ message: "Tool deleted successfully" });
 	} catch (error) {
