@@ -6,7 +6,7 @@
 		"useIgnoreFile": false
 	},
 	"files": {
-		"includes": ["app", "workers"],
+		"includes": ["app/**/*", "workers/**/*"],
 		"ignoreUnknown": false
 	},
 	"formatter": {

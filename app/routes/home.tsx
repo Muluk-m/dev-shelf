@@ -13,13 +13,13 @@ import type { Route } from "./+types/home";
 
 export async function loader(ctx: Route.LoaderArgs) {
 	try {
-			const toolsDb = await import("../../lib/database/tools");
-			const db = ctx.context.cloudflare.env.DB;
-			const [tools, toolCategories] = await Promise.all([
-				toolsDb.getTools(db),
-				toolsDb.getToolCategories(db),
-			]);
-			return { tools, toolCategories };
+		const toolsDb = await import("../../lib/database/tools");
+		const db = ctx.context.cloudflare.env.DB;
+		const [tools, toolCategories] = await Promise.all([
+			toolsDb.getTools(db),
+			toolsDb.getToolCategories(db),
+		]);
+		return { tools, toolCategories };
 	} catch (error) {
 		console.error("Failed to load data:", error);
 		return { tools: [], toolCategories: [] };

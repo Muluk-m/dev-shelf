@@ -150,7 +150,9 @@ export function ToolList({
 								{tool.environments?.[0] && (
 									<div className="flex items-center gap-2 text-sm">
 										<Globe className="h-4 w-4 text-muted-foreground" />
-										<span className="font-medium">{tool.environments[0].label}:</span>
+										<span className="font-medium">
+											{tool.environments[0].label}:
+										</span>
 										<Badge variant="outline" className="text-xs">
 											{tool.environments[0].isExternal
 												? "外部链接"
@@ -168,7 +170,9 @@ export function ToolList({
 								{tool.environments?.[1] && (
 									<div className="flex items-center gap-2 text-sm">
 										<Settings className="h-4 w-4 text-muted-foreground" />
-										<span className="font-medium">{tool.environments[1].label}:</span>
+										<span className="font-medium">
+											{tool.environments[1].label}:
+										</span>
 										<Badge variant="outline" className="text-xs">
 											{tool.environments[1].isExternal
 												? "外部链接"

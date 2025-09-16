@@ -1,22 +1,15 @@
 "use client";
 
 import {
-	BarChart3,
-	BookOpen,
 	ChevronDown,
 	Clock,
 	Code,
-	Database,
 	ExternalLink,
-	FileText,
 	Globe,
-	Rocket,
 	Server,
-	TestTube,
-	Users,
-	Wrench,
 } from "lucide-react";
 import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -34,18 +27,6 @@ import {
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { Tool, ToolEnvironment } from "~/types/tool";
-
-const iconMap = {
-	Code,
-	Rocket,
-	TestTube,
-	Users,
-	BarChart3,
-	Wrench,
-	Database,
-	FileText,
-	BookOpen,
-};
 
 const statusConfig = {
 	active: {
@@ -71,7 +52,8 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
-	const IconComponent = iconMap[tool.icon as keyof typeof iconMap] || Code;
+	console.log(tool);
+
 	const statusInfo = statusConfig[tool.status];
 
 	const [selectedEnv, setSelectedEnv] = useState<ToolEnvironment>(
@@ -97,7 +79,14 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 				<div className="flex items-start justify-between">
 					<div className="flex items-center gap-3">
 						<div className="p-2 rounded-lg bg-primary/10 text-primary">
-							<IconComponent className="h-5 w-5" />
+							{tool.icon ? (
+								<Avatar>
+									<AvatarImage src={tool.icon} />
+									<AvatarFallback>{tool.name.charAt(0)}</AvatarFallback>
+								</Avatar>
+							) : (
+								<Code className="h-5 w-5" />
+							)}
 						</div>
 						<div>
 							<CardTitle className="text-lg group-hover:text-primary transition-colors">

@@ -46,7 +46,8 @@ toolsRouter.post("/", async (c) => {
 			...toolData,
 			lastUpdated: new Date().toISOString().split("T")[0],
 			status: toolData.status || "active",
-			isInternal: toolData.isInternal !== undefined ? toolData.isInternal : true,
+			isInternal:
+				toolData.isInternal !== undefined ? toolData.isInternal : true,
 			environments: toolData.environments || [],
 			tags: toolData.tags || [],
 		};
@@ -81,7 +82,8 @@ toolsRouter.put("/:id", async (c) => {
 		const tool = {
 			...toolData,
 			lastUpdated: new Date().toISOString().split("T")[0],
-			isInternal: toolData.isInternal !== undefined ? toolData.isInternal : true,
+			isInternal:
+				toolData.isInternal !== undefined ? toolData.isInternal : true,
 			environments: toolData.environments || [],
 			tags: toolData.tags || [],
 		};
