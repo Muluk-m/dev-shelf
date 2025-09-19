@@ -1,8 +1,17 @@
 import type { Tool, ToolCategory } from "~/types/tool";
+import type { UserInfo } from "~/types/user-info";
 
 const API_BASE_URL = import.meta.env.DEV
 	? "http://localhost:5173"
 	: "https://qlj-devhub-homepage.qiliangjia.one";
+
+export async function getUserInfo(): Promise<{ data: UserInfo }> {
+	const response = await fetch(`${API_BASE_URL}/auth/me`);
+	if (!response.ok) {
+		throw new Error("Failed to fetch user info");
+	}
+	return response.json();
+}
 
 export async function getTools(): Promise<Tool[]> {
 	const response = await fetch(`${API_BASE_URL}/api/tools`);

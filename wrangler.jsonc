@@ -2,28 +2,30 @@
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */ {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "qlj-devhub-homepage",
-	"compatibility_date": "2025-04-01",
-	"main": "./workers/app.ts",
-	"upload_source_maps": true,
-	"vars": {
-		"API_BASE_URL": "https://qlj-devhub-homepage.qiliangjia.one"
-	},
-	"observability": {
-		"enabled": true
-	},
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "devhub-database",
-			"database_id": "61845697-203d-4a2c-9eaf-dc2985b7f727"
-		}
-	],
-	"routes": [
-		{
-			"pattern": "qlj-devhub-homepage.qiliangjia.one",
-			"custom_domain": true
-		}
-	]
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "qlj-devhub-homepage",
+  "compatibility_date": "2025-04-01",
+  "main": "./workers/app.ts",
+  "upload_source_maps": true,
+  "vars": {
+    "API_BASE_URL": "https://qlj-devhub-homepage.qiliangjia.one",
+    "FEISHU_CLIENT_ID": "cli_a81054e5b13ed013",
+    "OAUTH_BASE_URL": "https://thirdpart-service-hub-app-test.qiliangjia.org"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "devhub-database",
+      "database_id": "61845697-203d-4a2c-9eaf-dc2985b7f727"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "qlj-devhub-homepage.qiliangjia.one",
+      "custom_domain": true
+    }
+  ]
 }

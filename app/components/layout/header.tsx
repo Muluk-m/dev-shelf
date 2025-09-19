@@ -4,6 +4,7 @@ import { Command } from "lucide-react";
 import { SearchInput } from "~/components/search/search-input";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
+import { UserProfile } from "~/components/user-profile";
 
 interface HeaderProps {
 	searchValue?: string;
@@ -66,6 +67,7 @@ export function Header({
 					</Button>
 
 					<ThemeToggle />
+					<UserProfile />
 				</div>
 			</div>
 		</header>

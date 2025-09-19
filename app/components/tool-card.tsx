@@ -52,8 +52,6 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
-	console.log(tool);
-
 	const statusInfo = statusConfig[tool.status];
 
 	const [selectedEnv, setSelectedEnv] = useState<ToolEnvironment>(
