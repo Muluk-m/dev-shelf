@@ -9,6 +9,7 @@ import {
 	Server,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -26,6 +27,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { isInternalTool } from "~/lib/internal-tools";
 import type { Tool, ToolEnvironment } from "~/types/tool";
 
 const statusConfig = {
@@ -52,6 +54,7 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
+	const navigate = useNavigate();
 	const statusInfo = statusConfig[tool.status];
 
 	const [selectedEnv, setSelectedEnv] = useState<ToolEnvironment>(
@@ -64,10 +67,31 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 	);
 
 	const handleAccessTool = (environment: ToolEnvironment) => {
-		if (environment.isExternal) {
-			window.open(environment.url, "_blank");
+		// 检查是否为内部工具
+		if (isInternalTool(tool.id)) {
+			// 内部工具：导航到 /tools/{tool.id}
+			navigate(`/tools/${tool.id}`);
 		} else {
-			window.location.href = environment.url;
+			// 外部工具：根据环境配置打开链接或跳转
+			if (environment.isExternal) {
+				window.open(environment.url, "_blank");
+			} else {
+				window.location.href = environment.url;
+			}
+		}
+	};
+
+	const handleViewDetails = () => {
+		if (isInternalTool(tool.id)) {
+			// 内部工具：直接打开工具页面
+			navigate(`/tools/${tool.id}`);
+		} else {
+			// 外部工具：打开详情页
+			if (onViewDetails) {
+				onViewDetails(tool);
+			} else {
+				navigate(`/tools/${tool.id}`);
+			}
 		}
 	};
 
@@ -131,58 +155,63 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 
 			<CardFooter className="pt-0">
 				<div className="flex gap-2 w-full">
-					{tool.environments.length > 1 ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									variant="outline"
-									size="sm"
-									className="flex-1 gap-2 bg-transparent"
-								>
+					{/* 内部工具不显示环境选择 */}
+					{!isInternalTool(tool.id) && (
+						<>
+							{tool.environments.length > 1 ? (
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button
+											variant="outline"
+											size="sm"
+											className="flex-1 gap-2 bg-transparent"
+										>
+											{selectedEnv.isExternal ? (
+												<Globe className="h-3 w-3" />
+											) : (
+												<Server className="h-3 w-3" />
+											)}
+											{selectedEnv.label}
+											<ChevronDown className="h-3 w-3" />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="start" className="w-40">
+										{tool.environments.map((env) => (
+											<DropdownMenuItem
+												key={env.name}
+												onClick={() => setSelectedEnv(env)}
+												className="gap-2"
+											>
+												{env.isExternal ? (
+													<Globe className="h-3 w-3" />
+												) : (
+													<Server className="h-3 w-3" />
+												)}
+												{env.label}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
+							) : (
+								<div className="flex items-center gap-2 text-xs text-muted-foreground flex-1">
 									{selectedEnv.isExternal ? (
 										<Globe className="h-3 w-3" />
 									) : (
 										<Server className="h-3 w-3" />
 									)}
 									{selectedEnv.label}
-									<ChevronDown className="h-3 w-3" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="start" className="w-40">
-								{tool.environments.map((env) => (
-									<DropdownMenuItem
-										key={env.name}
-										onClick={() => setSelectedEnv(env)}
-										className="gap-2"
-									>
-										{env.isExternal ? (
-											<Globe className="h-3 w-3" />
-										) : (
-											<Server className="h-3 w-3" />
-										)}
-										{env.label}
-									</DropdownMenuItem>
-								))}
-							</DropdownMenuContent>
-						</DropdownMenu>
-					) : (
-						<div className="flex items-center gap-2 text-xs text-muted-foreground flex-1">
-							{selectedEnv.isExternal ? (
-								<Globe className="h-3 w-3" />
-							) : (
-								<Server className="h-3 w-3" />
+								</div>
 							)}
-							{selectedEnv.label}
-						</div>
+						</>
 					)}
 
 					{onViewDetails && (
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => onViewDetails(tool)}
+							onClick={handleViewDetails}
 						>
-							详情
+							{isInternalTool(tool.id) ? "打开工具" : "详情"}
 						</Button>
 					)}
 
@@ -191,8 +220,8 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 						className="flex-1 gap-2"
 						onClick={() => handleAccessTool(selectedEnv)}
 					>
-						{selectedEnv.isExternal && <ExternalLink className="h-3 w-3" />}
-						打开工具
+						{!isInternalTool(tool.id) && selectedEnv.isExternal && <ExternalLink className="h-3 w-3" />}
+						{isInternalTool(tool.id) ? "使用工具" : "打开工具"}
 					</Button>
 				</div>
 			</CardFooter>

@@ -1,19 +1,28 @@
 # DevHub - 开发工具管理平台
 
-一个现代化的开发工具管理和发现平台，基于 Cloudflare Workers 构建，提供快速、响应式的工具管理体验。
+一个现代化的开发工具管理和发现平台，基于 Cloudflare Workers 构建。支持内部工具开发和外部工具管理，提供快速、响应式的工具使用体验。
 
 ![DevHub Screenshot](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/24c5a7dd-e1e3-43a9-b912-d78d9a4293bc/public)
 
-## ✨ 功能特性
+## ✨ 核心特性
 
-- 🔍 **智能工具搜索** - 支持名称、描述、标签的全文搜索
+### 🔧 双重工具管理
+- **内部工具** - 在平台内开发和部署的功能工具
+- **外部工具** - 管理外部服务和应用的链接和信息
+
+### 🎯 用户体验
+- 🔍 **智能搜索** - 支持工具名称、描述、标签的全文搜索
 - ⌨️ **命令面板** - 快捷键 `Cmd/Ctrl+K` 快速访问所有功能
-- 🏷️ **标签系统** - 灵活的标签分类和过滤
-- 🌍 **多环境支持** - 管理工具的不同部署环境（开发、测试、生产）
+- 🏷️ **分类管理** - 灵活的分类系统和标签过滤
+- 🌍 **多环境支持** - 管理工具的不同部署环境
 - 🎨 **现代 UI** - 基于 shadcn/ui 的精美界面，支持明暗主题
 - 📱 **响应式设计** - 完美适配桌面和移动设备
-- ⚡ **边缘部署** - 基于 Cloudflare Workers 的全球加速
-- 🔐 **管理后台** - 完整的 CRUD 操作支持
+
+### ⚡ 技术优势
+- **边缘部署** - 基于 Cloudflare Workers 的全球加速
+- **实时加载** - 骨架屏和加载状态提升用户体验
+- **用户认证** - 集成飞书 OAuth 登录系统
+- **权限管理** - 完整的管理后台和权限控制
 
 ## 🛠️ 技术栈
 
@@ -84,26 +93,93 @@ pnpm run build
 pnpm run deploy
 ```
 
-## 📁 项目结构
+## 📁 项目架构
 
+### 整体结构
 ```
 ├── app/                    # 前端应用
 │   ├── components/         # React 组件
-│   │   ├── ui/            # shadcn/ui 组件
-│   │   ├── layout/        # 布局组件
+│   │   ├── ui/            # shadcn/ui 基础组件
+│   │   ├── layout/        # 页面布局组件
 │   │   ├── admin/         # 管理后台组件
-│   │   └── command-panel/ # 命令面板
+│   │   ├── command-panel/ # 命令面板功能
+│   │   └── search/        # 搜索相关组件
 │   ├── routes/            # 页面路由
-│   ├── lib/               # 工具函数
+│   │   ├── tools/         # 内部工具目录
+│   │   │   ├── _layout.tsx        # 内部工具布局
+│   │   │   └── json-formatter.tsx # JSON 格式化工具
+│   │   ├── home.tsx       # 首页
+│   │   ├── admin.tsx      # 管理后台
+│   │   └── tools.$id.tsx  # 外部工具详情页
+│   ├── lib/               # 工具函数和配置
+│   │   ├── api.ts         # API 接口
+│   │   └── internal-tools.ts # 内部工具注册表
 │   └── types/             # TypeScript 类型定义
-├── workers/               # 后端 API
-│   ├── routes/           # API 路由
+├── workers/               # 后端 API (Hono)
+│   ├── routes/           # API 路由处理
+│   │   ├── tools.ts      # 工具 CRUD API
+│   │   ├── categories.ts # 分类管理 API
+│   │   └── auth.ts       # 用户认证 API
+│   ├── middleware/       # 中间件
 │   └── app.ts            # Hono 应用入口
 ├── lib/                  # 共享库
-│   └── database/         # 数据库操作
+│   ├── database/         # 数据库操作层
+│   └── types/            # 共享类型定义
 ├── database.sql          # 数据库 Schema
 └── wrangler.jsonc        # Cloudflare 配置
 ```
+
+### 🔧 内部工具架构
+
+#### 设计理念
+- **关注点分离**：工具开发者只需关注功能实现，元信息通过管理后台配置
+- **统一路由**：所有内部工具使用 `/tools/{tool-id}` 的统一路由格式
+- **简化开发**：新增工具只需三步：注册ID、添加路由、实现功能
+
+#### 路由策略
+```
+/tools/json-formatter    # 内部工具 - 直接展示功能页面
+/tools/base64-converter  # 内部工具 - 直接展示功能页面
+/tools/external-tool-id  # 外部工具 - 展示详情页和跳转链接
+```
+
+#### 添加新内部工具
+1. **注册工具ID**
+   ```typescript
+   // app/lib/internal-tools.ts
+   export const INTERNAL_TOOL_IDS = [
+     "json-formatter",
+     "base64-converter",
+     "your-new-tool", // 添加新工具ID
+   ] as const;
+   ```
+
+2. **添加路由**
+   ```typescript
+   // app/routes.ts
+   route("tools", "routes/tools/_layout.tsx", [
+     route("json-formatter", "routes/tools/json-formatter.tsx"),
+     route("your-new-tool", "routes/tools/your-new-tool.tsx"), // 新路由
+   ]),
+   ```
+
+3. **实现工具功能**
+   ```typescript
+   // app/routes/tools/your-new-tool.tsx
+   export default function YourNewToolPage() {
+     return (
+       <div className="space-y-6">
+         <h1 className="text-3xl font-bold">你的工具名称</h1>
+         {/* 工具功能实现 */}
+       </div>
+     );
+   }
+   ```
+
+4. **配置元信息**
+   - 通过管理后台 `/admin` 添加工具
+   - 设置名称、描述、分类、标签等信息
+   - 系统自动识别内部工具并正确路由
 
 ## 🎯 核心功能
 

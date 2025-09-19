@@ -36,23 +36,12 @@ export default function AdminPage() {
 	useEffect(() => {
 		const loadData = async () => {
 			try {
-				const [systemTools, toolCategories] = await Promise.all([
+				const [allTools, toolCategories] = await Promise.all([
 					getTools(),
 					getToolCategories(),
 				]);
 				setCategories(toolCategories);
-
-				const savedTools = localStorage.getItem("custom-tools");
-				if (savedTools) {
-					try {
-						const customTools = JSON.parse(savedTools);
-						setTools([...systemTools, ...customTools]);
-					} catch {
-						setTools(systemTools);
-					}
-				} else {
-					setTools(systemTools);
-				}
+				setTools(allTools);
 			} catch (error) {
 				console.error("Failed to load data:", error);
 				setTools([]);
@@ -63,35 +52,17 @@ export default function AdminPage() {
 		loadData();
 	}, []);
 
-	// 保存自定义工具到本地存储
-	const saveCustomTools = async (allTools: Tool[]) => {
-		try {
-			const systemTools = await getTools();
-			const customTools = allTools.filter(
-				(tool) => !systemTools.find((systemTool) => systemTool.id === tool.id),
-			);
-			localStorage.setItem("custom-tools", JSON.stringify(customTools));
-		} catch (error) {
-			console.error("Failed to save custom tools:", error);
-		}
-	};
-
 	const handleAddTool = async (toolData: Omit<Tool, "id">) => {
 		setFormLoading(true);
 		try {
 			await createTool(toolData);
 			// Reload tools after successful creation
-			const updatedTools = await getTools();
-			const savedTools = localStorage.getItem("custom-tools");
-			let customTools = [];
-			if (savedTools) {
-				try {
-					customTools = JSON.parse(savedTools);
-				} catch {
-					customTools = [];
-				}
-			}
-			setTools([...updatedTools, ...customTools]);
+			const [updatedTools, toolCategories] = await Promise.all([
+				getTools(),
+				getToolCategories(),
+			]);
+			setCategories(toolCategories);
+			setTools(updatedTools);
 			setIsFormOpen(false);
 		} catch (error) {
 			console.error("Failed to create tool:", error);
@@ -111,34 +82,15 @@ export default function AdminPage() {
 
 		setFormLoading(true);
 		try {
-			// Check if it's a system tool or custom tool
-			const isCustomTool = editingTool.id.startsWith("custom-");
-
-			if (isCustomTool) {
-				// Handle custom tool update with localStorage
-				const updatedTools = tools.map((tool) =>
-					tool.id === editingTool.id
-						? { ...toolData, id: editingTool.id }
-						: tool,
-				);
-				setTools(updatedTools);
-				saveCustomTools(updatedTools);
-			} else {
-				// Handle system tool update with API
-				await updateTool(editingTool.id, toolData);
-				// Reload tools after successful update
-				const updatedSystemTools = await getTools();
-				const savedTools = localStorage.getItem("custom-tools");
-				let customTools = [];
-				if (savedTools) {
-					try {
-						customTools = JSON.parse(savedTools);
-					} catch {
-						customTools = [];
-					}
-				}
-				setTools([...updatedSystemTools, ...customTools]);
-			}
+			// 所有工具都通过 API 更新
+			await updateTool(editingTool.id, toolData);
+			// Reload tools after successful update
+			const [updatedTools, toolCategories] = await Promise.all([
+				getTools(),
+				getToolCategories(),
+			]);
+			setCategories(toolCategories);
+			setTools(updatedTools);
 
 			setEditingTool(null);
 			setIsFormOpen(false);
@@ -153,29 +105,15 @@ export default function AdminPage() {
 	const handleDeleteTool = async (toolId: string) => {
 		setDeletingToolId(toolId);
 		try {
-			const isCustomTool = toolId.startsWith("custom-");
-
-			if (isCustomTool) {
-				// Handle custom tool deletion with localStorage
-				const updatedTools = tools.filter((tool) => tool.id !== toolId);
-				setTools(updatedTools);
-				saveCustomTools(updatedTools);
-			} else {
-				// Handle system tool deletion with API
-				await deleteTool(toolId);
-				// Reload tools after successful deletion
-				const updatedSystemTools = await getTools();
-				const savedTools = localStorage.getItem("custom-tools");
-				let customTools = [];
-				if (savedTools) {
-					try {
-						customTools = JSON.parse(savedTools);
-					} catch {
-						customTools = [];
-					}
-				}
-				setTools([...updatedSystemTools, ...customTools]);
-			}
+			// 所有工具都通过 API 删除
+			await deleteTool(toolId);
+			// Reload tools after successful deletion
+			const [updatedTools, toolCategories] = await Promise.all([
+				getTools(),
+				getToolCategories(),
+			]);
+			setCategories(toolCategories);
+			setTools(updatedTools);
 		} catch (error) {
 			console.error("Failed to delete tool:", error);
 			alert(`Failed to delete tool: ${(error as Error).message}`);
@@ -189,24 +127,9 @@ export default function AdminPage() {
 		setEditingTool(null);
 	};
 
-	const [systemTools, setSystemTools] = useState<Tool[]>([]);
-
-	// 加载系统工具用于区分
-	useEffect(() => {
-		const loadSystemTools = async () => {
-			try {
-				const tools = await getTools();
-				setSystemTools(tools);
-			} catch (error) {
-				console.error("Failed to load system tools:", error);
-			}
-		};
-		loadSystemTools();
-	}, []);
-
-	const customTools = tools.filter(
-		(tool) => !systemTools.find((systemTool) => systemTool.id === tool.id),
-	);
+	// 根据 isInternal 分类工具
+	const internalTools = tools.filter((tool) => tool.isInternal);
+	const externalTools = tools.filter((tool) => !tool.isInternal);
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -238,16 +161,14 @@ export default function AdminPage() {
 						</Card>
 						<Card>
 							<CardHeader className="pb-2">
-								<CardTitle className="text-2xl">{customTools.length}</CardTitle>
-								<CardDescription>自定义工具</CardDescription>
+								<CardTitle className="text-2xl">{internalTools.length}</CardTitle>
+								<CardDescription>内部工具</CardDescription>
 							</CardHeader>
 						</Card>
 						<Card>
 							<CardHeader className="pb-2">
-								<CardTitle className="text-2xl">
-									{tools.filter((t) => t.status === "active").length}
-								</CardTitle>
-								<CardDescription>可用工具</CardDescription>
+								<CardTitle className="text-2xl">{externalTools.length}</CardTitle>
+								<CardDescription>外部工具</CardDescription>
 							</CardHeader>
 						</Card>
 					</div>
@@ -255,8 +176,8 @@ export default function AdminPage() {
 					<Tabs defaultValue="all" className="space-y-6">
 						<TabsList>
 							<TabsTrigger value="all">所有工具</TabsTrigger>
-							<TabsTrigger value="custom">自定义工具</TabsTrigger>
-							<TabsTrigger value="system">系统工具</TabsTrigger>
+							<TabsTrigger value="internal">内部工具</TabsTrigger>
+							<TabsTrigger value="external">外部工具</TabsTrigger>
 						</TabsList>
 
 						<TabsContent value="all" className="space-y-4">
@@ -271,9 +192,9 @@ export default function AdminPage() {
 							/>
 						</TabsContent>
 
-						<TabsContent value="custom" className="space-y-4">
+						<TabsContent value="internal" className="space-y-4">
 							<ToolList
-								tools={customTools}
+								tools={internalTools}
 								categories={categories}
 								onEdit={handleEditTool}
 								onDelete={handleDeleteTool}
@@ -281,34 +202,50 @@ export default function AdminPage() {
 								loading={loading}
 								deleting={deletingToolId}
 							/>
-							{customTools.length === 0 && (
+							{!loading && internalTools.length === 0 && (
 								<Card>
 									<CardContent className="flex flex-col items-center justify-center py-12">
 										<p className="text-muted-foreground mb-4">
-											还没有自定义工具
+											还没有内部工具
 										</p>
 										<Button
 											onClick={() => setIsFormOpen(true)}
 											className="gap-2"
 										>
 											<Plus className="h-4 w-4" />
-											添加第一个工具
+											添加第一个内部工具
 										</Button>
 									</CardContent>
 								</Card>
 							)}
 						</TabsContent>
 
-						<TabsContent value="system" className="space-y-4">
+						<TabsContent value="external" className="space-y-4">
 							<ToolList
-								tools={systemTools}
+								tools={externalTools}
 								categories={categories}
 								onEdit={handleEditTool}
 								onDelete={handleDeleteTool}
-								showActions={false}
+								showActions={true}
 								loading={loading}
 								deleting={deletingToolId}
 							/>
+							{!loading && externalTools.length === 0 && (
+								<Card>
+									<CardContent className="flex flex-col items-center justify-center py-12">
+										<p className="text-muted-foreground mb-4">
+											还没有外部工具
+										</p>
+										<Button
+											onClick={() => setIsFormOpen(true)}
+											className="gap-2"
+										>
+											<Plus className="h-4 w-4" />
+											添加第一个外部工具
+										</Button>
+									</CardContent>
+								</Card>
+							)}
 						</TabsContent>
 					</Tabs>
 				</div>
