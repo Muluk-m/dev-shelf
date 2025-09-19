@@ -12,8 +12,8 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { createTool, deleteTool, getTools, updateTool } from "~/lib/api";
-import type { Tool } from "~/types/tool";
+import { createTool, deleteTool, getTools, getToolCategories, updateTool } from "~/lib/api";
+import type { Tool, ToolCategory } from "~/types/tool";
 import type { Route } from "./+types/admin";
 
 export function meta({}: Route.MetaArgs) {
@@ -25,14 +25,23 @@ export function meta({}: Route.MetaArgs) {
 
 export default function AdminPage() {
 	const [tools, setTools] = useState<Tool[]>([]);
+	const [categories, setCategories] = useState<ToolCategory[]>([]);
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [editingTool, setEditingTool] = useState<Tool | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [formLoading, setFormLoading] = useState(false);
+	const [deletingToolId, setDeletingToolId] = useState<string | null>(null);
 
 	// 加载工具数据
 	useEffect(() => {
-		const loadTools = async () => {
+		const loadData = async () => {
 			try {
-				const systemTools = await getTools();
+				const [systemTools, toolCategories] = await Promise.all([
+					getTools(),
+					getToolCategories(),
+				]);
+				setCategories(toolCategories);
+
 				const savedTools = localStorage.getItem("custom-tools");
 				if (savedTools) {
 					try {
@@ -45,11 +54,13 @@ export default function AdminPage() {
 					setTools(systemTools);
 				}
 			} catch (error) {
-				console.error("Failed to load tools:", error);
+				console.error("Failed to load data:", error);
 				setTools([]);
+			} finally {
+				setLoading(false);
 			}
 		};
-		loadTools();
+		loadData();
 	}, []);
 
 	// 保存自定义工具到本地存储
@@ -66,8 +77,9 @@ export default function AdminPage() {
 	};
 
 	const handleAddTool = async (toolData: Omit<Tool, "id">) => {
+		setFormLoading(true);
 		try {
-			const result = await createTool(toolData);
+			await createTool(toolData);
 			// Reload tools after successful creation
 			const updatedTools = await getTools();
 			const savedTools = localStorage.getItem("custom-tools");
@@ -83,7 +95,9 @@ export default function AdminPage() {
 			setIsFormOpen(false);
 		} catch (error) {
 			console.error("Failed to create tool:", error);
-			alert("Failed to create tool: " + (error as Error).message);
+			alert(`Failed to create tool: ${(error as Error).message}`);
+		} finally {
+			setFormLoading(false);
 		}
 	};
 
@@ -95,6 +109,7 @@ export default function AdminPage() {
 	const handleUpdateTool = async (toolData: Omit<Tool, "id">) => {
 		if (!editingTool) return;
 
+		setFormLoading(true);
 		try {
 			// Check if it's a system tool or custom tool
 			const isCustomTool = editingTool.id.startsWith("custom-");
@@ -129,11 +144,14 @@ export default function AdminPage() {
 			setIsFormOpen(false);
 		} catch (error) {
 			console.error("Failed to update tool:", error);
-			alert("Failed to update tool: " + (error as Error).message);
+			alert(`Failed to update tool: ${(error as Error).message}`);
+		} finally {
+			setFormLoading(false);
 		}
 	};
 
 	const handleDeleteTool = async (toolId: string) => {
+		setDeletingToolId(toolId);
 		try {
 			const isCustomTool = toolId.startsWith("custom-");
 
@@ -160,7 +178,9 @@ export default function AdminPage() {
 			}
 		} catch (error) {
 			console.error("Failed to delete tool:", error);
-			alert("Failed to delete tool: " + (error as Error).message);
+			alert(`Failed to delete tool: ${(error as Error).message}`);
+		} finally {
+			setDeletingToolId(null);
 		}
 	};
 
@@ -242,18 +262,24 @@ export default function AdminPage() {
 						<TabsContent value="all" className="space-y-4">
 							<ToolList
 								tools={tools}
+								categories={categories}
 								onEdit={handleEditTool}
 								onDelete={handleDeleteTool}
 								showActions={true}
+								loading={loading}
+								deleting={deletingToolId}
 							/>
 						</TabsContent>
 
 						<TabsContent value="custom" className="space-y-4">
 							<ToolList
 								tools={customTools}
+								categories={categories}
 								onEdit={handleEditTool}
 								onDelete={handleDeleteTool}
 								showActions={true}
+								loading={loading}
+								deleting={deletingToolId}
 							/>
 							{customTools.length === 0 && (
 								<Card>
@@ -276,9 +302,12 @@ export default function AdminPage() {
 						<TabsContent value="system" className="space-y-4">
 							<ToolList
 								tools={systemTools}
+								categories={categories}
 								onEdit={handleEditTool}
 								onDelete={handleDeleteTool}
 								showActions={false}
+								loading={loading}
+								deleting={deletingToolId}
 							/>
 						</TabsContent>
 					</Tabs>
@@ -291,6 +320,7 @@ export default function AdminPage() {
 				onSubmit={editingTool ? handleUpdateTool : handleAddTool}
 				initialData={editingTool}
 				title={editingTool ? "编辑工具" : "添加工具"}
+				loading={formLoading}
 			/>
 		</div>
 	);

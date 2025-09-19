@@ -33,6 +33,7 @@ interface ToolFormProps {
 	onSubmit: (tool: Omit<Tool, "id">) => void;
 	initialData?: Tool | null;
 	title: string;
+	loading?: boolean;
 }
 
 export function ToolForm({
@@ -41,6 +42,7 @@ export function ToolForm({
 	onSubmit,
 	initialData,
 	title,
+	loading = false,
 }: ToolFormProps) {
 	// Initialize form data based on Tool interface
 	const initializeFormData = (): Omit<Tool, "id"> => ({
@@ -415,9 +417,12 @@ export function ToolForm({
 										value={newTag}
 										onChange={(e) => setNewTag(e.target.value)}
 										placeholder="添加标签"
-										onKeyDown={(e) =>
-											e.key === "Enter" && (e.preventDefault(), handleAddTag())
-										}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault();
+												handleAddTag();
+											}
+										}}
 									/>
 									<Button type="button" onClick={handleAddTag} size="sm">
 										<Plus className="h-4 w-4" />
@@ -439,11 +444,18 @@ export function ToolForm({
 					</Tabs>
 
 					<div className="flex justify-end gap-2 pt-4 border-t">
-						<Button type="button" variant="outline" onClick={onClose}>
+						<Button type="button" variant="outline" onClick={onClose} disabled={loading}>
 							取消
 						</Button>
-						<Button type="submit">
-							{initialData ? "更新工具" : "添加工具"}
+						<Button type="submit" disabled={loading}>
+							{loading ? (
+								<>
+									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+									{initialData ? "更新中..." : "添加中..."}
+								</>
+							) : (
+								initialData ? "更新工具" : "添加工具"
+							)}
 						</Button>
 					</div>
 				</form>
