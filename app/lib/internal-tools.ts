@@ -7,11 +7,6 @@
 // 内部工具ID列表，用于路由判断
 export const INTERNAL_TOOL_IDS = [
 	"json-formatter",
-	"base64-converter",
-	"qr-generator",
-	"url-encoder",
-	"hash-generator",
-	"timestamp-converter",
 ] as const;
 
 export type InternalToolId = typeof INTERNAL_TOOL_IDS[number];

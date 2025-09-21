@@ -13,12 +13,21 @@ const auth = new Hono<{ Bindings: Cloudflare.Env }>();
 
 auth.get("/me", (c) => {
 	const token = getCookie(c, "auth_token");
-	const decodedJwt = decode(token as string);
 
-	return c.json({
-		coe: 0,
-		data: decodedJwt.payload,
-	});
+	if (!token) {
+		return c.json({ error: "Unauthorized" }, 401);
+	}
+
+	try {
+		const decodedJwt = decode(token);
+		return c.json({
+			coe: 0,
+			data: decodedJwt.payload,
+		});
+	} catch (error) {
+		console.error("Failed to decode auth token", error);
+		return c.json({ error: "Invalid token" }, 401);
+	}
 });
 
 // OAuth 授权跳转

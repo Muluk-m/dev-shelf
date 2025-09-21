@@ -1,31 +1,33 @@
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 
+const API_PREFIX = "/api";
+const PUBLIC_PATHS = ["/auth"];
+
 export const authMiddleware = createMiddleware(async (c, next) => {
-	// 检查是否是需要认证的路径
 	const path = c.req.path;
+	const method = c.req.method;
 
-	// 排除不需要认证的路径
-	const publicPaths = ["/auth", "/api"];
-	const isPublicPath = publicPaths.some((publicPath) =>
-		path.startsWith(publicPath),
-	);
-
-	if (isPublicPath) {
+	if (PUBLIC_PATHS.some((publicPath) => path.startsWith(publicPath))) {
 		return next();
 	}
 
-	// 检查认证状态
 	const token = getCookie(c, "auth_token");
+	const isApiRequest = path.startsWith(API_PREFIX);
 
-	if (!token) {
+	// 对 API 读取请求放行，写操作需要认证
+	if (isApiRequest && (!token || token.length === 0)) {
+		if (method === "GET" || method === "OPTIONS" || method === "HEAD") {
+			return next();
+		}
+		return c.json({ error: "Unauthorized" }, 401);
+	}
+
+	if (!token || token.length === 0) {
 		const url = new URL(c.req.url);
 		const redirectTo = encodeURIComponent(url.pathname + url.search);
-
-		// 重定向到登录页
 		return c.redirect(`/auth/login?redirectTo=${redirectTo}`);
 	}
 
-	// 认证通过，继续处理请求
 	return next();
 });

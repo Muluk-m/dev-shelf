@@ -53,7 +53,7 @@ export function ToolForm({
 		tags: [],
 		environments: [],
 		icon: "",
-		isInternal: true,
+		isInternal: false,
 		lastUpdated: new Date().toISOString().split("T")[0],
 	});
 
