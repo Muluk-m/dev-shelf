@@ -1,4 +1,4 @@
-import { Plus, Settings } from "lucide-react";
+import { Plus, Search, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ToolForm } from "~/components/admin/tool-form";
 import { ToolList } from "~/components/admin/tool-list";
@@ -11,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { createTool, deleteTool, getTools, getToolCategories, updateTool } from "~/lib/api";
 import type { Tool, ToolCategory } from "~/types/tool";
@@ -31,6 +32,8 @@ export default function AdminPage() {
 	const [loading, setLoading] = useState(true);
 	const [formLoading, setFormLoading] = useState(false);
 	const [deletingToolId, setDeletingToolId] = useState<string | null>(null);
+	const [searchTerm, setSearchTerm] = useState("");
+	const [statusFilter, setStatusFilter] = useState<"all" | Tool["status"]>("all");
 
 	// 加载工具数据
 	useEffect(() => {
@@ -127,6 +130,17 @@ export default function AdminPage() {
 		setEditingTool(null);
 	};
 
+	const statusOptions: Array<{ value: "all" | Tool["status"]; label: string }> = [
+		{ value: "all", label: "全部" },
+		{ value: "active", label: "正常" },
+		{ value: "maintenance", label: "维护中" },
+		{ value: "deprecated", label: "已废弃" },
+	];
+
+	const handleStatusToggle = (value: "all" | Tool["status"]) => {
+		setStatusFilter((prev) => (prev === value ? "all" : value));
+	};
+
 	// 根据 isInternal 分类工具
 	const internalTools = tools.filter((tool) => tool.isInternal);
 	const externalTools = tools.filter((tool) => !tool.isInternal);
@@ -150,6 +164,34 @@ export default function AdminPage() {
 							<Plus className="h-4 w-4" />
 							添加工具
 						</Button>
+					</div>
+
+					<div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+						<div className="relative w-full md:max-w-md">
+							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+							<Input
+								value={searchTerm}
+								onChange={(event) => setSearchTerm(event.target.value)}
+								placeholder="搜索工具名称、标签或描述"
+								className="pl-9"
+							/>
+						</div>
+						<div className="flex flex-wrap items-center gap-2">
+							<span className="text-xs uppercase tracking-wide text-muted-foreground">状态筛选</span>
+							{statusOptions.map((option) => (
+								<Button
+									key={option.value}
+									variant={statusFilter === option.value ? "default" : "outline"}
+									size="sm"
+									onClick={() => handleStatusToggle(option.value)}
+									className={
+										statusFilter === option.value ? "shadow-sm" : "bg-transparent"
+									}
+								>
+									{option.label}
+								</Button>
+							))}
+						</div>
 					</div>
 
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -189,6 +231,8 @@ export default function AdminPage() {
 								showActions={true}
 								loading={loading}
 								deleting={deletingToolId}
+								searchTerm={searchTerm}
+								statusFilter={statusFilter}
 							/>
 						</TabsContent>
 
@@ -201,6 +245,8 @@ export default function AdminPage() {
 								showActions={true}
 								loading={loading}
 								deleting={deletingToolId}
+								searchTerm={searchTerm}
+								statusFilter={statusFilter}
 							/>
 							{!loading && internalTools.length === 0 && (
 								<Card>
@@ -229,6 +275,8 @@ export default function AdminPage() {
 								showActions={true}
 								loading={loading}
 								deleting={deletingToolId}
+								searchTerm={searchTerm}
+								statusFilter={statusFilter}
 							/>
 							{!loading && externalTools.length === 0 && (
 								<Card>
