@@ -3,9 +3,9 @@
 // Runtime types generated with workerd@1.20250617.0 2025-04-01 
 declare namespace Cloudflare {
 	interface Env {
-		API_BASE_URL: string;
-		FEISHU_CLIENT_ID: string;
-		OAUTH_BASE_URL: string;
+		API_BASE_URL: "https://qlj-devhub-homepage.qiliangjia.one";
+		FEISHU_CLIENT_ID: "cli_a81054e5b13ed013";
+		OAUTH_BASE_URL: "https://thirdpart-service-hub-app-test.qiliangjia.org";
 		DB: D1Database;
 	}
 }

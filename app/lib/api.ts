@@ -105,3 +105,61 @@ export async function deleteTool(id: string): Promise<{ message: string }> {
 
 	return response.json();
 }
+
+export async function createCategory(
+	categoryData: Omit<ToolCategory, "id">,
+): Promise<{ id: string; message: string }> {
+	const response = await fetch(`${API_BASE_URL}/api/categories`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(categoryData),
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch((error) => ({ error: error.message }))) as { error: string };
+		throw new Error(error.error || "Failed to create category");
+	}
+
+	return response.json();
+}
+
+export async function updateCategory(
+	id: string,
+	categoryData: Omit<ToolCategory, "id">,
+): Promise<{ message: string }> {
+	const response = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
+		method: "PUT",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(categoryData),
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch((error) => ({ error: error.message }))) as { error: string };
+		throw new Error(error.error || "Failed to update category");
+	}
+
+	return response.json();
+}
+
+export async function deleteCategory(id: string): Promise<{ message: string }> {
+	const response = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
+		method: "DELETE",
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch((error) => ({ error: error.message }))) as { error: string };
+		throw new Error(error.error || "Failed to delete category");
+	}
+
+	return response.json();
+}

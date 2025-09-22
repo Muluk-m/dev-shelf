@@ -242,3 +242,60 @@ export async function deleteTool(db: D1Database, id: string): Promise<void> {
     throw new Error("Failed to delete tool");
   }
 }
+
+export async function createToolCategory(
+  db: D1Database,
+  category: Omit<ToolCategory, "id">
+): Promise<string> {
+  const categoryId = crypto.randomUUID();
+
+  try {
+    await db
+      .prepare(
+        `
+        INSERT INTO tool_categories (id, name, description, icon, color)
+        VALUES (?, ?, ?, ?, ?)
+      `
+      )
+      .bind(categoryId, category.name, category.description, category.icon, category.color)
+      .run();
+
+    return categoryId;
+  } catch (error) {
+    console.error("Error creating category:", error);
+    throw new Error("Failed to create category");
+  }
+}
+
+export async function updateToolCategory(
+  db: D1Database,
+  id: string,
+  category: Omit<ToolCategory, "id">
+): Promise<void> {
+  try {
+    await db
+      .prepare(
+        `
+        UPDATE tool_categories
+        SET name = ?, description = ?, icon = ?, color = ?
+        WHERE id = ?
+      `
+      )
+      .bind(category.name, category.description, category.icon, category.color, id)
+      .run();
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw new Error("Failed to update category");
+  }
+}
+
+export async function deleteToolCategory(db: D1Database, id: string): Promise<void> {
+  try {
+    // 注意：这里不删除使用该分类的工具，只是删除分类本身
+    // 实际生产环境中可能需要先处理引用该分类的工具
+    await db.prepare(`DELETE FROM tool_categories WHERE id = ?`).bind(id).run();
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    throw new Error("Failed to delete category");
+  }
+}
