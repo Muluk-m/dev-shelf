@@ -312,13 +312,17 @@ export function ToolForm({
 											value={
 												getProductionEnv().isExternal ? "external" : "internal"
 											}
-											onValueChange={(value: "internal" | "external") =>
+											onValueChange={(value: "internal" | "external") => {
 												updateEnvironment(
 													"production",
 													"isExternal",
 													value === "external",
-												)
-											}
+												);
+												setFormData((prev) => ({
+													...prev,
+													isInternal: value === "internal",
+												}));
+											}}
 										>
 											<SelectTrigger>
 												<SelectValue />
@@ -444,7 +448,12 @@ export function ToolForm({
 					</Tabs>
 
 					<div className="flex justify-end gap-2 pt-4 border-t">
-						<Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={onClose}
+							disabled={loading}
+						>
 							取消
 						</Button>
 						<Button type="submit" disabled={loading}>
@@ -453,8 +462,10 @@ export function ToolForm({
 									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
 									{initialData ? "更新中..." : "添加中..."}
 								</>
+							) : initialData ? (
+								"更新工具"
 							) : (
-								initialData ? "更新工具" : "添加工具"
+								"添加工具"
 							)}
 						</Button>
 					</div>
