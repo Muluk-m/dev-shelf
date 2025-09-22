@@ -22,14 +22,15 @@ export async function getTools(db: D1Database): Promise<Tool[]> {
 
     // 获取环境信息
     const envQuery = `
-      SELECT name, label, url, is_external 
-      FROM tool_environments 
+      SELECT name, label, url, is_external
+      FROM tool_environments
       WHERE tool_id = ?
+      ORDER BY name ASC
     `;
     const envResult = await db.prepare(envQuery).bind(tool.id).all();
     tool.environments = (envResult.results as any[]).map((env) => ({
       ...env,
-      isExternal: Boolean(env.is_external),
+      isExternal: Boolean(env.is_external)
     }));
 
     // 获取标签信息
@@ -85,14 +86,15 @@ export async function getToolById(
 
   // 获取环境信息
   const envQuery = `
-    SELECT name, label, url, is_external 
-    FROM tool_environments 
+    SELECT name, label, url, is_external
+    FROM tool_environments
     WHERE tool_id = ?
+    ORDER BY name ASC
   `;
   const envResult = await db.prepare(envQuery).bind(id).all();
   tool.environments = (envResult.results as any[]).map((env) => ({
     ...env,
-    isExternal: Boolean(env.is_external),
+    isExternal: Boolean(env.is_external)
   }));
 
   // 获取标签信息

@@ -21,7 +21,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
-import { Switch } from "~/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
 import { getToolCategories } from "~/lib/api";
@@ -63,7 +62,9 @@ export function ToolForm({
 	);
 
 	const [newTag, setNewTag] = useState("");
-	const [hasTestEnv, setHasTestEnv] = useState(false);
+	const [testEnvironments, setTestEnvironments] = useState<ToolEnvironment[]>(
+		[],
+	);
 
 	// Load tool categories
 	useEffect(() => {
@@ -81,21 +82,27 @@ export function ToolForm({
 	useEffect(() => {
 		if (initialData) {
 			setFormData(initialData);
-			setHasTestEnv(
-				initialData.environments.some((env) => env.name === "test"),
+			const testEnvs = initialData.environments.filter(
+				(env) => env.name !== "production",
 			);
+			setTestEnvironments(testEnvs);
 		} else {
 			setFormData(initializeFormData());
-			setHasTestEnv(false);
+			setTestEnvironments([]);
 		}
 	}, [initialData, isOpen]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
+		// 确保至少有生产环境
+		const productionEnv = getProductionEnv();
+		const allEnvironments = [productionEnv, ...testEnvironments];
+
 		// Update lastUpdated timestamp
 		const submitData = {
 			...formData,
+			environments: allEnvironments,
 			lastUpdated: new Date().toISOString().split("T")[0],
 		};
 
@@ -119,25 +126,27 @@ export function ToolForm({
 		}));
 	};
 
-	const updateEnvironment = (
-		envName: string,
+	// 生产环境管理
+	const updateProductionEnvironment = (
 		field: keyof ToolEnvironment,
 		value: string | boolean,
 	) => {
 		setFormData((prev) => {
 			const environments = [...prev.environments];
-			const envIndex = environments.findIndex((env) => env.name === envName);
+			const prodIndex = environments.findIndex(
+				(env) => env.name === "production",
+			);
 
-			if (envIndex >= 0) {
-				environments[envIndex] = {
-					...environments[envIndex],
+			if (prodIndex >= 0) {
+				environments[prodIndex] = {
+					...environments[prodIndex],
 					[field]: value,
 				};
 			} else {
-				// Create new environment if it doesn't exist
+				// 创建生产环境
 				environments.push({
-					name: envName,
-					label: envName === "production" ? "生产环境" : "测试环境",
+					name: "production",
+					label: "生产环境",
 					url: field === "url" ? (value as string) : "",
 					isExternal: field === "isExternal" ? (value as boolean) : true,
 				});
@@ -150,44 +159,9 @@ export function ToolForm({
 		});
 	};
 
-	const handleTestEnvToggle = (enabled: boolean) => {
-		setHasTestEnv(enabled);
-		if (enabled) {
-			// Add test environment if it doesn't exist
-			const hasTestEnv = formData.environments.some(
-				(env) => env.name === "test",
-			);
-			if (!hasTestEnv) {
-				setFormData((prev) => ({
-					...prev,
-					environments: [
-						...prev.environments,
-						{
-							name: "test",
-							label: "测试环境",
-							url: "",
-							isExternal: true,
-						},
-					],
-				}));
-			}
-		} else {
-			// Remove test environment
-			setFormData((prev) => ({
-				...prev,
-				environments: prev.environments.filter((env) => env.name !== "test"),
-			}));
-		}
-	};
-
-	// Helper functions to get environment data
-	const getEnvironment = (name: string) => {
-		return formData.environments.find((env) => env.name === name);
-	};
-
 	const getProductionEnv = () => {
 		return (
-			getEnvironment("production") || {
+			formData.environments.find((env) => env.name === "production") || {
 				name: "production",
 				label: "生产环境",
 				url: "",
@@ -196,8 +170,29 @@ export function ToolForm({
 		);
 	};
 
-	const getTestEnv = () => {
-		return getEnvironment("test");
+	// 测试环境管理
+	const addTestEnvironment = () => {
+		const newEnv: ToolEnvironment = {
+			name: `test${testEnvironments.length + 1}`,
+			label: `测试环境${testEnvironments.length + 1}`,
+			url: "",
+			isExternal: true,
+		};
+		setTestEnvironments([...testEnvironments, newEnv]);
+	};
+
+	const updateTestEnvironment = (
+		index: number,
+		field: keyof ToolEnvironment,
+		value: string | boolean,
+	) => {
+		setTestEnvironments((prev) =>
+			prev.map((env, i) => (i === index ? { ...env, [field]: value } : env)),
+		);
+	};
+
+	const removeTestEnvironment = (index: number) => {
+		setTestEnvironments((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	return (
@@ -301,6 +296,7 @@ export function ToolForm({
 						</TabsContent>
 
 						<TabsContent value="environments" className="space-y-4">
+							{/* 生产环境 - 固定必须 */}
 							<Card>
 								<CardHeader>
 									<CardTitle className="text-lg">生产环境 *</CardTitle>
@@ -313,15 +309,16 @@ export function ToolForm({
 												getProductionEnv().isExternal ? "external" : "internal"
 											}
 											onValueChange={(value: "internal" | "external") => {
-												updateEnvironment(
-													"production",
+												updateProductionEnvironment(
 													"isExternal",
 													value === "external",
 												);
-												setFormData((prev) => ({
-													...prev,
-													isInternal: value === "internal",
-												}));
+												if (value === "internal") {
+													setFormData((prev) => ({
+														...prev,
+														isInternal: true,
+													}));
+												}
 											}}
 										>
 											<SelectTrigger>
@@ -341,7 +338,7 @@ export function ToolForm({
 										<Input
 											value={getProductionEnv().url}
 											onChange={(e) =>
-												updateEnvironment("production", "url", e.target.value)
+												updateProductionEnvironment("url", e.target.value)
 											}
 											placeholder={
 												getProductionEnv().isExternal
@@ -354,63 +351,119 @@ export function ToolForm({
 								</CardContent>
 							</Card>
 
-							<div className="flex items-center space-x-2">
-								<Switch
-									id="test-env"
-									checked={hasTestEnv}
-									onCheckedChange={handleTestEnvToggle}
-								/>
-								<Label htmlFor="test-env">启用测试环境</Label>
-							</div>
+							{/* 测试环境 - 可选且灵活 */}
+							<div className="space-y-4">
+								<div className="flex items-center justify-between">
+									<h3 className="text-lg font-medium">测试环境</h3>
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={addTestEnvironment}
+										className="gap-2"
+									>
+										<Plus className="h-4 w-4" />
+										添加测试环境
+									</Button>
+								</div>
 
-							{hasTestEnv && (
-								<Card>
-									<CardHeader>
-										<CardTitle className="text-lg">测试环境</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-4">
-										<div className="space-y-2">
-											<Label>访问类型</Label>
-											<Select
-												value={
-													getTestEnv()?.isExternal ? "external" : "internal"
-												}
-												onValueChange={(value: "internal" | "external") =>
-													updateEnvironment(
-														"test",
-														"isExternal",
-														value === "external",
-													)
-												}
-											>
-												<SelectTrigger>
-													<SelectValue />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="internal">内部路由</SelectItem>
-													<SelectItem value="external">外部链接</SelectItem>
-												</SelectContent>
-											</Select>
-										</div>
-										<div className="space-y-2">
-											<Label>
-												{getTestEnv()?.isExternal ? "访问链接" : "路由路径"}
-											</Label>
-											<Input
-												value={getTestEnv()?.url || ""}
-												onChange={(e) =>
-													updateEnvironment("test", "url", e.target.value)
-												}
-												placeholder={
-													getTestEnv()?.isExternal
-														? "https://test.example.com"
-														: "/tools/example-test"
-												}
-											/>
-										</div>
-									</CardContent>
-								</Card>
-							)}
+								{testEnvironments.map((env, index) => (
+									<Card key={index}>
+										<CardHeader className="pb-3">
+											<CardTitle className="flex items-center justify-between text-base">
+												<span>测试环境 {index + 1}</span>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													onClick={() => removeTestEnvironment(index)}
+													className="text-destructive hover:text-destructive"
+												>
+													<X className="h-4 w-4" />
+												</Button>
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-4">
+											<div className="grid grid-cols-2 gap-3">
+												<div className="space-y-2">
+													<Label>环境名称</Label>
+													<Input
+														value={env.name}
+														onChange={(e) =>
+															updateTestEnvironment(
+																index,
+																"name",
+																e.target.value,
+															)
+														}
+														placeholder="例如: test, uat, staging"
+													/>
+												</div>
+												<div className="space-y-2">
+													<Label>显示名称</Label>
+													<Input
+														value={env.label}
+														onChange={(e) =>
+															updateTestEnvironment(
+																index,
+																"label",
+																e.target.value,
+															)
+														}
+														placeholder="例如: 测试环境, UAT环境"
+													/>
+												</div>
+											</div>
+
+											<div className="space-y-2">
+												<Label>访问类型</Label>
+												<Select
+													value={env.isExternal ? "external" : "internal"}
+													onValueChange={(value: "internal" | "external") =>
+														updateTestEnvironment(
+															index,
+															"isExternal",
+															value === "external",
+														)
+													}
+												>
+													<SelectTrigger>
+														<SelectValue />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value="internal">内部路由</SelectItem>
+														<SelectItem value="external">外部链接</SelectItem>
+													</SelectContent>
+												</Select>
+											</div>
+
+											<div className="space-y-2">
+												<Label>
+													{env.isExternal ? "访问链接" : "路由路径"}
+												</Label>
+												<Input
+													value={env.url}
+													onChange={(e) =>
+														updateTestEnvironment(index, "url", e.target.value)
+													}
+													placeholder={
+														env.isExternal
+															? "https://test.example.com"
+															: "/tools/example-test"
+													}
+												/>
+											</div>
+										</CardContent>
+									</Card>
+								))}
+
+								{testEnvironments.length === 0 && (
+									<div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+										<p>暂无测试环境</p>
+										<p className="text-sm mt-1">点击上方按钮添加测试环境</p>
+									</div>
+								)}
+							</div>
 						</TabsContent>
 
 						<TabsContent value="advanced" className="space-y-4">
