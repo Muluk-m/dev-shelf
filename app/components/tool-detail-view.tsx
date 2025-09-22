@@ -1,24 +1,17 @@
 "use client";
 
+import * as LucideIcons from "lucide-react";
 import {
 	AlertCircle,
 	ArrowLeft,
-	BarChart3,
-	BookOpen,
 	CheckCircle,
 	Clock,
 	Code,
-	Database,
 	ExternalLink,
-	FileText,
 	Heart,
-	Rocket,
 	Share2,
 	Tag,
-	TestTube,
-	Users,
 	Wrench,
-	WrenchIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -37,16 +30,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { getToolCategories, getTools } from "~/lib/api";
 import type { Tool } from "~/types/tool";
 
-const iconMap = {
-	Code,
-	Rocket,
-	TestTube,
-	Users,
-	BarChart3,
-	Wrench: WrenchIcon,
-	Database,
-	FileText,
-	BookOpen,
+// 动态获取图标组件
+const getIconComponent = (iconName: string) => {
+	const IconComponent = (LucideIcons as any)[iconName];
+	return IconComponent || Code;
 };
 
 const statusConfig = {
@@ -103,7 +90,7 @@ export function ToolDetailView({ tool }: ToolDetailViewProps) {
 		loadData();
 	}, [tool.category, tool.id]);
 
-	const IconComponent = iconMap[tool.icon as keyof typeof iconMap] || Code;
+	const IconComponent = getIconComponent(tool.icon);
 	const statusInfo = statusConfig[tool.status];
 	const StatusIcon = statusInfo.icon;
 
@@ -361,7 +348,17 @@ export function ToolDetailView({ tool }: ToolDetailViewProps) {
 									size="lg"
 									onClick={() => {
 										if (tool.environments && tool.environments.length > 0) {
-											window.open(tool.environments[0].url, "_blank");
+											const url = tool.environments[0].url;
+											// 如果是内部路由，直接导航
+											if (
+												!tool.environments[0].isExternal &&
+												url.startsWith("/")
+											) {
+												navigate(url);
+											} else {
+												// 外部链接在新窗口打开
+												window.open(url, "_blank");
+											}
 										}
 									}}
 									disabled={
@@ -389,8 +386,7 @@ export function ToolDetailView({ tool }: ToolDetailViewProps) {
 							</CardHeader>
 							<CardContent className="space-y-3">
 								{relatedTools.map((relatedTool) => {
-									const RelatedIcon =
-										iconMap[relatedTool.icon as keyof typeof iconMap] || Code;
+									const RelatedIcon = getIconComponent(relatedTool.icon);
 									return (
 										<div
 											key={relatedTool.id}
