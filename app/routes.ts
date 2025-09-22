@@ -9,6 +9,7 @@ export default [
 		route("json-formatter", "routes/tools/json-formatter.tsx"),
 		route("base64-converter", "routes/tools/base64-converter.tsx"),
 		route("url-parser", "routes/tools/url-parser.tsx"),
+		route("url-encoder", "routes/tools/url-encoder.tsx"),
 		// 后续可以添加更多内部工具：
 		// route("qr-generator", "routes/tools/qr-generator.tsx"),
 	]),
