@@ -32,6 +32,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<meta name="generator" content="v0.app" />
 				<Meta />
 				<Links />
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+							(function() {
+								try {
+									var theme = localStorage.getItem('theme');
+									var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+									var appliedTheme = theme === 'system' || !theme ? systemTheme : theme;
+									document.documentElement.classList.add(appliedTheme);
+								} catch (e) {}
+							})();
+						`,
+					}}
+				/>
 			</head>
 			<body className="font-sans antialiased">
 				<ThemeProvider

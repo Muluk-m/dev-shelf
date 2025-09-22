@@ -29,18 +29,19 @@ export function ThemeProvider({
 	disableTransitionOnChange = false,
 	...props
 }: ThemeProviderProps) {
-	const [theme, setTheme] = React.useState<Theme>(defaultTheme);
+	const [theme, setTheme] = React.useState<Theme>(() => {
+		// 在服务端渲染时返回默认主题
+		if (typeof window === "undefined") return defaultTheme;
 
-	React.useEffect(() => {
+		// 在客户端，从localStorage读取主题
 		const storedTheme = localStorage.getItem("theme") as Theme;
-		if (storedTheme) {
-			setTheme(storedTheme);
-		}
-	}, []);
+		return storedTheme || defaultTheme;
+	});
 
 	React.useEffect(() => {
 		const root = window.document.documentElement;
 
+		// 移除所有主题类
 		root.classList.remove("light", "dark");
 
 		if (theme === "system" && enableSystem) {
