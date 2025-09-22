@@ -290,11 +290,65 @@ GET    /auth/callback          # 处理登录回调
 
 ## 📋 开发规范
 
+### 代码规范
 - 使用 TypeScript 严格模式
 - 遵循 Biome 代码格式规范
 - API 端点返回标准 HTTP 状态码
 - 数据库操作使用事务确保一致性
 - 前后端字段映射：数据库使用 snake_case，前端使用 camelCase
+
+### 内部工具开发规范
+- **组件设计**：使用统一的 Card 布局和 shadcn/ui 组件
+- **错误处理**：提供清晰的错误提示和用户反馈
+- **响应式设计**：确保在移动端和桌面端都有良好体验
+- **性能优化**：使用适当的 loading 状态和骨架屏
+- **无障碍访问**：遵循 WAI-ARIA 规范，支持键盘导航
+
+### 工具页面结构建议
+```typescript
+export default function YourToolPage() {
+  return (
+    <div className="space-y-6">
+      {/* 工具标题和描述 */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold">工具名称</h1>
+        <p className="text-muted-foreground mt-2">工具描述</p>
+      </div>
+
+      {/* 主要功能区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>输入区域</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* 输入组件 */}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>结果区域</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* 输出组件 */}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 使用说明（可选） */}
+      <Card>
+        <CardHeader>
+          <CardTitle>使用说明</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* 说明内容 */}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
 
 ## 🤝 贡献指南
 
