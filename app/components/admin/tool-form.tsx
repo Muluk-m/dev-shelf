@@ -436,10 +436,15 @@ export function ToolForm({
 									{formData.tags.map((tag) => (
 										<Badge key={tag} variant="secondary" className="gap-1">
 											{tag}
-											<X
-												className="h-3 w-3 cursor-pointer"
-												onClick={() => handleRemoveTag(tag)}
-											/>
+											<button
+												type="button"
+												onClick={() => {
+													handleRemoveTag(tag);
+												}}
+												className="rounded-full p-0.5 hover:bg-muted transition-colors"
+											>
+												<X className="h-3 w-3 cursor-pointer" />
+											</button>
 										</Badge>
 									))}
 								</div>
