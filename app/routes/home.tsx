@@ -1,10 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { CategoryFilter } from "~/components/category-filter";
 import { CommandPanel } from "~/components/command-panel/command-panel";
 import { Header } from "~/components/layout/header";
-import { SearchFiltersComponent } from "~/components/search/search-filters";
-import { SearchResults } from "~/components/search/search-results";
 import { ToolCard } from "~/components/tool-card";
 import { useCommandPanel } from "~/hooks/use-command-panel";
 import { useSearch } from "~/hooks/use-search";
@@ -46,12 +44,18 @@ export default function Home() {
 		setQuery,
 		filters,
 		updateFilters,
-		clearFilters,
 		searchResults,
 		suggestions,
 		searchHistory,
 		performSearch,
 	} = useSearch(tools);
+
+	// 确保搜索钩子中的分类筛选器与当前选中的分类保持同步
+	useEffect(() => {
+		if (selectedCategory !== filters.category) {
+			updateFilters({ category: selectedCategory || undefined });
+		}
+	}, [selectedCategory, filters.category, updateFilters]);
 
 	const {
 		isOpen: isCommandPanelOpen,
@@ -76,15 +80,6 @@ export default function Home() {
 		);
 	}, [tools]);
 
-	// 根据选中的分类过滤工具
-	const filteredTools = useMemo(() => {
-		let tools = searchResults.tools;
-		if (selectedCategory) {
-			tools = tools.filter((tool) => tool.category === selectedCategory);
-		}
-		return tools;
-	}, [searchResults.tools, selectedCategory]);
-
 	const handleViewDetails = (tool: Tool) => {
 		navigate(`/tools/${tool.id}`);
 	};
@@ -93,9 +88,6 @@ export default function Home() {
 		setSelectedCategory(categoryId);
 		updateFilters({ category: categoryId || undefined });
 	};
-
-	const isSearching =
-		query.trim().length > 0 || Object.keys(filters).length > 0;
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -108,67 +100,42 @@ export default function Home() {
 				onOpenCommandPanel={openCommandPanel}
 			/>
 			<main className="container mx-auto px-4 py-8">
-				{!isSearching ? (
-					<>
-						<div className="text-center space-y-4 mb-12">
-							<h1 className="text-4xl font-bold tracking-tight">
-								研发平台工具站
-							</h1>
-							<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-								统一管理和访问常用的内部开发工具，提升团队协作效率
-							</p>
-							<div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-								<span>共 {tools.length} 个工具</span>
-								<span>•</span>
-								<span>{toolCategories.length} 个分类</span>
-								<span>•</span>
-								<span>
-									{tools.filter((t) => t.status === "active").length} 个可用
-								</span>
-							</div>
-						</div>
+				<div className="text-center space-y-4 mb-12">
+					<h1 className="text-4xl font-bold tracking-tight">研发平台工具站</h1>
+					<p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+						统一管理和访问常用的内部开发工具，提升团队协作效率
+					</p>
+					<div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+						<span>共 {tools.length} 个工具</span>
+						<span>•</span>
+						<span>{toolCategories.length} 个分类</span>
+						<span>•</span>
+						<span>
+							{tools.filter((t) => t.status === "active").length} 个可用
+						</span>
+					</div>
+				</div>
 
-						<CategoryFilter
-							categories={toolCategories}
-							selectedCategory={selectedCategory}
-							onCategoryChange={handleCategoryChange}
-							toolCounts={toolCounts}
+				<CategoryFilter
+					categories={toolCategories}
+					selectedCategory={selectedCategory}
+					onCategoryChange={handleCategoryChange}
+					toolCounts={toolCounts}
+				/>
+
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{searchResults.tools.map((tool) => (
+						<ToolCard
+							key={tool.id}
+							tool={tool}
+							onViewDetails={handleViewDetails}
 						/>
+					))}
+				</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{filteredTools.map((tool) => (
-								<ToolCard
-									key={tool.id}
-									tool={tool}
-									onViewDetails={handleViewDetails}
-								/>
-							))}
-						</div>
-
-						{filteredTools.length === 0 && (
-							<div className="text-center py-12">
-								<p className="text-muted-foreground">该分类下暂无工具</p>
-							</div>
-						)}
-					</>
-				) : (
-					<div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-						<div className="lg:col-span-1">
-							<SearchFiltersComponent
-								filters={filters}
-								onFiltersChange={updateFilters}
-								onClearFilters={clearFilters}
-								resultCount={searchResults.totalCount}
-							/>
-						</div>
-						<div className="lg:col-span-3">
-							<SearchResults
-								tools={filteredTools}
-								query={query}
-								totalCount={searchResults.totalCount}
-								onViewDetails={handleViewDetails}
-							/>
-						</div>
+				{searchResults.tools.length === 0 && (
+					<div className="text-center py-12">
+						<p className="text-muted-foreground">该分类下暂无工具</p>
 					</div>
 				)}
 			</main>

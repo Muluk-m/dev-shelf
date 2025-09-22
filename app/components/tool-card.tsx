@@ -96,8 +96,8 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 	};
 
 	return (
-		<Card className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-			<CardHeader className="pb-3">
+		<Card className="group gap-4">
+			<CardHeader className="pb-0">
 				<div className="flex items-start justify-between">
 					<div className="flex items-center gap-3">
 						<div className="p-2 rounded-lg bg-primary/10 text-primary">
@@ -129,7 +129,7 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 				</div>
 			</CardHeader>
 
-			<CardContent className="pb-4">
+			<CardContent className="pb-1">
 				<CardDescription className="text-sm leading-relaxed mb-4">
 					{tool.description}
 				</CardDescription>
@@ -156,61 +156,54 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 			<CardFooter className="pt-0">
 				<div className="flex gap-2 w-full">
 					{/* 内部工具不显示环境选择 */}
-					{!isInternalTool(tool.id) && (
-						<>
-							{tool.environments.length > 1 ? (
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<Button
-											variant="outline"
-											size="sm"
-											className="flex-1 gap-2 bg-transparent"
+					{!isInternalTool(tool.id) &&
+						(tool.environments.length > 1 ? (
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="outline"
+										size="sm"
+										className="flex-1 gap-2 bg-transparent"
+									>
+										{selectedEnv.isExternal ? (
+											<Globe className="h-3 w-3" />
+										) : (
+											<Server className="h-3 w-3" />
+										)}
+										{selectedEnv.label}
+										<ChevronDown className="h-3 w-3" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="start" className="w-40">
+									{tool.environments.map((env) => (
+										<DropdownMenuItem
+											key={env.name}
+											onClick={() => setSelectedEnv(env)}
+											className="gap-2"
 										>
-											{selectedEnv.isExternal ? (
+											{env.isExternal ? (
 												<Globe className="h-3 w-3" />
 											) : (
 												<Server className="h-3 w-3" />
 											)}
-											{selectedEnv.label}
-											<ChevronDown className="h-3 w-3" />
-										</Button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="start" className="w-40">
-										{tool.environments.map((env) => (
-											<DropdownMenuItem
-												key={env.name}
-												onClick={() => setSelectedEnv(env)}
-												className="gap-2"
-											>
-												{env.isExternal ? (
-													<Globe className="h-3 w-3" />
-												) : (
-													<Server className="h-3 w-3" />
-												)}
-												{env.label}
-											</DropdownMenuItem>
-										))}
-									</DropdownMenuContent>
-								</DropdownMenu>
-							) : (
-								<div className="flex items-center gap-2 text-xs text-muted-foreground flex-1">
-									{selectedEnv.isExternal ? (
-										<Globe className="h-3 w-3" />
-									) : (
-										<Server className="h-3 w-3" />
-									)}
-									{selectedEnv.label}
-								</div>
-							)}
-						</>
-					)}
+											{env.label}
+										</DropdownMenuItem>
+									))}
+								</DropdownMenuContent>
+							</DropdownMenu>
+						) : (
+							<div className="flex items-center gap-2 text-xs text-muted-foreground flex-1">
+								{selectedEnv.isExternal ? (
+									<Globe className="h-3 w-3" />
+								) : (
+									<Server className="h-3 w-3" />
+								)}
+								{selectedEnv.label}
+							</div>
+						))}
 
 					{onViewDetails && (
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleViewDetails}
-						>
+						<Button variant="outline" size="sm" onClick={handleViewDetails}>
 							{isInternalTool(tool.id) ? "打开工具" : "详情"}
 						</Button>
 					)}
@@ -220,7 +213,9 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 						className="flex-1 gap-2"
 						onClick={() => handleAccessTool(selectedEnv)}
 					>
-						{!isInternalTool(tool.id) && selectedEnv.isExternal && <ExternalLink className="h-3 w-3" />}
+						{!isInternalTool(tool.id) && selectedEnv.isExternal && (
+							<ExternalLink className="h-3 w-3" />
+						)}
 						{isInternalTool(tool.id) ? "使用工具" : "打开工具"}
 					</Button>
 				</div>
