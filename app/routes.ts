@@ -16,4 +16,5 @@ export default [
 
 	// 外部工具路由 - 展示详情页
 	route("tools/:id", "routes/tools.$id.tsx"),
+	route("pages/:id", "routes/pages.$id.tsx"),
 ] satisfies RouteConfig;
