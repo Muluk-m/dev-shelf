@@ -11,10 +11,9 @@ export default [
 		route("url-parser", "routes/tools/url-parser.tsx"),
 		route("url-encoder", "routes/tools/url-encoder.tsx"),
 		// 后续可以添加更多内部工具：
-		// route("qr-generator", "routes/tools/qr-generator.tsx"),
+		route("qr-generator", "routes/tools/qr-generator.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
 	route("tools/:id", "routes/tools.$id.tsx"),
-	route("pages/:id", "routes/pages.$id.tsx"),
 ] satisfies RouteConfig;
