@@ -1,112 +1,144 @@
+import { CacheManager } from "../cache-manager";
 import type { Tool, ToolCategory } from "../types/tool";
 
+const TOOLS_CACHE_NAME = "tools";
+const TOOLS_CACHE_TTL_SECONDS = 120;
+export const TOOLS_CACHE_KEYS = {
+  list: "/tools/list",
+  detail: (id: string) => `/tools/${id}`,
+} as const;
+
+const TOOL_CATEGORIES_CACHE_NAME = "categories";
+const TOOL_CATEGORIES_CACHE_TTL_SECONDS = 120;
+export const TOOL_CATEGORIES_CACHE_KEYS = {
+  list: "/tool-categories/list",
+} as const;
+
 export async function getTools(db: D1Database): Promise<Tool[]> {
-  const toolsQuery = `
-    SELECT 
-      t.id, t.name, t.description, t.category, t.icon, 
-      t.is_internal, t.status, t.last_updated
-    FROM tools t 
-    WHERE t.status = 'active'
-    ORDER BY t.name
-  `;
+  return CacheManager.getJson(
+    TOOLS_CACHE_NAME,
+    TOOLS_CACHE_KEYS.list,
+    async () => {
+      const toolsQuery = `
+        SELECT 
+          t.id, t.name, t.description, t.category, t.icon, 
+          t.is_internal, t.status, t.last_updated
+        FROM tools t 
+        WHERE t.status = 'active'
+        ORDER BY t.name
+      `;
 
-  const toolsResult = await db.prepare(toolsQuery).all();
-  const tools = toolsResult.results as any[];
+      const toolsResult = await db.prepare(toolsQuery).all();
+      const tools = toolsResult.results as any[];
 
-  for (const tool of tools) {
-    // 映射数据库字段到前端格式
-    tool.isInternal = Boolean(tool.is_internal);
-    tool.lastUpdated = tool.last_updated;
-    delete tool.is_internal;
-    delete tool.last_updated;
+      for (const tool of tools) {
+        tool.isInternal = Boolean(tool.is_internal);
+        tool.lastUpdated = tool.last_updated;
+        delete tool.is_internal;
+        delete tool.last_updated;
 
-    // 获取环境信息
-    const envQuery = `
-      SELECT name, label, url, is_external
-      FROM tool_environments
-      WHERE tool_id = ?
-      ORDER BY name ASC
-    `;
-    const envResult = await db.prepare(envQuery).bind(tool.id).all();
-    tool.environments = (envResult.results as any[]).map((env) => ({
-      ...env,
-      isExternal: Boolean(env.is_external)
-    }));
+        const envQuery = `
+          SELECT name, label, url, is_external
+          FROM tool_environments
+          WHERE tool_id = ?
+          ORDER BY name ASC
+        `;
+        const envResult = await db.prepare(envQuery).bind(tool.id).all();
+        tool.environments = (envResult.results as any[]).map((env) => ({
+          ...env,
+          isExternal: Boolean(env.is_external)
+        }));
 
-    // 获取标签信息
-    const tagsQuery = `
-      SELECT tag 
-      FROM tool_tags 
-      WHERE tool_id = ?
-    `;
-    const tagsResult = await db.prepare(tagsQuery).bind(tool.id).all();
-    tool.tags = tagsResult.results.map((t: any) => t.tag);
-  }
+        const tagsQuery = `
+          SELECT tag 
+          FROM tool_tags 
+          WHERE tool_id = ?
+        `;
+        const tagsResult = await db.prepare(tagsQuery).bind(tool.id).all();
+        tool.tags = tagsResult.results.map((t: any) => t.tag);
+      }
 
-  return tools;
+      return tools as Tool[];
+    },
+    { ttlSeconds: TOOLS_CACHE_TTL_SECONDS }
+  );
 }
 
 export async function getToolCategories(
   db: D1Database
 ): Promise<ToolCategory[]> {
-  const query = `
-    SELECT id, name, description, icon, color 
-    FROM tool_categories 
-    ORDER BY name
-  `;
-  const result = await db.prepare(query).all();
-  return result.results as any as ToolCategory[];
+  return CacheManager.getJson(
+    TOOL_CATEGORIES_CACHE_NAME,
+    TOOL_CATEGORIES_CACHE_KEYS.list,
+    async () => {
+      const query = `
+        SELECT id, name, description, icon, color 
+        FROM tool_categories 
+        ORDER BY name
+      `;
+      const result = await db.prepare(query).all();
+      return result.results as any as ToolCategory[];
+    },
+    { ttlSeconds: TOOL_CATEGORIES_CACHE_TTL_SECONDS }
+  );
 }
 
 export async function getToolById(
   db: D1Database,
   id: string
 ): Promise<Tool | null> {
-  const toolQuery = `
-    SELECT 
-      t.id, t.name, t.description, t.category, t.icon, 
-      t.is_internal, t.status, t.last_updated
-    FROM tools t 
-    WHERE t.id = ?
-  `;
+  return CacheManager.getJson(
+    TOOLS_CACHE_NAME,
+    TOOLS_CACHE_KEYS.detail(id),
+    async () => {
+      const toolQuery = `
+        SELECT 
+          t.id, t.name, t.description, t.category, t.icon, 
+          t.is_internal, t.status, t.last_updated
+        FROM tools t 
+        WHERE t.id = ?
+      `;
 
-  const toolResult = await db.prepare(toolQuery).bind(id).first();
+      const toolResult = await db.prepare(toolQuery).bind(id).first();
 
-  if (!toolResult) {
-    return null;
-  }
+      if (!toolResult) {
+        return null;
+      }
 
-  const tool = toolResult as any;
+      const tool = toolResult as any;
 
-  // 映射数据库字段到前端格式
-  tool.isInternal = Boolean(tool.is_internal);
-  tool.lastUpdated = tool.last_updated;
-  delete tool.is_internal;
-  delete tool.last_updated;
+      tool.isInternal = Boolean(tool.is_internal);
+      tool.lastUpdated = tool.last_updated;
+      delete tool.is_internal;
+      delete tool.last_updated;
 
-  // 获取环境信息
-  const envQuery = `
-    SELECT name, label, url, is_external
-    FROM tool_environments
-    WHERE tool_id = ?
-    ORDER BY name ASC
-  `;
-  const envResult = await db.prepare(envQuery).bind(id).all();
-  tool.environments = (envResult.results as any[]).map((env) => ({
-    ...env,
-    isExternal: Boolean(env.is_external)
-  }));
+      const envQuery = `
+        SELECT name, label, url, is_external
+        FROM tool_environments
+        WHERE tool_id = ?
+        ORDER BY name ASC
+      `;
+      const envResult = await db.prepare(envQuery).bind(id).all();
+      tool.environments = (envResult.results as any[]).map((env) => ({
+        ...env,
+        isExternal: Boolean(env.is_external)
+      }));
 
-  // 获取标签信息
-  const tagsQuery = `
-    SELECT tag 
-    FROM tool_tags 
-    WHERE tool_id = ?
-  `;
-  const tagsResult = await db.prepare(tagsQuery).bind(id).all();
-  tool.tags = tagsResult.results.map((t: any) => t.tag);
+      const tagsQuery = `
+        SELECT tag 
+        FROM tool_tags 
+        WHERE tool_id = ?
+      `;
+      const tagsResult = await db.prepare(tagsQuery).bind(id).all();
+      tool.tags = tagsResult.results.map((t: any) => t.tag);
 
-  return tool;
+      return tool as Tool;
+    },
+    {
+      ttlSeconds: TOOLS_CACHE_TTL_SECONDS,
+      shouldCache: (payload) => payload !== null
+    }
+  );
 }
 
 export async function createTool(
@@ -159,6 +191,8 @@ export async function createTool(
           .bind(toolId, tag)
       ),
     ]);
+
+    await CacheManager.clearCache(TOOLS_CACHE_NAME, [TOOLS_CACHE_KEYS.list]);
 
     return toolId;
   } catch (error) {
@@ -222,6 +256,11 @@ export async function updateTool(
           .bind(id, tag)
       ),
     ]);
+
+    await CacheManager.clearCache(TOOLS_CACHE_NAME, [
+      TOOLS_CACHE_KEYS.list,
+      TOOLS_CACHE_KEYS.detail(id),
+    ]);
   } catch (error) {
     console.error("Error updating tool:", error);
     throw new Error("Failed to update tool");
@@ -238,6 +277,11 @@ export async function deleteTool(db: D1Database, id: string): Promise<void> {
       db.prepare(`DELETE FROM tool_tags WHERE tool_id = ?`).bind(id),
       // 删除工具
       db.prepare(`DELETE FROM tools WHERE id = ?`).bind(id),
+    ]);
+
+    await CacheManager.clearCache(TOOLS_CACHE_NAME, [
+      TOOLS_CACHE_KEYS.list,
+      TOOLS_CACHE_KEYS.detail(id),
     ]);
   } catch (error) {
     console.error("Error deleting tool:", error);
@@ -262,6 +306,10 @@ export async function createToolCategory(
       .bind(categoryId, category.name, category.description, category.icon, category.color)
       .run();
 
+    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
+      TOOL_CATEGORIES_CACHE_KEYS.list,
+    ]);
+
     return categoryId;
   } catch (error) {
     console.error("Error creating category:", error);
@@ -285,6 +333,10 @@ export async function updateToolCategory(
       )
       .bind(category.name, category.description, category.icon, category.color, id)
       .run();
+
+    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
+      TOOL_CATEGORIES_CACHE_KEYS.list,
+    ]);
   } catch (error) {
     console.error("Error updating category:", error);
     throw new Error("Failed to update category");
@@ -296,6 +348,10 @@ export async function deleteToolCategory(db: D1Database, id: string): Promise<vo
     // 注意：这里不删除使用该分类的工具，只是删除分类本身
     // 实际生产环境中可能需要先处理引用该分类的工具
     await db.prepare(`DELETE FROM tool_categories WHERE id = ?`).bind(id).run();
+
+    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
+      TOOL_CATEGORIES_CACHE_KEYS.list,
+    ]);
   } catch (error) {
     console.error("Error deleting category:", error);
     throw new Error("Failed to delete category");

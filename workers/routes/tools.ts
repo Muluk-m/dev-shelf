@@ -1,51 +1,33 @@
 import { Hono } from "hono";
-import { cache } from "hono/cache";
 import * as toolsDb from "../../lib/database/tools";
-import { CacheManager } from "../utils/cache";
 
 const toolsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
 // 获取所有工具
-toolsRouter.get(
-	"/",
-	cache({
-		cacheName: "tools",
-		cacheControl: "max-age=120",
-	}),
-	async (c) => {
-		try {
-			const tools = await toolsDb.getTools(c.env.DB);
-			return c.json(tools);
-		} catch (error) {
-			console.error("Error fetching tools:", error);
-			return c.json({ error: "Internal server error" }, 500);
-		}
-	},
-);
+toolsRouter.get("/", async (c) => {
+	try {
+		const tools = await toolsDb.getTools(c.env.DB);
+		return c.json(tools);
+	} catch (error) {
+		console.error("Error fetching tools:", error);
+		return c.json({ error: "Internal server error" }, 500);
+	}
+});
 
 // 获取单个工具
-toolsRouter.get(
-	"/:id",
-	cache({
-		cacheName: "tools",
-		cacheControl: "max-age=120",
-	}),
-	async (c) => {
-		try {
-			const toolId = c.req.param("id");
-			const tool = await toolsDb.getToolById(c.env.DB, toolId);
-
-			if (!tool) {
-				return c.json({ error: "Tool not found" }, 404);
-			}
-
-			return c.json(tool);
-		} catch (error) {
-			console.error("Error fetching tool:", error);
-			return c.json({ error: "Internal server error" }, 500);
+toolsRouter.get("/:id", async (c) => {
+	try {
+		const toolId = c.req.param("id");
+		const tool = await toolsDb.getToolById(c.env.DB, toolId);
+		if (!tool) {
+			return c.json({ error: "Tool not found" }, 404);
 		}
-	},
-);
+		return c.json(tool);
+	} catch (error) {
+		console.error("Error fetching tool:", error);
+		return c.json({ error: "Internal server error" }, 500);
+	}
+});
 
 // 创建工具
 toolsRouter.post("/", async (c) => {
@@ -69,11 +51,6 @@ toolsRouter.post("/", async (c) => {
 		};
 
 		const toolId = await toolsDb.createTool(c.env.DB, tool);
-
-		// 清除相关缓存
-		await CacheManager.clearRelatedCache("tools", c.req.url, {
-			clearList: true,
-		});
 
 		return c.json({ id: toolId, message: "Tool created successfully" }, 201);
 	} catch (error) {
@@ -111,12 +88,6 @@ toolsRouter.put("/:id", async (c) => {
 
 		await toolsDb.updateTool(c.env.DB, toolId, tool);
 
-		// 清除相关缓存
-		await CacheManager.clearRelatedCache("tools", c.req.url, {
-			clearList: true,
-			clearItem: true,
-		});
-
 		return c.json({ message: "Tool updated successfully" });
 	} catch (error) {
 		console.error("Error updating tool:", error);
@@ -136,12 +107,6 @@ toolsRouter.delete("/:id", async (c) => {
 		}
 
 		await toolsDb.deleteTool(c.env.DB, toolId);
-
-		// 清除相关缓存
-		await CacheManager.clearRelatedCache("tools", c.req.url, {
-			clearList: true,
-			clearItem: true,
-		});
 
 		return c.json({ message: "Tool deleted successfully" });
 	} catch (error) {

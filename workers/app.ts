@@ -17,15 +17,19 @@ app.route("/auth", auth);
 app.route("/api/tools", toolsRouter);
 app.route("/api/categories", categoriesRouter);
 
-app.get("*", (c) => {
-  const requestHandler = createRequestHandler(
-    () => import("virtual:react-router/server-build"),
-    import.meta.env.MODE
-  );
+app.get("/.well-known/appspecific/com.chrome.devtools.json", (ctx) =>
+	ctx.json({}),
+);
 
-  return requestHandler(c.req.raw, {
-    cloudflare: { env: c.env, ctx: c.executionCtx },
-  });
+app.get("*", (c) => {
+	const requestHandler = createRequestHandler(
+		() => import("virtual:react-router/server-build"),
+		import.meta.env.MODE,
+	);
+
+	return requestHandler(c.req.raw, {
+		cloudflare: { env: c.env, ctx: c.executionCtx },
+	});
 });
 
 export default app;
