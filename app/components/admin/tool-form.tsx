@@ -65,6 +65,7 @@ export function ToolForm({
 	const [testEnvironments, setTestEnvironments] = useState<ToolEnvironment[]>(
 		[],
 	);
+	const isInternalTool = formData.isInternal;
 
 	// Load tool categories
 	useEffect(() => {
@@ -85,19 +86,27 @@ export function ToolForm({
 			const testEnvs = initialData.environments.filter(
 				(env) => env.name !== "production",
 			);
-			setTestEnvironments(testEnvs);
+			setTestEnvironments(initialData.isInternal ? [] : testEnvs);
 		} else {
 			setFormData(initializeFormData());
 			setTestEnvironments([]);
 		}
 	}, [initialData, isOpen]);
 
+	useEffect(() => {
+		if (isInternalTool && testEnvironments.length > 0) {
+			setTestEnvironments([]);
+		}
+	}, [isInternalTool, testEnvironments.length]);
+
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
 		// 确保至少有生产环境
 		const productionEnv = getProductionEnv();
-		const allEnvironments = [productionEnv, ...testEnvironments];
+		const allEnvironments = isInternalTool
+			? [productionEnv]
+			: [productionEnv, ...testEnvironments];
 
 		// Update lastUpdated timestamp
 		const submitData = {
@@ -155,6 +164,9 @@ export function ToolForm({
 			return {
 				...prev,
 				environments,
+				...(field === "isExternal"
+					? { isInternal: !(value as boolean) }
+					: {}),
 			};
 		});
 	};
@@ -168,6 +180,16 @@ export function ToolForm({
 				isExternal: true,
 			}
 		);
+	};
+
+	const getProductionEnvSlug = () => {
+		const productionEnv = getProductionEnv();
+		if (productionEnv.isExternal) {
+			return productionEnv.url;
+		}
+		return productionEnv.url.startsWith("/tools/")
+			? productionEnv.url.slice("/tools/".length)
+			: productionEnv.url.replace(/^\/+/, "");
 	};
 
 	// 测试环境管理
@@ -314,10 +336,8 @@ export function ToolForm({
 													value === "external",
 												);
 												if (value === "internal") {
-													setFormData((prev) => ({
-														...prev,
-														isInternal: true,
-													}));
+													setTestEnvironments([]);
+													updateProductionEnvironment("url", "/tools/");
 												}
 											}}
 										>
@@ -335,23 +355,41 @@ export function ToolForm({
 											{getProductionEnv().isExternal ? "访问链接" : "路由路径"}{" "}
 											*
 										</Label>
-										<Input
-											value={getProductionEnv().url}
-											onChange={(e) =>
-												updateProductionEnvironment("url", e.target.value)
-											}
-											placeholder={
-												getProductionEnv().isExternal
-													? "https://example.com"
-													: "/tools/example"
-											}
-											required
-										/>
+										{getProductionEnv().isExternal ? (
+											<Input
+												value={getProductionEnv().url}
+												onChange={(e) =>
+													updateProductionEnvironment("url", e.target.value)
+												}
+												placeholder="https://example.com"
+												required
+											/>
+										) : (
+											<div className="flex items-center gap-2">
+												<span className="text-sm text-muted-foreground">/tools/</span>
+												<Input
+													value={getProductionEnvSlug()}
+													onChange={(e) => {
+														const slug = e.target.value.trim().replace(/^\/+/, "");
+														updateProductionEnvironment("url", `/tools/${slug}`);
+													}}
+													placeholder="example"
+													required
+												/>
+											</div>
+										)}
 									</div>
 								</CardContent>
 							</Card>
 
-							{/* 测试环境 - 可选且灵活 */}
+						{/* 测试环境 - 内部工具限制 */}
+						{isInternalTool ? (
+							<Card>
+								<CardContent className="py-6 text-center text-muted-foreground">
+									内部工具仅支持生产环境，无需配置测试环境。
+								</CardContent>
+							</Card>
+						) : (
 							<div className="space-y-4">
 								<div className="flex items-center justify-between">
 									<h3 className="text-lg font-medium">测试环境</h3>
@@ -457,13 +495,14 @@ export function ToolForm({
 									</Card>
 								))}
 
-								{testEnvironments.length === 0 && (
-									<div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-										<p>暂无测试环境</p>
-										<p className="text-sm mt-1">点击上方按钮添加测试环境</p>
-									</div>
-								)}
-							</div>
+							{testEnvironments.length === 0 && (
+								<div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+									<p>暂无测试环境</p>
+									<p className="text-sm mt-1">点击上方按钮添加测试环境</p>
+								</div>
+							)}
+						</div>
+						)}
 						</TabsContent>
 
 						<TabsContent value="advanced" className="space-y-4">
