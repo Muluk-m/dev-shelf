@@ -9,6 +9,7 @@ export interface CommandAction {
 	title: string;
 	description?: string;
 	icon?: string;
+	iconUrl?: string;
 	shortcut?: string[];
 	category: "navigation" | "tools" | "actions" | "settings";
 	action: () => void;
@@ -30,7 +31,7 @@ export function useCommandPanel(tools: Tool[]) {
 				id: `tool-${tool.id}`,
 				title: `打开 ${tool.name}`,
 				description: tool.description,
-				icon: tool.icon,
+				iconUrl: tool.icon,
 				category: "tools" as const,
 				action: () => {
 					setIsOpen(false);
@@ -58,6 +59,7 @@ export function useCommandPanel(tools: Tool[]) {
 				title: `查看 ${tool.name} 详情`,
 				description: `查看 ${tool.name} 的详细信息`,
 				icon: "Info",
+				iconUrl: tool.icon,
 				category: "navigation" as const,
 				action: () => {
 					setIsOpen(false);

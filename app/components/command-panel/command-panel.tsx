@@ -91,9 +91,6 @@ export function CommandPanel({
     }
   }, [isOpen]);
 
-  // 计算所有命令的扁平列表用于索引计算
-  const flatCommands = Object.values(groupedCommands).flat();
-
   const handleCommandClick = (command: CommandAction, index: number) => {
     onSelectedIndexChange(index);
     onExecuteCommand(command);
@@ -178,7 +175,16 @@ export function CommandPanel({
                                 )}
                               >
                                 <div className="flex-shrink-0">
-                                  <IconComponent className="h-4 w-4 text-muted-foreground" />
+                                  {command.iconUrl ? (
+                                    <img
+                                      src={command.iconUrl}
+                                      alt={command.title}
+                                      className="h-6 w-6 rounded-sm object-cover"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <IconComponent className="h-4 w-4 text-muted-foreground" />
+                                  )}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium text-sm truncate">
