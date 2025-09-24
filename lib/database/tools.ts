@@ -1,6 +1,16 @@
 import { CacheManager } from "../cache-manager";
 import type { Tool, ToolCategory } from "../types/tool";
 
+export interface ToolUsageStat {
+	toolId: string;
+	name: string;
+	category: string;
+	usageCount: number;
+	lastUsed: string | null;
+	status: Tool["status"];
+	isInternal: boolean;
+}
+
 const TOOLS_CACHE_NAME = "tools";
 const TOOLS_CACHE_TTL_SECONDS = 120;
 export const TOOLS_CACHE_KEYS = {
@@ -356,4 +366,55 @@ export async function deleteToolCategory(db: D1Database, id: string): Promise<vo
     console.error("Error deleting category:", error);
     throw new Error("Failed to delete category");
   }
+}
+
+export async function recordToolUsage(
+  db: D1Database,
+  toolId: string
+): Promise<void> {
+  try {
+    const usageId = crypto.randomUUID();
+    await db
+      .prepare(
+        `
+        INSERT INTO tool_usage_events (id, tool_id)
+        VALUES (?, ?)
+      `
+      )
+      .bind(usageId, toolId)
+      .run();
+  } catch (error) {
+    console.error("Error recording tool usage:", error);
+  }
+}
+
+export async function getToolUsageStats(
+  db: D1Database,
+  limit = 8
+): Promise<ToolUsageStat[]> {
+  const query = `
+    SELECT
+      t.id AS tool_id,
+      t.name,
+      t.category,
+      t.status,
+      t.is_internal,
+      COUNT(u.id) AS usage_count,
+      MAX(u.used_at) AS last_used
+    FROM tools t
+    LEFT JOIN tool_usage_events u ON t.id = u.tool_id
+    GROUP BY t.id, t.name, t.category, t.status, t.is_internal
+    ORDER BY usage_count DESC, last_used DESC
+    LIMIT ?
+  `;
+  const result = await db.prepare(query).bind(limit).all();
+  return (result.results as any[]).map((row) => ({
+    toolId: row.tool_id,
+    name: row.name,
+    category: row.category,
+    usageCount: Number(row.usage_count) || 0,
+    lastUsed: row.last_used ?? null,
+    status: row.status,
+    isInternal: Boolean(row.is_internal),
+  }));
 }

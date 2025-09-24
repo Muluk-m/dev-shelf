@@ -16,15 +16,16 @@ export async function loader({ context }: Route.LoaderArgs) {
   try {
     const toolsDb = await import("../lib/database/tools");
     const db = context.cloudflare.env.DB;
-    const [tools, toolCategories] = await Promise.all([
+    const [tools, toolCategories, usageStats] = await Promise.all([
       toolsDb.getTools(db),
       toolsDb.getToolCategories(db),
+      toolsDb.getToolUsageStats(db, 12),
     ]);
 
-    return { tools, toolCategories };
+    return { tools, toolCategories, usageStats };
   } catch (error) {
     console.error("Failed to load global data:", error);
-    return { tools: [], toolCategories: [] };
+    return { tools: [], toolCategories: [], usageStats: [] };
   }
 }
 

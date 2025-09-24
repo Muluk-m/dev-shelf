@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { recordToolUsage } from "~/lib/api";
 import type { Tool } from "~/types/tool";
 
 export interface CommandAction {
@@ -34,6 +35,7 @@ export function useCommandPanel(tools: Tool[]) {
 				iconUrl: tool.icon,
 				category: "tools" as const,
 				action: () => {
+					void recordToolUsage(tool.id);
 					setIsOpen(false);
 					const environment = tool.environments?.[0];
 					if (environment) {

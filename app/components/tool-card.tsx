@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { recordToolUsage } from "~/lib/api";
 import type { Tool, ToolEnvironment } from "~/types/tool";
 
 const statusConfig = {
@@ -66,6 +67,7 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
   );
 
   const handleAccessTool = (environment: ToolEnvironment) => {
+    void recordToolUsage(tool.id);
     // 检查是否为内部工具
     if (tool.isInternal) {
       navigate(environment.url);
@@ -80,6 +82,7 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
   };
 
   const handleViewDetails = () => {
+    void recordToolUsage(tool.id);
     if (tool.isInternal) {
       // 内部工具：直接打开工具页面
       navigate(`/tools/${tool.id}`);

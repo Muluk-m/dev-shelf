@@ -1,12 +1,14 @@
+import { Flame, Layers } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useRouteLoaderData } from "react-router";
 import { CategoryFilter } from "~/components/category-filter";
 import { Header } from "~/components/layout/header";
 import { ToolCard } from "~/components/tool-card";
 import { useSearch } from "~/hooks/use-search";
-import type { Route } from "./+types/home";
-import type { Tool } from "~/types/tool";
+import { recordToolUsage } from "~/lib/api";
 import type { loader as rootLoader } from "~/root";
+import type { Tool } from "~/types/tool";
+import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -22,6 +24,7 @@ export default function Home() {
   const rootData = useRouteLoaderData<typeof rootLoader>("root");
   const tools = rootData?.tools ?? [];
   const toolCategories = rootData?.toolCategories ?? [];
+  const usageStats = rootData?.usageStats ?? [];
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -51,8 +54,49 @@ export default function Home() {
     }, {} as Record<string, number>);
   }, [tools]);
 
+  const toolMap = useMemo(() => {
+    return new Map(tools.map((tool) => [tool.id, tool]));
+  }, [tools]);
+
+  const recommendedTools = useMemo(() => {
+    if (usageStats.length > 0) {
+      const withUsage = usageStats
+        .map((usage) => {
+          const tool = toolMap.get(usage.toolId);
+          if (!tool || tool.status !== "active") return null;
+          return { tool, usageCount: usage.usageCount };
+        })
+        .filter(
+          (item): item is { tool: Tool; usageCount: number } => item !== null
+        )
+        .slice(0, 4);
+      if (withUsage.length > 0) {
+        return withUsage;
+      }
+    }
+
+    const fallback = [...tools]
+      .sort((a, b) => {
+        const aUpdated = Date.parse(a.lastUpdated) || 0;
+        const bUpdated = Date.parse(b.lastUpdated) || 0;
+        const aScore = (a.isInternal ? 1 : 0) * 100 + aUpdated;
+        const bScore = (b.isInternal ? 1 : 0) * 100 + bUpdated;
+        return bScore - aScore;
+      })
+      .slice(0, 4)
+      .map((tool) => ({ tool, usageCount: 0 }));
+
+    return fallback;
+  }, [tools, usageStats, toolMap]);
+
   const handleViewDetails = (tool: Tool) => {
-    navigate(`/tools/${tool.id}`);
+    const url = tool.environments[0].url;
+    recordToolUsage(tool.id);
+    if (tool.isInternal) {
+      navigate(url);
+    } else {
+      window.open(url, "_blank");
+    }
   };
 
   const handleCategoryChange = (categoryId: string | null) => {
@@ -70,21 +114,54 @@ export default function Home() {
         searchHistory={searchHistory}
       />
       <main className="container mx-auto px-4 py-8">
-        <div className="text-center space-y-4 mb-12">
-          <h1 className="text-4xl font-bold tracking-tight">研发平台工具站</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            统一管理和访问常用的内部开发工具，提升团队协作效率
-          </p>
-          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span>共 {tools.length} 个工具</span>
-            <span>•</span>
-            <span>{toolCategories.length} 个分类</span>
-            <span>•</span>
-            <span>
-              {tools.filter((t) => t.status === "active").length} 个可用
-            </span>
-          </div>
-        </div>
+        {recommendedTools.length > 0 && (
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-semibold flex items-center gap-2">
+                  <Flame className="h-5 w-5 text-primary" />
+                  常用工具推荐
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  一键直达高频使用的工具
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {recommendedTools.map(({ tool, usageCount }) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  onClick={() => handleViewDetails(tool)}
+                  className="group cursor-pointer flex items-center gap-3 rounded-lg border bg-card/70 p-3 text-left shadow-sm transition hover:border-primary/60 hover:bg-primary/5"
+                >
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                    {tool.icon ? (
+                      <img
+                        src={tool.icon}
+                        alt={tool.name}
+                        className="h-7 w-7 object-contain"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Layers className="h-5 w-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground group-hover:text-primary">
+                      {tool.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {usageCount > 0
+                        ? `最近使用 ${usageCount} 次`
+                        : tool.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <CategoryFilter
           categories={toolCategories}
@@ -109,7 +186,6 @@ export default function Home() {
           </div>
         )}
       </main>
-
     </div>
   );
 }

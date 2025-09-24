@@ -3,6 +3,18 @@ import * as toolsDb from "../../lib/database/tools";
 
 const toolsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
+toolsRouter.get("/analytics/usage", async (c) => {
+	try {
+		const limitParam = c.req.query("limit");
+		const limit = limitParam ? Number.parseInt(limitParam, 10) : 8;
+		const usageStats = await toolsDb.getToolUsageStats(c.env.DB, Number.isNaN(limit) ? 8 : limit);
+		return c.json(usageStats);
+	} catch (error) {
+		console.error("Error fetching usage stats:", error);
+		return c.json({ error: "Internal server error" }, 500);
+	}
+});
+
 // 获取所有工具
 toolsRouter.get("/", async (c) => {
 	try {
@@ -10,6 +22,21 @@ toolsRouter.get("/", async (c) => {
 		return c.json(tools);
 	} catch (error) {
 		console.error("Error fetching tools:", error);
+		return c.json({ error: "Internal server error" }, 500);
+	}
+});
+
+toolsRouter.post("/:id/usage", async (c) => {
+	try {
+		const toolId = c.req.param("id");
+		const tool = await toolsDb.getToolById(c.env.DB, toolId);
+		if (!tool) {
+			return c.json({ error: "Tool not found" }, 404);
+		}
+		await toolsDb.recordToolUsage(c.env.DB, toolId);
+		return c.json({ message: "Usage recorded" }, 201);
+	} catch (error) {
+		console.error("Error recording tool usage:", error);
 		return c.json({ error: "Internal server error" }, 500);
 	}
 });

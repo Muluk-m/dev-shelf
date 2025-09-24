@@ -19,6 +19,9 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 		const db = context.cloudflare.env.DB;
 
 		const tool = await toolsDb.getToolById(db, params.id);
+		if (tool) {
+			await toolsDb.recordToolUsage(db, tool.id);
+		}
 		return { tool };
 	} catch (error) {
 		console.error("Failed to load tool:", error);

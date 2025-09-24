@@ -1,4 +1,15 @@
 import type { Tool, ToolCategory } from "~/types/tool";
+
+export interface ToolUsageStat {
+	toolId: string;
+	name: string;
+	category: string;
+	usageCount: number;
+	lastUsed: string | null;
+	status: Tool["status"];
+	isInternal: boolean;
+}
+
 import type { UserInfo } from "~/types/user-info";
 
 const API_BASE_URL = import.meta.env.DEV
@@ -161,5 +172,34 @@ export async function deleteCategory(id: string): Promise<{ message: string }> {
 		throw new Error(error.error || "Failed to delete category");
 	}
 
+	return response.json();
+}
+
+export async function recordToolUsage(toolId: string): Promise<void> {
+	const url = `${API_BASE_URL}/api/tools/${toolId}/usage`;
+	try {
+		// biome-ignore lint/complexity/useOptionalChain: <explanation>
+		if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+			navigator.sendBeacon(url, new Blob());
+			return;
+		}
+		await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	} catch (error) {
+		console.error("Failed to record tool usage:", error);
+	}
+}
+
+export async function getToolUsageStats(limit = 8): Promise<ToolUsageStat[]> {
+	const response = await fetch(
+		`${API_BASE_URL}/api/tools/analytics/usage?limit=${limit}`,
+	);
+	if (!response.ok) {
+		throw new Error("Failed to fetch tool usage stats");
+	}
 	return response.json();
 }
