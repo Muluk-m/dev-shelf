@@ -10,9 +10,9 @@ export default [
 		route("base64-converter", "routes/tools/base64-converter.tsx"),
 		route("url-parser", "routes/tools/url-parser.tsx"),
 		route("url-encoder", "routes/tools/url-encoder.tsx"),
-		// 后续可以添加更多内部工具：
 		route("qr-generator", "routes/tools/qr-generator.tsx"),
 		route("time-formatter", "routes/tools/time-formatter.tsx"),
+		route("tiktok-pixel-tool", "routes/tools/tiktok-pixel-tool.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
