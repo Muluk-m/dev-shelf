@@ -12,6 +12,7 @@ export default [
 		route("url-encoder", "routes/tools/url-encoder.tsx"),
 		// 后续可以添加更多内部工具：
 		route("qr-generator", "routes/tools/qr-generator.tsx"),
+		route("time-formatter", "routes/tools/time-formatter.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
