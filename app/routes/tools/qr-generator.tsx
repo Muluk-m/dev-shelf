@@ -1,6 +1,7 @@
+import QRCodeStyling, { type Extension, type Options } from "qr-code-styling";
 import { useEffect, useMemo, useRef, useState } from "react";
-import QRCodeStyling, { type Options, type Extension } from "qr-code-styling";
-
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -10,9 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-
-import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
 
 type DotsShape =
   | "square"
@@ -129,6 +127,10 @@ export default function QRCodeMaker() {
   const download = async () => {
     await qrRef.current?.download({ name: "qrcode", extension: downloadExt });
   };
+
+  useEffect(() => {
+    handleGenerate();
+  }, [options]);
 
   return (
     <div className="max-w-4xl mx-auto ">
@@ -352,11 +354,6 @@ export default function QRCodeMaker() {
               移除
             </Button>
           </CardContent> */}
-            <CardContent className="flex items-center justify-start mb-4">
-              <Button onClick={handleGenerate} className="w-full">
-                生成
-              </Button>
-            </CardContent>
           </div>
         </Card>
         <CardContent>
