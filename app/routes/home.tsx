@@ -1,30 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLoaderData, useNavigate } from "react-router";
+import { useNavigate, useRouteLoaderData } from "react-router";
 import { CategoryFilter } from "~/components/category-filter";
-import { CommandPanel } from "~/components/command-panel/command-panel";
 import { Header } from "~/components/layout/header";
 import { ToolCard } from "~/components/tool-card";
-import { useCommandPanel } from "~/hooks/use-command-panel";
 import { useSearch } from "~/hooks/use-search";
-import { getTools } from "~/lib/api";
-import type { Tool } from "~/types/tool";
 import type { Route } from "./+types/home";
-
-export async function loader(ctx: Route.LoaderArgs) {
-  try {
-    const toolsDb = await import("../../lib/database/tools");
-    const db = ctx.context.cloudflare.env.DB;
-    const [tools, toolCategories] = await Promise.all([
-      toolsDb.getTools(db),
-      toolsDb.getToolCategories(db),
-    ]);
-
-    return { tools, toolCategories };
-  } catch (error) {
-    console.error("Failed to load data:", error);
-    return { tools: [], toolCategories: [] };
-  }
-}
+import type { Tool } from "~/types/tool";
+import type { loader as rootLoader } from "~/root";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -37,7 +19,9 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const { tools, toolCategories } = useLoaderData<typeof loader>();
+  const rootData = useRouteLoaderData<typeof rootLoader>("root");
+  const tools = rootData?.tools ?? [];
+  const toolCategories = rootData?.toolCategories ?? [];
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -58,18 +42,6 @@ export default function Home() {
       updateFilters({ category: selectedCategory || undefined });
     }
   }, [selectedCategory, filters.category, updateFilters]);
-
-  const {
-    isOpen: isCommandPanelOpen,
-    query: commandQuery,
-    setQuery: setCommandQuery,
-    selectedIndex: commandSelectedIndex,
-    setSelectedIndex: setCommandSelectedIndex,
-    groupedCommands,
-    openPanel: openCommandPanel,
-    closePanel: closeCommandPanel,
-    executeCommand,
-  } = useCommandPanel(tools);
 
   // 计算每个分类的工具数量
   const toolCounts = useMemo(() => {
@@ -96,7 +68,6 @@ export default function Home() {
         onSearch={performSearch}
         searchSuggestions={suggestions}
         searchHistory={searchHistory}
-        onOpenCommandPanel={openCommandPanel}
       />
       <main className="container mx-auto px-4 py-8">
         <div className="text-center space-y-4 mb-12">
@@ -139,16 +110,6 @@ export default function Home() {
         )}
       </main>
 
-      <CommandPanel
-        isOpen={isCommandPanelOpen}
-        onClose={closeCommandPanel}
-        query={commandQuery}
-        onQueryChange={setCommandQuery}
-        selectedIndex={commandSelectedIndex}
-        onSelectedIndexChange={setCommandSelectedIndex}
-        groupedCommands={groupedCommands}
-        onExecuteCommand={executeCommand}
-      />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { Link, useLoaderData } from "react-router";
-import { CommandPanel } from "~/components/command-panel/command-panel";
 import { Header } from "~/components/layout/header";
 import { ToolDetailView } from "~/components/tool-detail-view";
 import { Button } from "~/components/ui/button";
@@ -11,7 +10,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import { useCommandPanel } from "~/hooks/use-command-panel";
 
 import type { Route } from "./+types/tools.$id";
 
@@ -20,14 +18,11 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 		const toolsDb = await import("../../lib/database/tools");
 		const db = context.cloudflare.env.DB;
 
-		const [tool, tools] = await Promise.all([
-			toolsDb.getToolById(db, params.id),
-			toolsDb.getTools(db),
-		]);
-		return { tool, tools };
+		const tool = await toolsDb.getToolById(db, params.id);
+		return { tool };
 	} catch (error) {
 		console.error("Failed to load tool:", error);
-		return { tool: null, tools: [] };
+		return { tool: null };
 	}
 }
 
@@ -79,19 +74,7 @@ function NotFoundPage() {
 }
 
 export default function ToolDetailPage() {
-	const { tool, tools } = useLoaderData<typeof loader>();
-
-	const {
-		isOpen: isCommandPanelOpen,
-		query: commandQuery,
-		setQuery: setCommandQuery,
-		selectedIndex: commandSelectedIndex,
-		setSelectedIndex: setCommandSelectedIndex,
-		groupedCommands,
-		openPanel: openCommandPanel,
-		closePanel: closeCommandPanel,
-		executeCommand,
-	} = useCommandPanel(tools);
+	const { tool } = useLoaderData<typeof loader>();
 
 	if (!tool) {
 		return <NotFoundPage />;
@@ -99,19 +82,8 @@ export default function ToolDetailPage() {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<Header onOpenCommandPanel={openCommandPanel} />
+			<Header />
 			<ToolDetailView tool={tool} />
-
-			<CommandPanel
-				isOpen={isCommandPanelOpen}
-				onClose={closeCommandPanel}
-				query={commandQuery}
-				onQueryChange={setCommandQuery}
-				selectedIndex={commandSelectedIndex}
-				onSelectedIndexChange={setCommandSelectedIndex}
-				groupedCommands={groupedCommands}
-				onExecuteCommand={executeCommand}
-			/>
 		</div>
 	);
 }

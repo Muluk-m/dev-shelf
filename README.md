@@ -369,3 +369,8 @@ export default function YourToolPage() {
 - [React Router](https://reactrouter.com/)
 - [shadcn/ui](https://ui.shadcn.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
+
+TODO
+- Command Search 应该是全局的，而不是仅 home 可用
+- 工具使用热度，工具使用记录，工具使用统计，常用工具推荐
+- 搜索工具时应展示图标

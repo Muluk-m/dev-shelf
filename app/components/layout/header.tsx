@@ -4,6 +4,7 @@ import { Command } from "lucide-react";
 import { SearchInput } from "~/components/search/search-input";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
+import { useCommandPanelContext } from "~/context/command-panel-context";
 import { UserProfile } from "~/components/user-profile";
 
 interface HeaderProps {
@@ -23,6 +24,8 @@ export function Header({
 	searchHistory = [],
 	onOpenCommandPanel,
 }: HeaderProps) {
+	const commandPanel = useCommandPanelContext();
+	const handleOpenCommandPanel = onOpenCommandPanel ?? commandPanel?.openPanel;
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="container flex h-16 items-center justify-between px-4">
@@ -57,7 +60,7 @@ export function Header({
 						variant="outline"
 						size="sm"
 						className="gap-2 bg-transparent"
-						onClick={onOpenCommandPanel}
+						onClick={handleOpenCommandPanel}
 					>
 						<Command className="h-4 w-4" />
 						<span className="hidden sm:inline">命令面板</span>
