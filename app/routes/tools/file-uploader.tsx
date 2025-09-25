@@ -105,14 +105,10 @@ export default function FileUploaderTool() {
     try {
       const form = new FormData();
       items.forEach((it) => form.append("files", it.file, it.file.name));
-      // 新版：单选参数
-      //   form.append("target", target);
       const data = await uploadFiles(form);
-      // 如果多目标，优先展示 r2，否则展示任意第一个
-      console.log(data, "====data");
       setUploaded(
         data.files.map((f: any) => {
-          const url = f.urls.r2 || f.urls.s3 || Object.values(f.urls)[0] || "";
+          const url = f.urls.r2 || Object.values(f.urls)[0] || "";
           return { name: f.name, size: f.size, type: f.type, url };
         })
       );
@@ -120,6 +116,7 @@ export default function FileUploaderTool() {
         title: "上传成功",
         description: `已上传 ${data.files.length} 个文件`,
       });
+      setItems([]);
     } catch (e: any) {
       toast({ title: "上传失败", description: e?.message || "请稍后重试" });
     } finally {
@@ -148,6 +145,7 @@ export default function FileUploaderTool() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploaded([]);
     e.currentTarget.files && onFiles(e.currentTarget.files);
   };
 
@@ -186,27 +184,6 @@ export default function FileUploaderTool() {
           multiple
           onChange={handleFileChange}
         />
-      </div>
-
-      <div className="flex items-center gap-6">
-        {/* <label className="flex items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name="upload-target"
-            checked={target === "r2"}
-            onChange={() => setTarget("r2")}
-          />
-          上传到 R2
-        </label> */}
-        {/* <label className="flex items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name="upload-target"
-            checked={target === "s3"}
-            onChange={() => setTarget("s3")}
-          />
-          上传到 S3
-        </label> */}
       </div>
 
       {items.length > 0 && (
@@ -278,35 +255,45 @@ export default function FileUploaderTool() {
       {uploaded.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-lg font-medium">上传结果</h2>
-          <ul className="space-y-2">
+          <ul className="flex justify-start flex-wrap">
             {uploaded.map((f, i) => (
-              <li
-                key={i}
-                className="flex items-center justify-between rounded border p-3 gap-4"
-              >
-                <div className="flex min-w-0 items-center gap-2">
+              <li key={i} className="mr-2 mb-2 p-3 border">
+                <div className="mb-2 w-[180px] h-[180px]">
+                  {f.type.startsWith("image/") ? (
+                    <img
+                      src={f.url}
+                      alt={f.name}
+                      className="w-[100%] h-[100%] object-contain"
+                    />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      {f.name}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 w-[200px]">
                   <LinkIcon className="h-4 w-4 shrink-0" />
                   <a
                     href={f.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm underline truncate"
+                    className="text-sm underline truncate w-[200px]"
                   >
                     {f.url}
                   </a>
+                  <Button
+                    className="cursor-pointer"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => copyToClipboard(f.url, f.name)}
+                  >
+                    {copiedItems.has(f.name) ? (
+                      <Check className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
                 </div>
-                <Button
-                  className="cursor-pointer"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => copyToClipboard(f.url, f.name)}
-                >
-                  {copiedItems.has(f.name) ? (
-                    <Check className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </Button>
               </li>
             ))}
           </ul>
