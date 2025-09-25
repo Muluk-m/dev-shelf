@@ -205,7 +205,7 @@ export async function getToolUsageStats(limit = 8): Promise<ToolUsageStat[]> {
 	return response.json();
 }
 
-export async function uploadFiles(files: FormData): Promise<UploadFile[]> {
+export async function uploadFiles(files: FormData): Promise<{files: UploadFile[]}> {
 	const response = await fetch(`${API_BASE_URL}/api/uploads`, {
 		method: "POST",
 		body: files,
