@@ -11,7 +11,7 @@
     "API_BASE_URL": "https://qlj-devhub-homepage.qiliangjia.one",
     "FEISHU_CLIENT_ID": "cli_a81054e5b13ed013",
     "OAUTH_BASE_URL": "https://thirdpart-service-hub-app-test.qiliangjia.org",
-    "IMAGE_PREFIX": "https://storage.deepclick.com"
+    "IMAGE_PREFIX": "https://image.deepclick.com"
   },
   "r2_buckets": [
     {

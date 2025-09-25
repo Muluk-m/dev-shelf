@@ -43,7 +43,6 @@ export default function FileUploaderTool() {
   const [uploaded, setUploaded] = useState<UploadedItem[]>([]);
   const [isDragging, setDragging] = useState(false);
   const [isUploading, setUploading] = useState(false);
-  const [target, setTarget] = useState<"r2" | "s3">("r2");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
 
@@ -123,7 +122,7 @@ export default function FileUploaderTool() {
     } finally {
       setUploading(false);
     }
-  }, [items, toast, target]);
+  }, [items, toast]);
 
   return (
     <div className="space-y-6">
@@ -165,7 +164,7 @@ export default function FileUploaderTool() {
       </div>
 
       <div className="flex items-center gap-6">
-        <label className="flex items-center gap-2 text-sm">
+        {/* <label className="flex items-center gap-2 text-sm">
           <input
             type="radio"
             name="upload-target"
@@ -173,7 +172,7 @@ export default function FileUploaderTool() {
             onChange={() => setTarget("r2")}
           />
           上传到 R2
-        </label>
+        </label> */}
         {/* <label className="flex items-center gap-2 text-sm">
           <input
             type="radio"

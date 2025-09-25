@@ -41,22 +41,6 @@ export const uploadsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 uploadsRouter.post("/", async (c) => {
 	try {
 		const formData = await c.req.formData();
-		console.log(formData, '====formData');
-		// 新版：单选参数 target=r2|s3
-		const target = (formData.get("target") as string | null)?.toLowerCase() || null;
-		let targetR2 = false;
-		let targetS3 = false;
-		if (target === "r2") targetR2 = true;
-		if (target === "s3") targetS3 = true;
-		// 兼容旧版：两个布尔字段
-		if (!targetR2 && !targetS3) {
-			const oldR2 = String(formData.get("target_r2") || "false") === "true";
-			const oldS3 = String(formData.get("target_s3") || "false") === "true";
-			targetR2 = oldR2;
-			targetS3 = oldS3;
-		}
-
-		const folder = (formData.get("folder") as string | null) || undefined;
 		const files: File[] = [];
 
 		for (const [key, value] of formData.entries()) {
@@ -69,7 +53,7 @@ uploadsRouter.post("/", async (c) => {
 			return c.json({ error: "No files provided" }, 400);
 		}
 
-		const baseDir = folder ? sanitizeFilename(folder) : `uploads/cdn_source/images`;
+		const baseDir = 'uploads/cdn_source/images';
 		const results = [] as Array<UploadFile>;
 
 		for (const file of files) {
@@ -81,17 +65,15 @@ uploadsRouter.post("/", async (c) => {
 			const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 			const key = `${baseDir}/${basename}-${stamp}.${ext}`;
 
-			if (targetR2) {
-				await c.env.ASSETS_BUCKET.put(key, file.stream(), {
+			await c.env.ASSETS_BUCKET.put(key, file.stream(), {
 					httpMetadata: { contentType: file.type || "application/octet-stream" },
 					customMetadata: { originalName },
 				});
-			}
 
 			results.push({
 				key,
 				urls: {
-					r2: `${c.env.IMAGE_PREFIX}/assets/${encodeURIComponent(key)}`,
+					r2: `${c.env.IMAGE_PREFIX}/${encodeURIComponent(key)}`,
 				},
 				name: file.name,
 				size: file.size,
