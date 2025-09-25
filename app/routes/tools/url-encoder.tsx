@@ -1,4 +1,4 @@
-import { Copy, RefreshCw, Repeat } from "lucide-react";
+import { Check, Copy, RefreshCw, Repeat } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -33,6 +33,7 @@ export default function URLEncoderPage() {
 	const [output, setOutput] = useState("");
 	const [error, setError] = useState("");
 	const [encodeComponent, setEncodeComponent] = useState(true);
+	const [copied, setCopied] = useState(false);
 
 	const handleConvert = () => {
 		try {
@@ -65,6 +66,8 @@ export default function URLEncoderPage() {
 		if (!output) return;
 		try {
 			await navigator.clipboard.writeText(output);
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
 		} catch (err) {
 			setError(`复制失败：${(err as Error).message}`);
 		}
@@ -74,6 +77,7 @@ export default function URLEncoderPage() {
 		setInput("");
 		setOutput("");
 		setError("");
+		setCopied(false);
 	};
 
 	return (
@@ -180,8 +184,17 @@ export default function URLEncoderPage() {
 												disabled={!output}
 												className="flex-1"
 											>
-												<Copy className="mr-2 h-4 w-4" />
-												复制结果
+												{copied ? (
+													<>
+														<Check className="mr-2 h-4 w-4 text-green-600" />
+														已复制
+													</>
+												) : (
+													<>
+														<Copy className="mr-2 h-4 w-4" />
+														复制结果
+													</>
+												)}
 											</Button>
 										</div>
 									</div>

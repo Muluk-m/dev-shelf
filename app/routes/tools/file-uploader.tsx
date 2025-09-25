@@ -114,7 +114,7 @@ export default function FileUploaderTool() {
       );
       toast({
         title: "上传成功",
-        description: `已上传 ${data.files.length} 个文件`,
+        description: `已上传 ${data.length} 个文件`,
       });
       setItems([]);
     } catch (e: any) {
