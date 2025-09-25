@@ -12,14 +12,14 @@ export interface ToolUsageStat {
 }
 
 const TOOLS_CACHE_NAME = "tools";
-const TOOLS_CACHE_TTL_SECONDS = 120;
+const TOOLS_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
 export const TOOLS_CACHE_KEYS = {
   list: "/tools/list",
   detail: (id: string) => `/tools/${id}`,
 } as const;
 
 const TOOL_CATEGORIES_CACHE_NAME = "categories";
-const TOOL_CATEGORIES_CACHE_TTL_SECONDS = 120;
+const TOOL_CATEGORIES_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
 export const TOOL_CATEGORIES_CACHE_KEYS = {
   list: "/tool-categories/list",
 } as const;
