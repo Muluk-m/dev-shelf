@@ -9,6 +9,7 @@ import {
   Trash2,
   Link as LinkIcon,
   Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/components/ui/use-toast";
@@ -45,6 +46,7 @@ export default function FileUploaderTool() {
   const [isUploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
+  const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
 
   const onFiles = useCallback((files: FileList | File[]) => {
     const next: UploadPreview[] = [];
@@ -107,15 +109,16 @@ export default function FileUploaderTool() {
       //   form.append("target", target);
       const data = await uploadFiles(form);
       // 如果多目标，优先展示 r2，否则展示任意第一个
+      console.log(data, "====data");
       setUploaded(
-        data.map((f) => {
+        data.files.map((f: any) => {
           const url = f.urls.r2 || f.urls.s3 || Object.values(f.urls)[0] || "";
           return { name: f.name, size: f.size, type: f.type, url };
         })
       );
       toast({
         title: "上传成功",
-        description: `已上传 ${data.length} 个文件`,
+        description: `已上传 ${data.files.length} 个文件`,
       });
     } catch (e: any) {
       toast({ title: "上传失败", description: e?.message || "请稍后重试" });
@@ -123,6 +126,30 @@ export default function FileUploaderTool() {
       setUploading(false);
     }
   }, [items, toast]);
+
+  const copyToClipboard = async (url?: string, name?: string) => {
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: `${name} 已复制到剪贴板` });
+      // 添加到已复制列表，1秒后移除
+      const key = `${name}`;
+      setCopiedItems((prev) => new Set(prev).add(key));
+      setTimeout(() => {
+        setCopiedItems((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(key);
+          return newSet;
+        });
+      }, 1000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.currentTarget.files && onFiles(e.currentTarget.files);
+  };
 
   return (
     <div className="space-y-6">
@@ -157,9 +184,7 @@ export default function FileUploaderTool() {
           type="file"
           className="hidden"
           multiple
-          onChange={(e) =>
-            e.currentTarget.files && onFiles(e.currentTarget.files)
-          }
+          onChange={handleFileChange}
         />
       </div>
 
@@ -271,17 +296,16 @@ export default function FileUploaderTool() {
                   </a>
                 </div>
                 <Button
+                  className="cursor-pointer"
                   variant="secondary"
                   size="sm"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(f.url);
-                    toast({
-                      title: "已复制",
-                      description: "CDN 地址已复制到剪贴板",
-                    });
-                  }}
+                  onClick={() => copyToClipboard(f.url, f.name)}
                 >
-                  <Copy className="h-4 w-4" /> 复制
+                  {copiedItems.has(f.name) ? (
+                    <Check className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
                 </Button>
               </li>
             ))}
