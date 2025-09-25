@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/components/ui/use-toast";
+import { uploadFiles } from "~/lib/api";
 
 type UploadPreview = {
   file: File;
@@ -25,10 +26,6 @@ type UploadedItem = {
   type: string;
   url: string;
 };
-
-const API_BASE_URL = import.meta.env.DEV
-  ? "http://localhost:5173"
-  : "https://qlj-devhub-homepage.qiliangjia.one";
 
 function classifyFile(file: File): UploadPreview["kind"] {
   if (file.type.startsWith("image/")) return "image";
@@ -108,33 +105,18 @@ export default function FileUploaderTool() {
       const form = new FormData();
       items.forEach((it) => form.append("files", it.file, it.file.name));
       // 新版：单选参数
-      form.append("target", target);
-      const resp = await fetch(`${API_BASE_URL}/api/uploads`, {
-        method: "POST",
-        body: form,
-      });
-      if (!resp.ok) {
-        const text = await resp.text().catch(() => "");
-        throw new Error(text || `Upload failed (${resp.status})`);
-      }
-      const data = (await resp.json()) as {
-        files: Array<{
-          urls: Record<string, string>;
-          name: string;
-          size: number;
-          type: string;
-        }>;
-      };
+      //   form.append("target", target);
+      const data = await uploadFiles(form);
       // 如果多目标，优先展示 r2，否则展示任意第一个
       setUploaded(
-        data.files.map((f) => {
+        data.map((f) => {
           const url = f.urls.r2 || f.urls.s3 || Object.values(f.urls)[0] || "";
           return { name: f.name, size: f.size, type: f.type, url };
         })
       );
       toast({
         title: "上传成功",
-        description: `已上传 ${data.files.length} 个文件`,
+        description: `已上传 ${data.length} 个文件`,
       });
     } catch (e: any) {
       toast({ title: "上传失败", description: e?.message || "请稍后重试" });
@@ -192,7 +174,7 @@ export default function FileUploaderTool() {
           />
           上传到 R2
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        {/* <label className="flex items-center gap-2 text-sm">
           <input
             type="radio"
             name="upload-target"
@@ -200,7 +182,7 @@ export default function FileUploaderTool() {
             onChange={() => setTarget("s3")}
           />
           上传到 S3
-        </label>
+        </label> */}
       </div>
 
       {items.length > 0 && (

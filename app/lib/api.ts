@@ -1,3 +1,4 @@
+import type { UploadFile } from "workers/routes/uploads";
 import type { Tool, ToolCategory } from "~/types/tool";
 
 export interface ToolUsageStat {
@@ -200,6 +201,17 @@ export async function getToolUsageStats(limit = 8): Promise<ToolUsageStat[]> {
 	);
 	if (!response.ok) {
 		throw new Error("Failed to fetch tool usage stats");
+	}
+	return response.json();
+}
+
+export async function uploadFiles(files: FormData): Promise<UploadFile[]> {
+	const response = await fetch(`${API_BASE_URL}/api/uploads`, {
+		method: "POST",
+		body: files,
+	});
+	if (!response.ok) {
+		throw new Error("Failed to upload files");
 	}
 	return response.json();
 }
