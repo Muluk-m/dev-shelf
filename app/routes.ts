@@ -13,6 +13,7 @@ export default [
 		route("qr-generator", "routes/tools/qr-generator.tsx"),
 		route("time-formatter", "routes/tools/time-formatter.tsx"),
 		route("tiktok-pixel-tool", "routes/tools/tiktok-pixel-tool.tsx"),
+		route("file-uploader", "routes/tools/file-uploader.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
