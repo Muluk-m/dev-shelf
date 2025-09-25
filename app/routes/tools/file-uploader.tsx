@@ -271,7 +271,7 @@ export default function FileUploaderTool() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 w-[200px]">
+                <div className="flex items-center gap-2 w-[180px]">
                   <LinkIcon className="h-4 w-4 shrink-0" />
                   <a
                     href={f.url}
