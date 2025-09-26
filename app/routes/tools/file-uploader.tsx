@@ -152,10 +152,7 @@ export default function FileUploaderTool() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">静态资源上传（CDN）</h1>
-        <p className="text-sm text-muted-foreground">
-          支持图片、视频、JS、CSS、JSON、TXT 等。可拖拽到下方区域。
-        </p>
+        <h1 className="text-2xl font-semibold">图片资源上传（CDN）</h1>
       </div>
 
       <div

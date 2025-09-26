@@ -73,7 +73,7 @@ uploadsRouter.post("/", async (c) => {
 			results.push({
 				key,
 				urls: {
-					r2: `${c.env.IMAGE_PREFIX}/${encodeURIComponent(key)}`,
+					r2: `${c.env.IMAGE_PREFIX}/${key}`,
 				},
 				name: file.name,
 				size: file.size,
