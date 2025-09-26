@@ -52,7 +52,7 @@ export default function URLParserPage() {
 				hash: url.hash,
 				params,
 			});
-		} catch (e) {
+		} catch {
 			setParsedUrl(null);
 			toast.error("解析失败，请输入有效的URL地址");
 		}
@@ -113,6 +113,120 @@ export default function URLParserPage() {
 		);
 	};
 
+	// biome-ignore lint/correctness/noNestedComponentDefinitions: -
+	const QueryParamRow = ({
+		param,
+		index,
+	}: {
+		param: { key: string; value: string };
+		index: number;
+	}) => {
+		const keyCopyKey = `参数名-${param.key}`;
+		const valueCopyKey = `参数值-${param.value}`;
+		const isKeyCopied = copiedItems.has(keyCopyKey);
+		const isValueCopied = copiedItems.has(valueCopyKey);
+
+		return (
+			<div className="flex items-center mb-2 group">
+				<div className="w-[110px] flex items-center justify-end text-muted-foreground mr-2">
+					<span className="text-xs bg-muted px-2 rounded-full py-1 mr-2 min-w-[20px] text-center">
+						{index + 1}
+					</span>
+					{/* <span className="text-lg">↘</span> */}
+				</div>
+				<div className="flex-1 flex items-center border rounded bg-muted/20 overflow-hidden">
+					{/* Key 部分 */}
+					<div className="flex items-center w-1/2 px-3 py-2 border-r bg-background/50">
+						<div className="flex-1 min-w-0">
+							<div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+								Key
+							</div>
+							<span className="font-mono text-xs font-medium truncate block">
+								{param.key}
+							</span>
+						</div>
+						<Button
+							size="sm"
+							variant="ghost"
+							className={`h-6 w-6 p-0 ml-2 flex-shrink-0 transition-all duration-200 hover:bg-muted hover:scale-110 active:scale-95 ${
+								isKeyCopied
+									? "text-green-600 bg-green-100 dark:bg-green-900/30"
+									: ""
+							}`}
+							onClick={() => copyToClipboard(param.key, "参数名")}
+						>
+							{isKeyCopied ? (
+								<Check className="h-3 w-3" />
+							) : (
+								<Copy className="h-3 w-3" />
+							)}
+						</Button>
+					</div>
+					{/* Value 部分 */}
+					<div className="flex items-center w-1/2 px-3 py-2">
+						<div className="flex-1 min-w-0">
+							<div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
+								Value
+							</div>
+							<span className="font-mono text-xs truncate block">
+								{param.value || (
+									<span className="text-muted-foreground italic">empty</span>
+								)}
+							</span>
+						</div>
+						<Button
+							size="sm"
+							variant="ghost"
+							className={`h-6 w-6 p-0 ml-2 flex-shrink-0 transition-all duration-200 hover:bg-muted hover:scale-110 active:scale-95 ${
+								isValueCopied
+									? "text-green-600 bg-green-100 dark:bg-green-900/30"
+									: ""
+							}`}
+							onClick={() => copyToClipboard(param.value, "参数值")}
+						>
+							{isValueCopied ? (
+								<Check className="h-3 w-3" />
+							) : (
+								<Copy className="h-3 w-3" />
+							)}
+						</Button>
+					</div>
+				</div>
+			</div>
+		);
+	};
+
+	// biome-ignore lint/correctness/noNestedComponentDefinitions: -
+	const QueryParamsSection = () => {
+		if (!parsedUrl?.params || parsedUrl.params.length === 0) {
+			return null;
+		}
+
+		return (
+			<Card>
+				<CardContent className="pt-3">
+					<div className="flex items-center gap-2 mb-3 pb-2 border-b">
+						<div className="text-sm font-medium text-foreground">
+							Query Parameters
+						</div>
+						<div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+							{parsedUrl.params.length} 个参数
+						</div>
+					</div>
+					<div className="space-y-1">
+						{parsedUrl.params.map((param, index) => (
+							<QueryParamRow
+								key={`${param.key}-${param.value}-${index}`}
+								param={param}
+								index={index}
+							/>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+		);
+	};
+
 	return (
 		<div className="bg-background flex flex-col">
 			<main className="container mx-auto px-4 py-3 flex-1 flex flex-col overflow-hidden">
@@ -163,68 +277,7 @@ export default function URLParserPage() {
 					</Card>
 
 					{/* Query 参数 */}
-					{parsedUrl?.params && parsedUrl.params.length > 0 && (
-						<Card>
-							<CardContent className="pt-3">
-								{parsedUrl.params.map((p, idx) => {
-									const keyCopyKey = `参数名-${p.key}`;
-									const valueCopyKey = `参数值-${p.value}`;
-									const isKeyCopied = copiedItems.has(keyCopyKey);
-									const isValueCopied = copiedItems.has(valueCopyKey);
-
-									return (
-										<div key={idx} className="flex items-center mb-2">
-											<div className="w-[110px] flex justify-end text-muted-foreground mr-2">
-												<span className="text-lg">↘</span>
-											</div>
-											<div className="flex-1 flex items-center border rounded bg-muted/20">
-												{/* Key 部分 */}
-												<div className="flex items-center w-1/2 px-2 py-1 border-r">
-													<span className="font-mono text-xs text-muted-foreground truncate flex-1">
-														{p.key}
-													</span>
-													<Button
-														size="sm"
-														variant="ghost"
-														className={`h-5 w-5 p-0 ml-1 flex-shrink-0 transition-all duration-200 hover:bg-muted hover:scale-110 active:scale-95 ${
-															isKeyCopied ? "text-green-600 bg-green-100" : ""
-														}`}
-														onClick={() => copyToClipboard(p.key, "参数名")}
-													>
-														{isKeyCopied ? (
-															<Check className="h-3 w-3" />
-														) : (
-															<Copy className="h-3 w-3" />
-														)}
-													</Button>
-												</div>
-												{/* Value 部分 */}
-												<div className="flex items-center w-1/2 px-2 py-1">
-													<span className="font-mono text-xs truncate flex-1">
-														{p.value}
-													</span>
-													<Button
-														size="sm"
-														variant="ghost"
-														className={`h-5 w-5 p-0 ml-1 flex-shrink-0 transition-all duration-200 hover:bg-muted hover:scale-110 active:scale-95 ${
-															isValueCopied ? "text-green-600 bg-green-100" : ""
-														}`}
-														onClick={() => copyToClipboard(p.value, "参数值")}
-													>
-														{isValueCopied ? (
-															<Check className="h-3 w-3" />
-														) : (
-															<Copy className="h-3 w-3" />
-														)}
-													</Button>
-												</div>
-											</div>
-										</div>
-									);
-								})}
-							</CardContent>
-						</Card>
-					)}
+					<QueryParamsSection />
 				</div>
 			</main>
 		</div>
