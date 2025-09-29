@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
@@ -53,55 +53,77 @@ function diff(a: JsonValue, b: JsonValue): DiffNode {
   return { type: "changed", before: a, after: b };
 }
 
-function highlightJson(node: DiffNode, onlyDiff: boolean, indent = 0): string {
+function hasRenderable(n: DiffNode, onlyDiff: boolean): boolean {
+  switch (n.type) {
+    case "equal":
+      return !onlyDiff;
+    case "added":
+    case "removed":
+    case "changed":
+      return true;
+    case "object":
+      return Object.values(n.children).some((c) => hasRenderable(c, onlyDiff));
+    case "array":
+      return n.children.some((c) => hasRenderable(c, onlyDiff));
+  }
+}
+
+function renderNode(n: DiffNode, onlyDiff: boolean, level: number): ReactNode {
   const pad = (n: number) => " ".repeat(n);
-  const color = (t: string, cls: string) => `<span class="${cls}">${t}</span>`;
+  const json = (v: JsonValue) => JSON.stringify(v, null, 2);
 
-  const render = (n: DiffNode, level: number): string => {
-    switch (n.type) {
-      case "equal":
-        if (onlyDiff) return "";
-        return color(JSON.stringify(n.value, null, 2), "json-eq");
-      case "added":
-        return color(JSON.stringify(n.value, null, 2), "json-add");
-      case "removed":
-        return color(JSON.stringify(n.value, null, 2), "json-del");
-      case "changed":
-        return [
-          color(JSON.stringify(n.before, null, 2), "json-del"),
-          color(JSON.stringify(n.after, null, 2), "json-add"),
-        ].join(" ");
-      case "object": {
-        const entries = Object.entries(n.children)
-          .map(([k, v]) => {
-            const inner = render(v, level + 2);
-            if (onlyDiff && !inner) return "";
-            return `${pad(level + 2)}${color(
-              JSON.stringify(k),
-              "json-key"
-            )}: ${inner}`;
-          })
-          .filter(Boolean)
-          .join(",\n");
-        if (!entries) return onlyDiff ? "" : "{}";
-        return `{"\n${entries}\n${pad(level)}}`;
-      }
-      case "array": {
-        const items = n.children
-          .map((c) => {
-            const inner = render(c, level + 2);
-            if (onlyDiff && !inner) return "";
-            return `${pad(level + 2)}${inner}`;
-          })
-          .filter(Boolean)
-          .join(",\n");
-        if (!items) return onlyDiff ? "" : "[]";
-        return `[\n${items}\n${pad(level)}]`;
-      }
+  switch (n.type) {
+    case "equal":
+      if (onlyDiff) return null;
+      return <span className="json-eq">{json(n.value)}</span>;
+    case "added":
+      return <span className="json-add">{json(n.value)}</span>;
+    case "removed":
+      return <span className="json-del">{json(n.value)}</span>;
+    case "changed":
+      return (
+        <>
+          <span className="json-del">{json(n.before)}</span>{" "}
+          <span className="json-add">{json(n.after)}</span>
+        </>
+      );
+    case "object": {
+      const entries = Object.entries(n.children).filter(([_, v]) =>
+        hasRenderable(v, onlyDiff)
+      );
+      if (entries.length === 0) return onlyDiff ? null : "{}";
+      const nodes: ReactNode[] = ["{\n"];
+      entries.forEach(([k, v], idx) => {
+        nodes.push(<span key={`pad-${idx}`}>{pad(level + 2)}</span>);
+        nodes.push(
+          <span key={`key-${idx}`} className="json-key">
+            {JSON.stringify(k)}
+          </span>
+        );
+        nodes.push(": ");
+        nodes.push(
+          <span key={`val-${idx}`}>{renderNode(v, onlyDiff, level + 2)}</span>
+        );
+        if (idx !== entries.length - 1) nodes.push(",\n");
+      });
+      nodes.push("\n" + pad(level) + "}");
+      return <>{nodes}</>;
     }
-  };
-
-  return render(node, indent);
+    case "array": {
+      const items = n.children.filter((c) => hasRenderable(c, onlyDiff));
+      if (items.length === 0) return onlyDiff ? null : "[]";
+      const nodes: ReactNode[] = ["[\n"];
+      items.forEach((c, i) => {
+        nodes.push(<span key={`ipad-${i}`}>{pad(level + 2)}</span>);
+        nodes.push(
+          <span key={`ival-${i}`}>{renderNode(c, onlyDiff, level + 2)}</span>
+        );
+        if (i !== items.length - 1) nodes.push(",\n");
+      });
+      nodes.push("\n" + pad(level) + "]");
+      return <>{nodes}</>;
+    }
+  }
 }
 
 export default function JsonDiffTool() {
@@ -134,9 +156,9 @@ export default function JsonDiffTool() {
     return { node: diff(a, b), errorLeft: "", errorRight: "" };
   }, [left, right]);
 
-  const html = useMemo(() => {
-    if (!node) return "";
-    return highlightJson(node, onlyDiff, 0);
+  const rendered = useMemo(() => {
+    if (!node) return null;
+    return renderNode(node, onlyDiff, 0);
   }, [node, onlyDiff]);
 
   return (
@@ -230,17 +252,17 @@ export default function JsonDiffTool() {
                     <Switch checked={onlyDiff} onCheckedChange={setOnlyDiff} />
                   </div>
                 </div>
-                <div
+                <pre
                   className="text-sm overflow-auto leading-6 max-h-[70vh] whitespace-pre-wrap break-words font-mono max-w-full"
                   style={{
                     fontFamily:
                       "ui-monospace, SFMono-Regular, Menlo, monospace",
                   }}
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      html || '<span class="text-muted-foreground">{ }</span>',
-                  }}
-                />
+                >
+                  {rendered ?? (
+                    <span className="text-muted-foreground">{`{ }`}</span>
+                  )}
+                </pre>
               </CardContent>
             </Card>
           </div>
