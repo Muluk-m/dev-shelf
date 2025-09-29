@@ -184,8 +184,10 @@ export default function JsonDiffTool() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const obj = left.trim() ? safeJsonParse(left) : null;
-                      setLeft(obj);
+                      try {
+                        const obj = left.trim() ? safeJsonParse(left) : null;
+                        setLeft(JSON.stringify(obj, null, 2));
+                      } catch {}
                     }}
                   >
                     格式化
