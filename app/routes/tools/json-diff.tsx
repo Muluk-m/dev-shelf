@@ -3,6 +3,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
+import { safeJsonParse } from "@qlj/common-utils/common";
 
 type JsonValue =
   | null
@@ -183,10 +184,8 @@ export default function JsonDiffTool() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      try {
-                        const obj = left.trim() ? JSON.parse(left) : null;
-                        setLeft(JSON.stringify(obj, null, 2));
-                      } catch {}
+                      const obj = left.trim() ? safeJsonParse(left) : null;
+                      setLeft(obj);
                     }}
                   >
                     格式化
