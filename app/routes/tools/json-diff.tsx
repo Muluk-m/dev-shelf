@@ -150,10 +150,10 @@ export default function JsonDiffTool() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_420px] gap-4 items-start">
-            <Card>
-              <CardContent className="pt-4 space-y-2">
-                <div className="flex items-center justify-between">
+          <div className="flex content-start gap-4">
+            <Card className="w-[20vw] flex-shrink-0 flex-grow-0">
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="text-sm text-muted-foreground">
                     Your first JSON
                   </div>
@@ -177,7 +177,7 @@ export default function JsonDiffTool() {
                   placeholder="Paste your first JSON here..."
                   className={`${
                     errorLeft ? "border-destructive" : ""
-                  } font-mono`}
+                  } font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
                 />
                 {errorLeft && (
                   <div className="text-destructive text-xs">{errorLeft}</div>
@@ -185,9 +185,9 @@ export default function JsonDiffTool() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="pt-4 space-y-2">
-                <div className="flex items-center justify-between">
+            <Card className="w-[20vw] flex-shrink-0 flex-grow-0">
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="text-sm text-muted-foreground">
                     Your JSON to compare
                   </div>
@@ -211,7 +211,7 @@ export default function JsonDiffTool() {
                   placeholder="Paste your JSON to compare here..."
                   className={`${
                     errorRight ? "border-destructive" : ""
-                  } font-mono`}
+                  } font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
                 />
                 {errorRight && (
                   <div className="text-destructive text-xs">{errorRight}</div>
@@ -219,9 +219,9 @@ export default function JsonDiffTool() {
               </CardContent>
             </Card>
 
-            <Card className="lg:sticky lg:top-6">
-              <CardContent className="pt-4 space-y-3">
-                <div className="flex items-center justify-between">
+            <Card className="lg:sticky lg:top-6 w-[30vw] flex-shrink-0 flex-grow-0">
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="text-sm text-muted-foreground">结果</div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
@@ -231,7 +231,7 @@ export default function JsonDiffTool() {
                   </div>
                 </div>
                 <div
-                  className="text-sm overflow-auto leading-6 max-h-[70vh] whitespace-pre font-mono"
+                  className="text-sm overflow-auto leading-6 max-h-[70vh] whitespace-pre-wrap break-words font-mono max-w-full"
                   style={{
                     fontFamily:
                       "ui-monospace, SFMono-Regular, Menlo, monospace",
