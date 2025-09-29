@@ -14,6 +14,7 @@ export default [
 		route("time-formatter", "routes/tools/time-formatter.tsx"),
 		route("tiktok-pixel-tool", "routes/tools/tiktok-pixel-tool.tsx"),
 		route("file-uploader", "routes/tools/file-uploader.tsx"),
+		route("json-diff", "routes/tools/json-diff.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
