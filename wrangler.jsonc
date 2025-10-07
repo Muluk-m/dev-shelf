@@ -1,0 +1,34 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */ {
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dev-shelf",
+  "compatibility_date": "2025-10-10",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "./workers/app.ts",
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "API_BASE_URL": ""
+  },
+  // JWT_SECRET must be set as a secret via: wrangler secret put JWT_SECRET
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "devhub-database",
+      "database_id": "PLACEHOLDER_D1_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE_KV",
+      "id": "PLACEHOLDER_KV_ID"
+    }
+  ]
+}
