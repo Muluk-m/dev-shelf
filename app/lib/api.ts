@@ -1,4 +1,10 @@
 import type { UploadFile } from "workers/routes/uploads";
+import type {
+	CfLogListRequest,
+	CfLogListResponse,
+	CfLogQueryRequest,
+	CfLogQueryResponse,
+} from "~/types/cf-logs";
 import type { Tool, ToolCategory } from "~/types/tool";
 
 export interface ToolUsageStat {
@@ -171,6 +177,60 @@ export async function deleteCategory(id: string): Promise<{ message: string }> {
 			.json()
 			.catch((error) => ({ error: error.message }))) as { error: string };
 		throw new Error(error.error || "Failed to delete category");
+	}
+
+	return response.json();
+}
+
+export async function listCfLogs(
+	params: CfLogListRequest = {},
+): Promise<CfLogListResponse> {
+	const searchParams = new URLSearchParams();
+	if (params.prefix) {
+		searchParams.set("prefix", params.prefix);
+	}
+	if (params.cursor) {
+		searchParams.set("cursor", params.cursor);
+	}
+	if (typeof params.limit === "number") {
+		searchParams.set("limit", String(params.limit));
+	}
+	if (params.delimiter === null) {
+		searchParams.set("delimiter", "none");
+	} else if (typeof params.delimiter === "string") {
+		searchParams.set("delimiter", params.delimiter);
+	}
+
+	const qs = searchParams.toString();
+	const url = `${API_BASE_URL}/api/cf-logs/list${qs ? `?${qs}` : ""}`;
+
+	const response = await fetch(url);
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch((error) => ({ error: error.message }))) as { error?: string };
+		throw new Error(error.error || "Failed to list CF logs");
+	}
+
+	return response.json();
+}
+
+export async function queryCfLogs(
+	payload: CfLogQueryRequest,
+): Promise<CfLogQueryResponse> {
+	const response = await fetch(`${API_BASE_URL}/api/cf-logs/query`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(payload),
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch((error) => ({ error: error.message }))) as { error?: string };
+		throw new Error(error.error || "Failed to query CF logs");
 	}
 
 	return response.json();

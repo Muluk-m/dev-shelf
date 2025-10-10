@@ -4,7 +4,7 @@
  */ {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "qlj-devhub-homepage",
-  "compatibility_date": "2025-04-01",
+  "compatibility_date": "2025-10-10",
   "main": "./workers/app.ts",
   "upload_source_maps": true,
   "vars": {
@@ -17,6 +17,11 @@
     {
       "binding": "ASSETS_BUCKET",
       "bucket_name": "storage"
+    },
+    {
+      "binding": "CF_ALL_LOG",
+      "bucket_name": "cloudflare-all-logs",
+      "experimental_remote": true
     }
   ],
   "observability": {
