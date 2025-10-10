@@ -4,6 +4,7 @@ import { createRequestHandler } from "react-router";
 import { authMiddleware } from "./middleware/auth";
 import { auth } from "./routes/auth";
 import { categoriesRouter } from "./routes/categories";
+import { cfLogsRouter } from "./routes/cf-logs";
 import { uploadsRouter } from "./routes/uploads";
 import { toolsRouter } from "./routes/tools";
 
@@ -18,6 +19,7 @@ app.route("/auth", auth);
 app.route("/api/tools", toolsRouter);
 app.route("/api/categories", categoriesRouter);
 app.route("/api/uploads", uploadsRouter);
+app.route("/api/cf-logs", cfLogsRouter);
 
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (ctx) =>
 	ctx.json({}),
