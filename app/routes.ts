@@ -1,8 +1,8 @@
 import { index, type RouteConfig, route } from "@react-router/dev/routes";
 
 export default [
-  index("routes/home.tsx"),
-  route("admin", "routes/admin.tsx"),
+	index("routes/home.tsx"),
+	route("admin", "routes/admin.tsx"),
 
 	// 内部工具路由 - 直接展示工具功能
 	route("tools", "routes/tools/_layout.tsx", [
@@ -16,9 +16,9 @@ export default [
 		route("file-uploader", "routes/tools/file-uploader.tsx"),
 		route("json-diff", "routes/tools/json-diff.tsx"),
 		route("cf-log-analyzer", "routes/tools/cf-log-analyzer.tsx"),
-    route("jwt-decoder", "routes/tools/jwt-decoder.tsx"),
+		route("jwt-decoder", "routes/tools/jwt-decoder.tsx"),
 	]),
 
-  // 外部工具路由 - 展示详情页
-  route("tools/:id", "routes/tools.$id.tsx"),
+	// 外部工具路由 - 展示详情页
+	route("tools/:id", "routes/tools.$id.tsx"),
 ] satisfies RouteConfig;

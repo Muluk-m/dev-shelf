@@ -15,6 +15,9 @@ npm run preview         # Preview production build locally
 npm run deploy          # Build and deploy to Cloudflare Workers
 npm run cf-typegen      # Generate Cloudflare D1 database types
 
+# Database Management
+npm run db:setup        # Initialize D1 database with schema (alias for wrangler d1 execute)
+
 # Linting & Code Quality
 npm run lint            # Run Biome linter to check code quality
 npm run lint:fix         # Run Biome linter and auto-fix issues
@@ -47,6 +50,9 @@ This is a full-stack application deployed on Cloudflare Workers with the followi
   - `workers/routes/tools.ts` - Tool CRUD API endpoints
   - `workers/routes/categories.ts` - Category API endpoints
 - **Database**: Cloudflare D1 SQLite database with binding name "DB"
+- **Storage**: Cloudflare R2 buckets:
+  - `ASSETS_BUCKET` - General asset storage
+  - `CF_ALL_LOG` - Cloudflare log storage
 
 ### Data Flow & Field Mapping
 **Critical**: The database uses snake_case fields (`is_internal`, `is_external`, `last_updated`) while the frontend uses camelCase (`isInternal`, `isExternal`, `lastUpdated`). Field mapping occurs in `lib/database/tools.ts`.
@@ -74,6 +80,11 @@ Tools are stored with relationships:
 - **Development**: Uses `npm run dev` with Vite dev server on port 5173
 - **Production**: Deployed via `npm run deploy` to Cloudflare Workers
 - **Database**: D1 database "devhub-database" bound as "DB" in wrangler.jsonc
+- **Environment Variables** (in wrangler.jsonc):
+  - `API_BASE_URL` - Production API endpoint
+  - `FEISHU_CLIENT_ID` - Feishu OAuth client ID
+  - `OAUTH_BASE_URL` - OAuth service base URL
+  - `IMAGE_PREFIX` - CDN prefix for images
 
 ### Important Patterns
 - React Router v7 loaders return plain objects (no `json()` wrapper needed)

@@ -48,7 +48,6 @@ cfLogsRouter.get("/list", async (c) => {
 			limit: query.limit,
 			delimiter: query.delimiter === null ? undefined : query.delimiter,
 		});
-		console.log("list-result", listResult);
 
 		const response: CfLogListResponse = {
 			objects: listResult.objects.map((object) => ({

@@ -9,8 +9,13 @@ import {
 	Folder,
 	RefreshCw,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import { useCallback, useMemo, useState } from "react";
+import React, {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
 import {
@@ -45,6 +50,7 @@ const DEFAULT_QUERY_LIMIT = 200;
 
 export default function CfLogAnalyzerPage() {
 	const [date, setDate] = useState(() => formatDateInput(new Date()));
+	const [domain, setDomain] = useState(() => "");
 	const [prefix, setPrefix] = useState(() => "");
 	const [listResult, setListResult] = useState<CfLogListResponse | null>(null);
 	const [listLoading, setListLoading] = useState(false);
@@ -61,14 +67,17 @@ export default function CfLogAnalyzerPage() {
 	const [clientIPsInput, setClientIPsInput] = useState("");
 	const [searchText, setSearchText] = useState("");
 
-	const derivedDatePrefix = useMemo(
-		() => (date ? `date=${date}/` : ""),
-		[date],
-	);
+	const derivedDatePrefix = useMemo(() => {
+		if (!date) return "";
+		if (!domain) return `requests/${date}/`;
+		return `${domain}/requests/${date}/`;
+	}, [date, domain]);
 
-	const handleApplyDatePrefix = useCallback(() => {
-		if (!derivedDatePrefix) return;
-		setPrefix(derivedDatePrefix);
+	// Auto-update prefix when domain or date changes
+	useEffect(() => {
+		if (derivedDatePrefix) {
+			setPrefix(derivedDatePrefix);
+		}
 	}, [derivedDatePrefix]);
 
 	const handleListLogs = useCallback(
@@ -86,7 +95,7 @@ export default function CfLogAnalyzerPage() {
 			setListLoading(true);
 			try {
 				const response = await listCfLogs({
-					prefix: effectivePrefix || undefined,
+					prefix: effectivePrefix.replaceAll("-", ""),
 					cursor: nextCursor,
 					limit: 200,
 				});
@@ -191,39 +200,40 @@ export default function CfLogAnalyzerPage() {
 						刷新列表
 					</Button>
 				</CardHeader>
-				<CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<div className="space-y-2">
-						<Label htmlFor="log-date">按日期快速定位</Label>
-						<div className="flex gap-2">
-							<Input
-								id="log-date"
-								type="date"
-								value={date}
-								onChange={(event) => setDate(event.target.value)}
-							/>
-							<Button
-								variant="outline"
-								onClick={handleApplyDatePrefix}
-								disabled={!derivedDatePrefix}
-							>
-								应用为前缀
-							</Button>
-						</div>
+						<Label htmlFor="domain-input">域名</Label>
+						<Input
+							id="domain-input"
+							placeholder="example.com"
+							value={domain}
+							onChange={(event) => setDomain(event.target.value)}
+						/>
 						<p className="text-xs text-muted-foreground">
-							默认会拼出 <code>{derivedDatePrefix || "date=YYYY-MM-DD/"}</code>
-							，如目录结构不同可直接在右侧自定义。
+							选填，留空时前缀以 requests/ 开始
 						</p>
 					</div>
-					<div className="space-y-2 sm:col-span-2 lg:col-span-2">
+					<div className="space-y-2">
+						<Label htmlFor="log-date">日期</Label>
+						<Input
+							id="log-date"
+							type="date"
+							value={date}
+							onChange={(event) => setDate(event.target.value)}
+						/>
+						<p className="text-xs text-muted-foreground">选择要查询的日期</p>
+					</div>
+					<div className="space-y-2 sm:col-span-2">
 						<Label htmlFor="prefix-input">R2 路径前缀</Label>
 						<Input
 							id="prefix-input"
-							placeholder="例如 cf-logs/2024-09-26/"
+							placeholder={`例如 ${derivedDatePrefix || "requests/2024-09-26/"}`}
 							value={prefix}
 							onChange={(event) => setPrefix(event.target.value)}
 						/>
 						<p className="text-xs text-muted-foreground">
-							留空会列出整个 bucket，建议带上前缀以减小遍历范围。
+							自动拼接：
+							<code>{derivedDatePrefix || "domain/requests/YYYY-MM-DD/"}</code>
 						</p>
 					</div>
 				</CardContent>
@@ -272,8 +282,8 @@ export default function CfLogAnalyzerPage() {
 								配置前缀后可通过面包屑快速回退上一层目录。
 							</p>
 						)}
-						<ScrollArea className="h-[420px] rounded border">
-							<div className="p-3 space-y-2">
+						<ScrollArea type="scroll" className="h-[420px] rounded border">
+							<div className="p-3 space-y-2 max-w-[310px]">
 								{listLoading && <LoadingPlaceholder message="载入文件中..." />}
 								{!listLoading && listResult?.prefixes.length ? (
 									<div>
@@ -327,7 +337,7 @@ export default function CfLogAnalyzerPage() {
 															className="font-medium truncate"
 															title={object.key}
 														>
-															{object.key}
+															{object.key.slice(0, 64)}
 														</span>
 													</div>
 													<div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
@@ -355,8 +365,8 @@ export default function CfLogAnalyzerPage() {
 					</CardContent>
 				</Card>
 
-				<div className="space-y-6">
-					<Card>
+				<div className="min-w-0 max-w-full space-y-6">
+					<Card className="min-w-0 max-w-full">
 						<CardHeader>
 							<CardTitle className="text-lg">查询条件</CardTitle>
 						</CardHeader>
@@ -453,7 +463,7 @@ export default function CfLogAnalyzerPage() {
 						</CardContent>
 					</Card>
 
-					<Card>
+					<Card className="min-w-0 max-w-full">
 						<CardHeader>
 							<CardTitle className="text-lg">统计概览</CardTitle>
 							<CardDescription>基于匹配到的日志条目进行聚合。</CardDescription>
@@ -501,7 +511,7 @@ export default function CfLogAnalyzerPage() {
 						</CardContent>
 					</Card>
 
-					<Card>
+					<Card className="min-w-0 max-w-full">
 						<CardHeader>
 							<CardTitle className="text-lg">匹配日志条目</CardTitle>
 							<CardDescription>
@@ -511,16 +521,14 @@ export default function CfLogAnalyzerPage() {
 						<CardContent className="space-y-4">
 							{queryLoading && <LoadingPlaceholder message="正在分析日志..." />}
 							{!queryLoading && queryResult?.entries.length ? (
-								<ScrollArea className="h-[520px] rounded border">
-									<div className="space-y-3 p-3">
-										{queryResult.entries.map((entry) => (
-											<EntryCard
-												key={`${entry.lineNumber}-${entry.raw.slice(0, 24)}`}
-												entry={entry}
-											/>
-										))}
-									</div>
-								</ScrollArea>
+								<div className="space-y-3 p-3">
+									{queryResult.entries.map((entry) => (
+										<EntryCard
+											key={`${entry.lineNumber}-${entry.raw.slice(0, 24)}`}
+											entry={entry}
+										/>
+									))}
+								</div>
 							) : null}
 
 							{!queryLoading && !queryResult?.entries.length ? (
@@ -613,16 +621,17 @@ function SummaryList({
 		return null;
 	}
 	return (
-		<div className="rounded border p-3">
+		<div className="min-w-0 max-w-full rounded border p-3">
 			<p className="text-xs font-medium text-muted-foreground">{title}</p>
 			<div className="mt-2 space-y-1.5">
 				{items.map(([key, count]) => (
 					<div
 						key={key}
-						className="flex items-center justify-between gap-2 text-xs"
+						className="flex min-w-0 items-center justify-between gap-2 text-xs"
 					>
 						<span
 							className={cn(
+								"truncate",
 								mono && "font-mono",
 								uppercase && "uppercase",
 								highlight && "font-semibold text-foreground",
@@ -631,7 +640,7 @@ function SummaryList({
 						>
 							{truncateMiddle(key, 36)}
 						</span>
-						<span className="text-muted-foreground">{count}</span>
+						<span className="flex-shrink-0 text-muted-foreground">{count}</span>
 					</div>
 				))}
 			</div>
@@ -659,6 +668,7 @@ function EntryCard({ entry }: { entry: CfLogEntry }) {
 	const cacheStatus = data.CacheCacheStatus as string | undefined;
 	const clientIP = data.ClientIP as string | undefined;
 	const edgeTime = data.EdgeTimeToFirstByte as number | string | undefined;
+	const ua = data.ClientRequestUserAgent as string | undefined;
 
 	const handleCopy = useCallback(() => {
 		const payload = entry.raw || JSON.stringify(data, null, 2);
@@ -669,7 +679,7 @@ function EntryCard({ entry }: { entry: CfLogEntry }) {
 	}, [data, entry.raw]);
 
 	return (
-		<div className="rounded border p-3 text-sm">
+		<div className="min-w-0 max-w-full rounded border p-3 text-sm">
 			<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 				<span className="font-mono text-[11px] text-foreground">
 					#{entry.lineNumber}
@@ -683,12 +693,15 @@ function EntryCard({ entry }: { entry: CfLogEntry }) {
 				{edgeTime ? <Badge variant="outline">TTFB {edgeTime}</Badge> : null}
 			</div>
 			{path ? (
-				<p className="mt-2 font-mono text-xs text-foreground">{path}</p>
+				<p className="mt-2 font-mono text-xs text-foreground break-all">
+					{path}
+				</p>
 			) : null}
 			<div className="mt-2 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-3">
 				{host ? <InfoRow label="Host" value={host} /> : null}
 				{clientIP ? <InfoRow label="Client IP" value={clientIP} /> : null}
 				{rayId ? <InfoRow label="Ray ID" value={rayId} /> : null}
+				{ua ? <InfoRow label="User Agent" value={ua} /> : null}
 			</div>
 			<Separator className="my-3" />
 			<div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -702,7 +715,7 @@ function EntryCard({ entry }: { entry: CfLogEntry }) {
 					复制
 				</Button>
 			</div>
-			<pre className="mt-2 max-h-48 overflow-auto rounded bg-muted/60 p-3 text-[11px] leading-relaxed text-muted-foreground">
+			<pre className="mt-2 max-h-48 max-w-full overflow-auto rounded bg-muted/60 p-3 text-[11px] leading-relaxed text-muted-foreground break-words whitespace-pre-wrap">
 				{entry.raw || JSON.stringify(data, null, 2)}
 			</pre>
 		</div>
@@ -711,7 +724,7 @@ function EntryCard({ entry }: { entry: CfLogEntry }) {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="flex flex-col">
+		<div className="flex min-w-0 flex-col">
 			<span className="text-[10px] uppercase tracking-wide text-muted-foreground">
 				{label}
 			</span>
