@@ -8,6 +8,7 @@ import {
   useLoaderData,
 } from "react-router";
 import { ThemeProvider } from "~/components/theme-provider";
+import { Toaster } from "~/components/ui/sonner";
 import { CommandPanelProvider } from "~/context/command-panel-context";
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -73,6 +74,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
+          <Toaster position="top-right" />
           {children}
         </ThemeProvider>
         <ScrollRestoration />
