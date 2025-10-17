@@ -1,5 +1,8 @@
 import { safeJsonParse } from "@qlj/common-utils/common";
+import { Edit3 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
@@ -131,6 +134,8 @@ export default function JsonDiffTool() {
 	const [left, setLeft] = useState<string>("");
 	const [right, setRight] = useState<string>("");
 	const [onlyDiff, setOnlyDiff] = useState<boolean>(false);
+	const [isEditingLeft, setIsEditingLeft] = useState<boolean>(true);
+	const [isEditingRight, setIsEditingRight] = useState<boolean>(true);
 
 	const { node, errorLeft, errorRight } = useMemo(() => {
 		let a: JsonValue = null;
@@ -180,30 +185,57 @@ export default function JsonDiffTool() {
 									<div className="text-sm text-muted-foreground">
 										Your first JSON
 									</div>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => {
-											try {
-												const obj = left.trim() ? safeJsonParse(left) : null;
-												setLeft(JSON.stringify(obj, null, 2));
-											} catch {}
-										}}
-									>
-										格式化
-									</Button>
+									<div className="flex items-center gap-2">
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => setIsEditingLeft(!isEditingLeft)}
+										>
+											<Edit3 className="h-3 w-3 mr-1" />
+											{isEditingLeft ? "预览" : "编辑"}
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												try {
+													const obj = left.trim() ? safeJsonParse(left) : null;
+													setLeft(JSON.stringify(obj, null, 2));
+												} catch {}
+											}}
+										>
+											格式化
+										</Button>
+									</div>
 								</div>
-								<Textarea
-									rows={18}
-									value={left}
-									onChange={(e) => setLeft(e.target.value)}
-									placeholder="Paste your first JSON here..."
-									className={`${
-										errorLeft ? "border-destructive" : ""
-									} font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
-								/>
+								{isEditingLeft ? (
+									<Textarea
+										rows={18}
+										value={left}
+										onChange={(e) => setLeft(e.target.value)}
+										placeholder="Paste your first JSON here..."
+										className={`${
+											errorLeft ? "border-destructive" : ""
+										} font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
+									/>
+								) : (
+									<div className="relative rounded-md overflow-hidden border max-h-[70vh] overflow-y-auto">
+										<SyntaxHighlighter
+											language="json"
+											style={vscDarkPlus}
+											customStyle={{
+												margin: 0,
+												fontSize: "0.875rem",
+												lineHeight: "1.5",
+											}}
+											showLineNumbers
+										>
+											{left || "{}"}
+										</SyntaxHighlighter>
+									</div>
+								)}
 								{errorLeft && (
-									<div className="text-destructive text-xs">{errorLeft}</div>
+									<div className="text-destructive text-xs mt-2">{errorLeft}</div>
 								)}
 							</CardContent>
 						</Card>
@@ -214,30 +246,57 @@ export default function JsonDiffTool() {
 									<div className="text-sm text-muted-foreground">
 										Your JSON to compare
 									</div>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => {
-											try {
-												const obj = right.trim() ? JSON.parse(right) : null;
-												setRight(JSON.stringify(obj, null, 2));
-											} catch {}
-										}}
-									>
-										格式化
-									</Button>
+									<div className="flex items-center gap-2">
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => setIsEditingRight(!isEditingRight)}
+										>
+											<Edit3 className="h-3 w-3 mr-1" />
+											{isEditingRight ? "预览" : "编辑"}
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												try {
+													const obj = right.trim() ? JSON.parse(right) : null;
+													setRight(JSON.stringify(obj, null, 2));
+												} catch {}
+											}}
+										>
+											格式化
+										</Button>
+									</div>
 								</div>
-								<Textarea
-									rows={18}
-									value={right}
-									onChange={(e) => setRight(e.target.value)}
-									placeholder="Paste your JSON to compare here..."
-									className={`${
-										errorRight ? "border-destructive" : ""
-									} font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
-								/>
+								{isEditingRight ? (
+									<Textarea
+										rows={18}
+										value={right}
+										onChange={(e) => setRight(e.target.value)}
+										placeholder="Paste your JSON to compare here..."
+										className={`${
+											errorRight ? "border-destructive" : ""
+										} font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
+									/>
+								) : (
+									<div className="relative rounded-md overflow-hidden border max-h-[70vh] overflow-y-auto">
+										<SyntaxHighlighter
+											language="json"
+											style={vscDarkPlus}
+											customStyle={{
+												margin: 0,
+												fontSize: "0.875rem",
+												lineHeight: "1.5",
+											}}
+											showLineNumbers
+										>
+											{right || "{}"}
+										</SyntaxHighlighter>
+									</div>
+								)}
 								{errorRight && (
-									<div className="text-destructive text-xs">{errorRight}</div>
+									<div className="text-destructive text-xs mt-2">{errorRight}</div>
 								)}
 							</CardContent>
 						</Card>

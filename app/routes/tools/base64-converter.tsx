@@ -1,5 +1,5 @@
 import { Check, Copy, RefreshCw, Repeat } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -45,14 +45,15 @@ export default function Base64ConverterPage() {
 	const [lineLength, setLineLength] = useState("76");
 	const [copied, setCopied] = useState(false);
 
-	const handleConvert = () => {
-		try {
-			if (!input.trim()) {
-				setOutput("");
-				setError("输入内容不能为空");
-				return;
-			}
+	// Auto-convert when input, mode, or encoding options change
+	useEffect(() => {
+		if (!input.trim()) {
+			setOutput("");
+			setError("");
+			return;
+		}
 
+		try {
 			if (mode === "encode") {
 				const parsedLength = Number.parseInt(lineLength, 10);
 				setOutput(
@@ -70,7 +71,7 @@ export default function Base64ConverterPage() {
 			setError(`转换失败：${(err as Error).message}`);
 			setOutput("");
 		}
-	};
+	}, [input, mode, wrapLines, lineLength]);
 
 	const handleSwap = () => {
 		setInput(output);
@@ -229,12 +230,6 @@ export default function Base64ConverterPage() {
 									{error}
 								</div>
 							)}
-
-							<div className="flex justify-end">
-								<Button onClick={handleConvert} className="gap-2">
-									{mode === "encode" ? "执行编码" : "执行解码"}
-								</Button>
-							</div>
 						</CardContent>
 					</Card>
 

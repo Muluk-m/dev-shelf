@@ -47,7 +47,9 @@ export class ClickHouseService {
 			};
 		} catch (error) {
 			throw new Error(
-				`Failed to execute query: ${error instanceof Error ? error.message : "Unknown error"}`,
+				`Failed to execute query: ${
+					error instanceof Error ? error.message : "Unknown error"
+				}`,
 			);
 		}
 	}
@@ -90,14 +92,6 @@ export class ClickHouseService {
 			return {
 				valid: false,
 				error: "仅支持 SELECT 查询语句",
-			};
-		}
-
-		// Must include project_id filter
-		if (!normalizedSQL.includes("PROJECT_ID")) {
-			return {
-				valid: false,
-				error: "所有查询必须包含 project_id 过滤条件",
 			};
 		}
 
