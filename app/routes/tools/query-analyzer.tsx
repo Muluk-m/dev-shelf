@@ -1,5 +1,15 @@
-import { ChevronDown, Loader2, Play, Sparkles, X } from "lucide-react";
+import {
+	ChevronDown,
+	Download,
+	Edit3,
+	Loader2,
+	Play,
+	Sparkles,
+	X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Header } from "~/components/layout/header";
 import { ChartVisualization } from "~/components/query-analyzer/chart-visualization";
 import { DataTable } from "~/components/query-analyzer/data-table";
@@ -38,6 +48,66 @@ const STORAGE_KEY = "query-analyzer-project-history";
 const MAX_HISTORY_SIZE = 10;
 
 /**
+ * Export data to CSV format
+ */
+function exportToCSV(data: any[], filename: string) {
+	if (!data || data.length === 0) return;
+
+	// Get column headers
+	const headers = Object.keys(data[0]);
+	const csvHeaders = headers.join(",");
+
+	// Convert data to CSV rows
+	const csvRows = data.map((row) =>
+		headers
+			.map((header) => {
+				const value = row[header];
+				// Escape values that contain commas or quotes
+				if (
+					typeof value === "string" &&
+					(value.includes(",") || value.includes('"'))
+				) {
+					return `"${value.replace(/"/g, '""')}"`;
+				}
+				return value;
+			})
+			.join(","),
+	);
+
+	// Combine headers and rows
+	const csv = [csvHeaders, ...csvRows].join("\n");
+
+	// Create blob and download
+	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+	const link = document.createElement("a");
+	const url = URL.createObjectURL(blob);
+	link.setAttribute("href", url);
+	link.setAttribute("download", `${filename}.csv`);
+	link.style.visibility = "hidden";
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+}
+
+/**
+ * Export data to JSON format
+ */
+function exportToJSON(data: any[], filename: string) {
+	if (!data || data.length === 0) return;
+
+	const json = JSON.stringify(data, null, 2);
+	const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
+	const link = document.createElement("a");
+	const url = URL.createObjectURL(blob);
+	link.setAttribute("href", url);
+	link.setAttribute("download", `${filename}.json`);
+	link.style.visibility = "hidden";
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+}
+
+/**
  * Format date to YYYY-MM-DD string
  */
 function formatDateToString(date: Date | undefined): string {
@@ -73,6 +143,7 @@ export default function QueryAnalyzerPage() {
 	const [generatedSQL, setGeneratedSQL] = useState("");
 	const [sqlExplanation, setSqlExplanation] = useState("");
 	const [showGeneratedSQL, setShowGeneratedSQL] = useState(true);
+	const [isEditingSQL, setIsEditingSQL] = useState(false);
 
 	// Custom SQL state
 	const [customSQL, setCustomSQL] = useState("");
@@ -397,8 +468,7 @@ export default function QueryAnalyzerPage() {
 										{/* Show history items first (excluding ones already in COMMON_PROJECTS) */}
 										{projectHistory
 											.filter(
-												(id) =>
-													!COMMON_PROJECTS.some((p) => p.value === id),
+												(id) => !COMMON_PROJECTS.some((p) => p.value === id),
 											)
 											.map((projectId) => (
 												<Button
@@ -519,39 +589,75 @@ export default function QueryAnalyzerPage() {
 										<div className="flex items-center justify-between">
 											<Label className="flex items-center gap-2">
 												生成的 SQL
-												<Badge variant="secondary" className="text-xs">
-													可编辑
-												</Badge>
-											</Label>
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												onClick={() => setShowGeneratedSQL(!showGeneratedSQL)}
-												className="h-7 text-xs"
-											>
-												{showGeneratedSQL ? (
-													<>
-														<ChevronDown className="w-3 h-3 mr-1 rotate-180" />
-														折叠
-													</>
+												{isEditingSQL ? (
+													<Badge variant="secondary" className="text-xs">
+														编辑模式
+													</Badge>
 												) : (
-													<>
-														<ChevronDown className="w-3 h-3 mr-1" />
-														展开
-													</>
+													<Badge variant="outline" className="text-xs">
+														预览模式
+													</Badge>
 												)}
-											</Button>
+											</Label>
+											<div className="flex items-center gap-2">
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													onClick={() => setIsEditingSQL(!isEditingSQL)}
+													className="h-7 text-xs"
+												>
+													<Edit3 className="w-3 h-3 mr-1" />
+													{isEditingSQL ? "预览" : "编辑"}
+												</Button>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													onClick={() => setShowGeneratedSQL(!showGeneratedSQL)}
+													className="h-7 text-xs"
+												>
+													{showGeneratedSQL ? (
+														<>
+															<ChevronDown className="w-3 h-3 mr-1 rotate-180" />
+															折叠
+														</>
+													) : (
+														<>
+															<ChevronDown className="w-3 h-3 mr-1" />
+															展开
+														</>
+													)}
+												</Button>
+											</div>
 										</div>
 
 										{showGeneratedSQL && (
 											<>
-												<Textarea
-													value={generatedSQL}
-													onChange={(e) => setGeneratedSQL(e.target.value)}
-													rows={12}
-													className="font-mono text-sm"
-												/>
+												{isEditingSQL ? (
+													<Textarea
+														value={generatedSQL}
+														onChange={(e) => setGeneratedSQL(e.target.value)}
+														rows={12}
+														className="font-mono text-sm"
+													/>
+												) : (
+													<div className="relative rounded-md overflow-hidden border">
+														<SyntaxHighlighter
+															language="sql"
+															style={vscDarkPlus}
+															customStyle={{
+																margin: 0,
+																borderRadius: "0.375rem",
+																fontSize: "0.875rem",
+																lineHeight: "1.5",
+															}}
+															showLineNumbers
+														>
+															{generatedSQL}
+														</SyntaxHighlighter>
+													</div>
+												)}
 												{sqlExplanation && (
 													<Alert>
 														<AlertDescription>
@@ -763,6 +869,38 @@ ORDER BY date DESC`}
 										<SelectItem value="bar">柱状图</SelectItem>
 										<SelectItem value="pie">饼图</SelectItem>
 										<SelectItem value="area">面积图</SelectItem>
+									</SelectContent>
+								</Select>
+								<Select
+									onValueChange={(format) => {
+										const timestamp = new Date()
+											.toISOString()
+											.replace(/[:.]/g, "-")
+											.slice(0, -5);
+										const filename = `query-result-${timestamp}`;
+										if (format === "csv") {
+											exportToCSV(queryResults, filename);
+										} else if (format === "json") {
+											exportToJSON(queryResults, filename);
+										}
+									}}
+								>
+									<SelectTrigger className="w-32">
+										<SelectValue placeholder="导出数据" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="csv">
+											<div className="flex items-center gap-2">
+												<Download className="w-3 h-3" />
+												导出 CSV
+											</div>
+										</SelectItem>
+										<SelectItem value="json">
+											<div className="flex items-center gap-2">
+												<Download className="w-3 h-3" />
+												导出 JSON
+											</div>
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>

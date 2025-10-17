@@ -1,5 +1,7 @@
-import { Copy, Download, Upload } from "lucide-react";
-import { useState } from "react";
+import { Copy, Download, Edit3, Upload } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -9,8 +11,17 @@ export default function JsonFormatterPage() {
 	const [input, setInput] = useState("");
 	const [output, setOutput] = useState("");
 	const [error, setError] = useState("");
+	const [isEditingInput, setIsEditingInput] = useState(true);
+	const [isEditingOutput, setIsEditingOutput] = useState(false);
 
-	const formatJson = () => {
+	// Auto-format JSON when input changes
+	useEffect(() => {
+		if (!input.trim()) {
+			setOutput("");
+			setError("");
+			return;
+		}
+
 		try {
 			const parsed = JSON.parse(input);
 			const formatted = JSON.stringify(parsed, null, 2);
@@ -20,7 +31,7 @@ export default function JsonFormatterPage() {
 			setError(`JSON 格式错误: ${(err as Error).message}`);
 			setOutput("");
 		}
-	};
+	}, [input]);
 
 	const minifyJson = () => {
 		try {
@@ -85,6 +96,14 @@ export default function JsonFormatterPage() {
 									<span>输入 JSON</span>
 									<div className="flex gap-2">
 										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => setIsEditingInput(!isEditingInput)}
+										>
+											<Edit3 className="h-4 w-4 mr-2" />
+											{isEditingInput ? "预览" : "编辑"}
+										</Button>
+										<Button
 											variant="outline"
 											size="sm"
 											onClick={() =>
@@ -105,24 +124,38 @@ export default function JsonFormatterPage() {
 								</CardTitle>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col pt-0 space-y-3">
-								<Textarea
-									value={input}
-									onChange={(e) => setInput(e.target.value)}
-									placeholder="在此输入或粘贴 JSON 数据..."
-									className="flex-1 font-mono text-sm resize-none"
-								/>
-								<div className="flex gap-2">
-									<Button onClick={formatJson} className="flex-1">
-										格式化
-									</Button>
-									<Button
-										onClick={minifyJson}
-										variant="outline"
-										className="flex-1"
-									>
-										压缩
-									</Button>
-								</div>
+								{isEditingInput ? (
+									<Textarea
+										value={input}
+										onChange={(e) => setInput(e.target.value)}
+										placeholder="在此输入或粘贴 JSON 数据..."
+										className="flex-1 font-mono text-sm resize-none"
+									/>
+								) : (
+									<div className="flex-1 relative rounded-md overflow-hidden border">
+										<SyntaxHighlighter
+											language="json"
+											style={vscDarkPlus}
+											customStyle={{
+												margin: 0,
+												fontSize: "0.875rem",
+												lineHeight: "1.5",
+												height: "100%",
+											}}
+											showLineNumbers
+										>
+											{input || "{}"}
+										</SyntaxHighlighter>
+									</div>
+								)}
+								<Button
+									onClick={minifyJson}
+									variant="outline"
+									className="w-full"
+									disabled={!input.trim()}
+								>
+									压缩
+								</Button>
 							</CardContent>
 						</Card>
 
@@ -132,6 +165,15 @@ export default function JsonFormatterPage() {
 								<CardTitle className="flex items-center justify-between text-base">
 									<span>格式化结果</span>
 									<div className="flex gap-2">
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => setIsEditingOutput(!isEditingOutput)}
+											disabled={!output}
+										>
+											<Edit3 className="h-4 w-4 mr-2" />
+											{isEditingOutput ? "预览" : "编辑"}
+										</Button>
 										<Button
 											variant="outline"
 											size="sm"
@@ -159,12 +201,31 @@ export default function JsonFormatterPage() {
 										{error}
 									</div>
 								)}
-								<Textarea
-									value={output}
-									readOnly
-									placeholder="格式化后的 JSON 将显示在这里..."
-									className="flex-1 font-mono text-sm resize-none"
-								/>
+								{isEditingOutput ? (
+									<Textarea
+										value={output}
+										onChange={(e) => setOutput(e.target.value)}
+										readOnly={false}
+										placeholder="格式化后的 JSON 将显示在这里..."
+										className="flex-1 font-mono text-sm resize-none"
+									/>
+								) : (
+									<div className="flex-1 relative rounded-md overflow-hidden border">
+										<SyntaxHighlighter
+											language="json"
+											style={vscDarkPlus}
+											customStyle={{
+												margin: 0,
+												fontSize: "0.875rem",
+												lineHeight: "1.5",
+												height: "100%",
+											}}
+											showLineNumbers
+										>
+											{output || "{}"}
+										</SyntaxHighlighter>
+									</div>
+								)}
 							</CardContent>
 						</Card>
 					</div>

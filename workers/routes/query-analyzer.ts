@@ -3,46 +3,46 @@ import { Hono } from "hono";
 const queryAnalyzerRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
 interface ConvertToSQLRequest {
-  naturalLanguage: string;
-  schema: {
-    tableName: string;
-    database: string;
-    columns: Array<{
-      name: string;
-      type: string;
-      comment?: string;
-    }>;
-  };
+	naturalLanguage: string;
+	schema: {
+		tableName: string;
+		database: string;
+		columns: Array<{
+			name: string;
+			type: string;
+			comment?: string;
+		}>;
+	};
 }
 
 interface ExecuteQueryRequest {
-  sql: string;
+	sql: string;
 }
 
 /**
  * Convert natural language to SQL using LLM
  */
 queryAnalyzerRouter.post("/convert-to-sql", async (c) => {
-  try {
-    const body = await c.req.json<ConvertToSQLRequest>();
-    const { naturalLanguage, schema } = body;
+	try {
+		const body = await c.req.json<ConvertToSQLRequest>();
+		const { naturalLanguage, schema } = body;
 
-    if (!naturalLanguage?.trim()) {
-      return c.json({ error: "自然语言查询不能为空" }, 400);
-    }
+		if (!naturalLanguage?.trim()) {
+			return c.json({ error: "自然语言查询不能为空" }, 400);
+		}
 
-    // Build prompt for LLM
-    const columnsInfo = schema.columns
-      .map(
-        (col) =>
-          `  - ${col.name} (${col.type})${
-            col.comment ? `: ${col.comment}` : ""
-          }`
-      )
-      .join("\n");
+		// Build prompt for LLM
+		const columnsInfo = schema.columns
+			.map(
+				(col) =>
+					`  - ${col.name} (${col.type})${
+						col.comment ? `: ${col.comment}` : ""
+					}`,
+			)
+			.join("\n");
 
-    // Event codes mapping
-    const eventCodesInfo = `
+		// Event codes mapping
+		const eventCodesInfo = `
 91001: 广告平台内-落地页访问
 91053: chrome内访问
 91002: 广告平台内-点击play
@@ -168,7 +168,7 @@ queryAnalyzerRouter.post("/convert-to-sql", async (c) => {
 21078: scan页面点击返回，app启动
 21079: scan页面点击返回，app启动失败`;
 
-    const prompt = `
+		const prompt = `
 # 数据表信息
 
 数据库: ${schema.database}
@@ -224,133 +224,133 @@ ${naturalLanguage}
 **查询说明**: 简要说明查询的逻辑和选择这些 event_code 的原因（1-2句话）
 `;
 
-    // Call LLM API
-    const llmResponse = await fetch(
-      "https://new-api.qiliangjia.org/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization:
-            "Bearer sk-c6RnsVbb6rtOGVPK2As0aC8ZhtGTP2FMxahCHXKiW076CnYx",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "developer",
-              content:
-                "你是一个 ClickHouse SQL 专家，负责将用户的自然语言需求转换为准确的 SQL 查询语句。你需要严格遵守 ClickHouse 的语法规则。",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.1,
-        }),
-      }
-    );
+		// Call LLM API
+		const llmResponse = await fetch(
+			"https://new-api.qiliangjia.org/v1/chat/completions",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization:
+						"Bearer sk-c6RnsVbb6rtOGVPK2As0aC8ZhtGTP2FMxahCHXKiW076CnYx",
+				},
+				body: JSON.stringify({
+					model: "gpt-4o",
+					messages: [
+						{
+							role: "developer",
+							content:
+								"你是一个 ClickHouse SQL 专家，负责将用户的自然语言需求转换为准确的 SQL 查询语句。你需要严格遵守 ClickHouse 的语法规则。",
+						},
+						{
+							role: "user",
+							content: prompt,
+						},
+					],
+					temperature: 0.1,
+				}),
+			},
+		);
 
-    if (!llmResponse.ok) {
-      throw new Error(`LLM API 请求失败: ${llmResponse.statusText}`);
-    }
+		if (!llmResponse.ok) {
+			throw new Error(`LLM API 请求失败: ${llmResponse.statusText}`);
+		}
 
-    const llmData: any = await llmResponse.json();
-    const content = llmData.choices?.[0]?.message?.content || "";
+		const llmData: any = await llmResponse.json();
+		const content = llmData.choices?.[0]?.message?.content || "";
 
-    // Parse response to extract SQL
-    let sql = "";
-    const sqlMatch = content.match(/```sql\s*\n([\s\S]*?)\n```/i);
+		// Parse response to extract SQL
+		let sql = "";
+		const sqlMatch = content.match(/```sql\s*\n([\s\S]*?)\n```/i);
 
-    if (sqlMatch) {
-      sql = sqlMatch[1].trim();
-      // Remove SQL comments
-      sql = sql.replace(/--.*$/gm, "").trim();
-    } else {
-      // Fallback: try to find SELECT statement
-      const selectMatch = content.match(/SELECT[\s\S]*?;/i);
-      sql = selectMatch ? selectMatch[0].trim() : content;
-    }
+		if (sqlMatch) {
+			sql = sqlMatch[1].trim();
+			// Remove SQL comments
+			sql = sql.replace(/--.*$/gm, "").trim();
+		} else {
+			// Fallback: try to find SELECT statement
+			const selectMatch = content.match(/SELECT[\s\S]*?;/i);
+			sql = selectMatch ? selectMatch[0].trim() : content;
+		}
 
-    // Extract explanation
-    const explanationMatch = content.match(
-      /(?:\*\*查询说明\*\*|解释|说明)[：:]\s*(.+?)(?:\n|$)/i
-    );
-    const explanation = explanationMatch
-      ? explanationMatch[1].trim()
-      : "根据您的需求生成的查询";
+		// Extract explanation
+		const explanationMatch = content.match(
+			/(?:\*\*查询说明\*\*|解释|说明)[：:]\s*(.+?)(?:\n|$)/i,
+		);
+		const explanation = explanationMatch
+			? explanationMatch[1].trim()
+			: "根据您的需求生成的查询";
 
-    return c.json({
-      sql,
-      explanation,
-    });
-  } catch (error) {
-    console.error("Convert to SQL error:", error);
-    return c.json(
-      {
-        error:
-          error instanceof Error ? error.message : "转换查询失败，请稍后重试",
-      },
-      500
-    );
-  }
+		return c.json({
+			sql,
+			explanation,
+		});
+	} catch (error) {
+		console.error("Convert to SQL error:", error);
+		return c.json(
+			{
+				error:
+					error instanceof Error ? error.message : "转换查询失败，请稍后重试",
+			},
+			500,
+		);
+	}
 });
 
 /**
  * Execute ClickHouse query
  */
 queryAnalyzerRouter.post("/execute-query", async (c) => {
-  try {
-    const body = await c.req.json<ExecuteQueryRequest>();
-    const { sql } = body;
+	try {
+		const body = await c.req.json<ExecuteQueryRequest>();
+		const { sql } = body;
 
-    if (!sql?.trim()) {
-      return c.json({ error: "SQL 查询不能为空" }, 400);
-    }
+		if (!sql?.trim()) {
+			return c.json({ error: "SQL 查询不能为空" }, 400);
+		}
 
-    const startTime = performance.now();
+		const startTime = performance.now();
 
-    // Execute query against ClickHouse
-    const response = await fetch(
-      "https://fe-toolkit.qiliangjia.org/clickhouse/query",
-      {
-        method: "POST",
-        headers: {
-          "x-access-key": "d561b95f5cda783b50042f9d75e912d3",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ query: sql }),
-      }
-    );
+		// Execute query against ClickHouse
+		const response = await fetch(
+			"https://fe-toolkit.qiliangjia.org/clickhouse/query",
+			{
+				method: "POST",
+				headers: {
+					"x-access-key": "d561b95f5cda783b50042f9d75e912d3",
+					"content-type": "application/json",
+				},
+				body: JSON.stringify({ query: sql }),
+			},
+		);
 
-    if (!response.ok) {
-      throw new Error(`ClickHouse 查询失败: ${response.statusText}`);
-    }
+		if (!response.ok) {
+			throw new Error(`ClickHouse 查询失败: ${response.statusText}`);
+		}
 
-    const data: any = await response.json();
-    const executionTime = performance.now() - startTime;
+		const data: any = await response.json();
+		const executionTime = performance.now() - startTime;
 
-    return c.json({
-      data: data.data || [],
-      meta: data.meta,
-      rows: data.rows || data.data?.length || 0,
-      statistics: {
-        elapsed: executionTime,
-        rows_read: data.statistics?.rows_read || 0,
-        bytes_read: data.statistics?.bytes_read || 0,
-      },
-    });
-  } catch (error) {
-    console.error("Execute query error:", error);
-    return c.json(
-      {
-        error:
-          error instanceof Error ? error.message : "查询执行失败，请稍后重试",
-      },
-      500
-    );
-  }
+		return c.json({
+			data: data.data || [],
+			meta: data.meta,
+			rows: data.rows || data.data?.length || 0,
+			statistics: {
+				elapsed: executionTime,
+				rows_read: data.statistics?.rows_read || 0,
+				bytes_read: data.statistics?.bytes_read || 0,
+			},
+		});
+	} catch (error) {
+		console.error("Execute query error:", error);
+		return c.json(
+			{
+				error:
+					error instanceof Error ? error.message : "查询执行失败，请稍后重试",
+			},
+			500,
+		);
+	}
 });
 
 export { queryAnalyzerRouter };
