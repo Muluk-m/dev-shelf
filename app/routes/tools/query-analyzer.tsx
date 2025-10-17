@@ -1,5 +1,5 @@
-import { Loader2, Play, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, Loader2, Play, Sparkles, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Header } from "~/components/layout/header";
 import { ChartVisualization } from "~/components/query-analyzer/chart-visualization";
 import { DataTable } from "~/components/query-analyzer/data-table";
@@ -28,10 +28,14 @@ import { Textarea } from "~/components/ui/textarea";
 import { convertToSQL, executeQuery } from "~/lib/api";
 import { getClickHouseService } from "~/lib/clickhouse-service";
 import {
+	COMMON_PROJECTS,
 	PWA_EVENT_TABLE_SCHEMA,
 	QUERY_TEMPLATES,
 	type QueryTemplate,
 } from "~/lib/query-templates";
+
+const STORAGE_KEY = "query-analyzer-project-history";
+const MAX_HISTORY_SIZE = 10;
 
 /**
  * Format date to YYYY-MM-DD string
@@ -60,12 +64,15 @@ export default function QueryAnalyzerPage() {
 	const [error, setError] = useState<string | null>(null);
 
 	// Global project IDs filter (required for all queries)
-	const [projectIds, setProjectIds] = useState("8201174886");
+	const [projectIds, setProjectIds] = useState("7732354485");
+	const [customProjectId, setCustomProjectId] = useState("");
+	const [projectHistory, setProjectHistory] = useState<string[]>([]);
 
 	// Natural language query state
 	const [naturalQuery, setNaturalQuery] = useState("");
 	const [generatedSQL, setGeneratedSQL] = useState("");
 	const [sqlExplanation, setSqlExplanation] = useState("");
+	const [showGeneratedSQL, setShowGeneratedSQL] = useState(true);
 
 	// Custom SQL state
 	const [customSQL, setCustomSQL] = useState("");
@@ -83,6 +90,66 @@ export default function QueryAnalyzerPage() {
 	>("table");
 
 	const clickhouseService = getClickHouseService();
+
+	// Load project history from localStorage on mount
+	useEffect(() => {
+		try {
+			const stored = localStorage.getItem(STORAGE_KEY);
+			if (stored) {
+				const history = JSON.parse(stored) as string[];
+				setProjectHistory(history);
+			}
+		} catch (error) {
+			console.error("Failed to load project history:", error);
+		}
+	}, []);
+
+	// Save project ID to history
+	const saveToHistory = (projectId: string) => {
+		try {
+			// Remove duplicates and add to front
+			const newHistory = [
+				projectId,
+				...projectHistory.filter((id) => id !== projectId),
+			].slice(0, MAX_HISTORY_SIZE);
+
+			setProjectHistory(newHistory);
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+		} catch (error) {
+			console.error("Failed to save project history:", error);
+		}
+	};
+
+	// Parse project IDs to array
+	const getProjectIdsArray = (): string[] => {
+		return projectIds
+			.split(",")
+			.map((id) => id.trim())
+			.filter((id) => id.length > 0);
+	};
+
+	// Add project ID to selection
+	const addProjectId = (id: string) => {
+		const ids = getProjectIdsArray();
+		if (!ids.includes(id)) {
+			setProjectIds([...ids, id].join(", "));
+			saveToHistory(id); // Save to history
+		}
+	};
+
+	// Remove project ID from selection
+	const removeProjectId = (id: string) => {
+		const ids = getProjectIdsArray().filter((i) => i !== id);
+		setProjectIds(ids.join(", "));
+	};
+
+	// Add custom project ID
+	const handleAddCustomProject = () => {
+		if (customProjectId.trim()) {
+			addProjectId(customProjectId.trim());
+			setCustomProjectId("");
+		}
+	};
 
 	// Inject project_id filter into SQL
 	const injectProjectIdFilter = (sql: string): string => {
@@ -142,7 +209,14 @@ export default function QueryAnalyzerPage() {
 			setGeneratedSQL(finalSQL);
 			setSqlExplanation(explanation);
 
-			// Don't auto-execute, let user review and edit first
+			// Auto-execute generated SQL
+			const validation = clickhouseService.validateSQL(finalSQL);
+			if (!validation.valid) {
+				setError(validation.error || "SQL 验证失败");
+				return;
+			}
+
+			await executeQueryWrapper(finalSQL);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "查询失败");
 		} finally {
@@ -279,20 +353,109 @@ export default function QueryAnalyzerPage() {
 				{/* Global Project ID Filter */}
 				<Card className="mb-6 border-2 border-primary/20">
 					<CardContent className="pt-6">
-						<div className="space-y-2">
+						<div className="space-y-3">
 							<Label htmlFor="projectIds" className="text-base font-semibold">
 								项目 ID（必填）
 								<Badge variant="secondary" className="ml-2">
 									必填
 								</Badge>
 							</Label>
-							<Input
-								id="projectIds"
-								placeholder="输入项目ID，多个ID用逗号分隔（例如：8201174886,8574361559）"
-								value={projectIds}
-								onChange={(e) => setProjectIds(e.target.value)}
-								className="text-base"
-							/>
+
+							{/* Selected Project IDs */}
+							<div className="flex flex-wrap gap-2">
+								{getProjectIdsArray().map((id) => (
+									<Badge
+										key={id}
+										variant="default"
+										className="px-3 py-1.5 text-sm"
+									>
+										{id}
+										<button
+											type="button"
+											onClick={() => removeProjectId(id)}
+											className="ml-2 hover:text-destructive"
+											aria-label={`移除项目 ${id}`}
+										>
+											<X className="w-3 h-3" />
+										</button>
+									</Badge>
+								))}
+								{getProjectIdsArray().length === 0 && (
+									<span className="text-sm text-muted-foreground">
+										请选择或输入项目 ID
+									</span>
+								)}
+							</div>
+
+							{/* Quick Select - combines common projects and history */}
+							<div className="space-y-2">
+								<div className="flex items-center gap-2 flex-wrap">
+									<Label className="text-sm text-muted-foreground shrink-0">
+										快速选择:
+									</Label>
+									<div className="flex flex-wrap gap-2">
+										{/* Show history items first (excluding ones already in COMMON_PROJECTS) */}
+										{projectHistory
+											.filter(
+												(id) =>
+													!COMMON_PROJECTS.some((p) => p.value === id),
+											)
+											.map((projectId) => (
+												<Button
+													key={`history-${projectId}`}
+													type="button"
+													variant="secondary"
+													size="sm"
+													onClick={() => addProjectId(projectId)}
+													disabled={getProjectIdsArray().includes(projectId)}
+													className="h-7 text-xs"
+												>
+													{projectId}
+												</Button>
+											))}
+										{/* Then show common projects */}
+										{COMMON_PROJECTS.map((project) => (
+											<Button
+												key={`common-${project.value}`}
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() => addProjectId(project.value)}
+												disabled={getProjectIdsArray().includes(project.value)}
+												className="h-7 text-xs"
+											>
+												{project.label}
+											</Button>
+										))}
+									</div>
+								</div>
+
+								{/* Custom Project ID Input */}
+								<div className="flex gap-2">
+									<Input
+										placeholder="或输入自定义项目 ID"
+										value={customProjectId}
+										onChange={(e) => setCustomProjectId(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault();
+												handleAddCustomProject();
+											}
+										}}
+										className="text-sm"
+									/>
+									<Button
+										type="button"
+										variant="secondary"
+										onClick={handleAddCustomProject}
+										disabled={!customProjectId.trim()}
+										className="shrink-0"
+									>
+										添加
+									</Button>
+								</div>
+							</div>
+
 							<p className="text-sm text-muted-foreground">
 								所有查询都会自动添加此项目ID过滤条件
 							</p>
@@ -353,18 +516,52 @@ export default function QueryAnalyzerPage() {
 
 								{generatedSQL && (
 									<div className="space-y-2">
-										<Label>生成的 SQL（可编辑）</Label>
-										<Textarea
-											value={generatedSQL}
-											onChange={(e) => setGeneratedSQL(e.target.value)}
-											rows={12}
-											className="font-mono text-sm"
-										/>
-										{sqlExplanation && (
-											<Alert>
-												<AlertDescription>{sqlExplanation}</AlertDescription>
-											</Alert>
+										<div className="flex items-center justify-between">
+											<Label className="flex items-center gap-2">
+												生成的 SQL
+												<Badge variant="secondary" className="text-xs">
+													可编辑
+												</Badge>
+											</Label>
+											<Button
+												type="button"
+												variant="ghost"
+												size="sm"
+												onClick={() => setShowGeneratedSQL(!showGeneratedSQL)}
+												className="h-7 text-xs"
+											>
+												{showGeneratedSQL ? (
+													<>
+														<ChevronDown className="w-3 h-3 mr-1 rotate-180" />
+														折叠
+													</>
+												) : (
+													<>
+														<ChevronDown className="w-3 h-3 mr-1" />
+														展开
+													</>
+												)}
+											</Button>
+										</div>
+
+										{showGeneratedSQL && (
+											<>
+												<Textarea
+													value={generatedSQL}
+													onChange={(e) => setGeneratedSQL(e.target.value)}
+													rows={12}
+													className="font-mono text-sm"
+												/>
+												{sqlExplanation && (
+													<Alert>
+														<AlertDescription>
+															{sqlExplanation}
+														</AlertDescription>
+													</Alert>
+												)}
+											</>
 										)}
+
 										<Button
 											onClick={handleExecuteGeneratedSQL}
 											disabled={loading}
@@ -378,7 +575,7 @@ export default function QueryAnalyzerPage() {
 											) : (
 												<>
 													<Play className="w-4 h-4 mr-2" />
-													执行查询
+													{showGeneratedSQL ? "重新执行查询" : "执行查询"}
 												</>
 											)}
 										</Button>

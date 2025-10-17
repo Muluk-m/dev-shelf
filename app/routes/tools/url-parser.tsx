@@ -350,9 +350,9 @@ export default function URLParserPage() {
 							</div>
 							<h1 className="text-xl font-bold">URL分析器</h1>
 						</div>
-					<p className="text-xs text-muted-foreground">
-						解析URL中各种部分（协议、来源、参数、端口...），支持编辑参数值并生成新URL
-					</p>
+						<p className="text-xs text-muted-foreground">
+							解析URL中各种部分（协议、来源、参数、端口...），支持编辑参数值并生成新URL
+						</p>
 					</div>
 
 					{/* 输入框 */}

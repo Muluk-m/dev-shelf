@@ -1,4 +1,4 @@
-import { CacheManager } from "../cache-manager";
+import { CacheManager, type CacheContext } from "../cache-manager";
 import type { Tool, ToolCategory } from "../types/tool";
 
 export interface ToolUsageStat {
@@ -24,7 +24,7 @@ export const TOOL_CATEGORIES_CACHE_KEYS = {
   list: "/tool-categories/list",
 } as const;
 
-export async function getTools(db: D1Database): Promise<Tool[]> {
+export async function getTools(db: D1Database, context?: CacheContext): Promise<Tool[]> {
   return CacheManager.getJson(
     TOOLS_CACHE_NAME,
     TOOLS_CACHE_KEYS.list,
@@ -70,12 +70,13 @@ export async function getTools(db: D1Database): Promise<Tool[]> {
 
       return tools as Tool[];
     },
-    { ttlSeconds: TOOLS_CACHE_TTL_SECONDS }
+    { ttlSeconds: TOOLS_CACHE_TTL_SECONDS, context }
   );
 }
 
 export async function getToolCategories(
-  db: D1Database
+  db: D1Database,
+  context?: CacheContext
 ): Promise<ToolCategory[]> {
   return CacheManager.getJson(
     TOOL_CATEGORIES_CACHE_NAME,
@@ -89,13 +90,14 @@ export async function getToolCategories(
       const result = await db.prepare(query).all();
       return result.results as any as ToolCategory[];
     },
-    { ttlSeconds: TOOL_CATEGORIES_CACHE_TTL_SECONDS }
+    { ttlSeconds: TOOL_CATEGORIES_CACHE_TTL_SECONDS, context }
   );
 }
 
 export async function getToolById(
   db: D1Database,
-  id: string
+  id: string,
+  context?: CacheContext
 ): Promise<Tool | null> {
   return CacheManager.getJson(
     TOOLS_CACHE_NAME,
@@ -146,14 +148,16 @@ export async function getToolById(
     },
     {
       ttlSeconds: TOOLS_CACHE_TTL_SECONDS,
-      shouldCache: (payload) => payload !== null
+      shouldCache: (payload) => payload !== null,
+      context
     }
   );
 }
 
 export async function createTool(
   db: D1Database,
-  tool: Omit<Tool, "id">
+  tool: Omit<Tool, "id">,
+  context?: CacheContext
 ): Promise<string> {
   const toolId = crypto.randomUUID();
 
@@ -202,7 +206,7 @@ export async function createTool(
       ),
     ]);
 
-    await CacheManager.clearCache(TOOLS_CACHE_NAME, [TOOLS_CACHE_KEYS.list]);
+    await CacheManager.clearCache(TOOLS_CACHE_NAME, [TOOLS_CACHE_KEYS.list], context);
 
     return toolId;
   } catch (error) {
@@ -214,7 +218,8 @@ export async function createTool(
 export async function updateTool(
   db: D1Database,
   id: string,
-  tool: Omit<Tool, "id">
+  tool: Omit<Tool, "id">,
+  context?: CacheContext
 ): Promise<void> {
   try {
     // 开始事务
@@ -270,14 +275,14 @@ export async function updateTool(
     await CacheManager.clearCache(TOOLS_CACHE_NAME, [
       TOOLS_CACHE_KEYS.list,
       TOOLS_CACHE_KEYS.detail(id),
-    ]);
+    ], context);
   } catch (error) {
     console.error("Error updating tool:", error);
     throw new Error("Failed to update tool");
   }
 }
 
-export async function deleteTool(db: D1Database, id: string): Promise<void> {
+export async function deleteTool(db: D1Database, id: string, context?: CacheContext): Promise<void> {
   try {
     // 开始事务
     await db.batch([
@@ -292,7 +297,7 @@ export async function deleteTool(db: D1Database, id: string): Promise<void> {
     await CacheManager.clearCache(TOOLS_CACHE_NAME, [
       TOOLS_CACHE_KEYS.list,
       TOOLS_CACHE_KEYS.detail(id),
-    ]);
+    ], context);
   } catch (error) {
     console.error("Error deleting tool:", error);
     throw new Error("Failed to delete tool");
@@ -301,7 +306,8 @@ export async function deleteTool(db: D1Database, id: string): Promise<void> {
 
 export async function createToolCategory(
   db: D1Database,
-  category: Omit<ToolCategory, "id">
+  category: Omit<ToolCategory, "id">,
+  context?: CacheContext
 ): Promise<string> {
   const categoryId = crypto.randomUUID();
 
@@ -318,7 +324,7 @@ export async function createToolCategory(
 
     await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
       TOOL_CATEGORIES_CACHE_KEYS.list,
-    ]);
+    ], context);
 
     return categoryId;
   } catch (error) {
@@ -330,7 +336,8 @@ export async function createToolCategory(
 export async function updateToolCategory(
   db: D1Database,
   id: string,
-  category: Omit<ToolCategory, "id">
+  category: Omit<ToolCategory, "id">,
+  context?: CacheContext
 ): Promise<void> {
   try {
     await db
@@ -346,14 +353,14 @@ export async function updateToolCategory(
 
     await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
       TOOL_CATEGORIES_CACHE_KEYS.list,
-    ]);
+    ], context);
   } catch (error) {
     console.error("Error updating category:", error);
     throw new Error("Failed to update category");
   }
 }
 
-export async function deleteToolCategory(db: D1Database, id: string): Promise<void> {
+export async function deleteToolCategory(db: D1Database, id: string, context?: CacheContext): Promise<void> {
   try {
     // 注意：这里不删除使用该分类的工具，只是删除分类本身
     // 实际生产环境中可能需要先处理引用该分类的工具
@@ -361,7 +368,7 @@ export async function deleteToolCategory(db: D1Database, id: string): Promise<vo
 
     await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
       TOOL_CATEGORIES_CACHE_KEYS.list,
-    ]);
+    ], context);
   } catch (error) {
     console.error("Error deleting category:", error);
     throw new Error("Failed to delete category");
