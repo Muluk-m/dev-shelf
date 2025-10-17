@@ -19,7 +19,7 @@ export interface ToolUsageStat {
 
 import type { UserInfo } from "~/types/user-info";
 
-const API_BASE_URL = import.meta.env.DEV
+export const API_BASE_URL = import.meta.env.DEV
 	? "http://localhost:5173"
 	: "https://qlj-devhub-homepage.qiliangjia.one";
 
@@ -265,7 +265,9 @@ export async function getToolUsageStats(limit = 8): Promise<ToolUsageStat[]> {
 	return response.json();
 }
 
-export async function uploadFiles(files: FormData): Promise<{files: UploadFile[]}> {
+export async function uploadFiles(
+	files: FormData,
+): Promise<{ files: UploadFile[] }> {
 	const response = await fetch(`${API_BASE_URL}/api/uploads`, {
 		method: "POST",
 		body: files,
@@ -273,5 +275,85 @@ export async function uploadFiles(files: FormData): Promise<{files: UploadFile[]
 	if (!response.ok) {
 		throw new Error("Failed to upload files");
 	}
+	return response.json();
+}
+
+/**
+ * Query Analyzer API
+ */
+export interface ConvertToSQLRequest {
+	naturalLanguage: string;
+	schema: {
+		tableName: string;
+		database: string;
+		columns: Array<{
+			name: string;
+			type: string;
+			comment?: string;
+		}>;
+	};
+}
+
+export interface ConvertToSQLResponse {
+	sql: string;
+	explanation: string;
+}
+
+export interface ExecuteQueryRequest {
+	sql: string;
+}
+
+export interface ExecuteQueryResponse {
+	data: any[];
+	meta?: Array<{ name: string; type: string }>;
+	rows: number;
+	statistics?: {
+		elapsed: number;
+		rows_read: number;
+		bytes_read: number;
+	};
+}
+
+export async function convertToSQL(
+	request: ConvertToSQLRequest,
+): Promise<ConvertToSQLResponse> {
+	const response = await fetch(
+		`${API_BASE_URL}/api/query-analyzer/convert-to-sql`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(request),
+		},
+	);
+
+	if (!response.ok) {
+		const errorData: any = await response.json();
+		throw new Error(errorData.error || "转换查询失败");
+	}
+
+	return response.json();
+}
+
+export async function executeQuery(
+	request: ExecuteQueryRequest,
+): Promise<ExecuteQueryResponse> {
+	const response = await fetch(
+		`${API_BASE_URL}/api/query-analyzer/execute-query`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(request),
+		},
+	);
+
+	if (!response.ok) {
+		const errorData: any = await response.json();
+		throw new Error(errorData.error || "查询执行失败");
+	}
+
 	return response.json();
 }

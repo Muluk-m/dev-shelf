@@ -17,6 +17,7 @@ export default [
     route("json-diff", "routes/tools/json-diff.tsx"),
     route("cf-log-analyzer", "routes/tools/cf-log-analyzer.tsx"),
     route("jwt-decoder", "routes/tools/jwt-decoder.tsx"),
+    route("query-analyzer", "routes/tools/query-analyzer.tsx"),
     route("ua-parser", "routes/tools/ua-parser.tsx"),
   ]),
 

@@ -88,7 +88,8 @@ export default function URLEncoderPage() {
 					<div className="text-center">
 						<h1 className="text-2xl font-bold">URL 编解码工具</h1>
 						<p className="text-sm text-muted-foreground">
-							支持 URL 编码/解码、encodeURI 和 encodeURIComponent 两种模式，处理特殊字符和中文。
+							支持 URL 编码/解码、encodeURI 和 encodeURIComponent
+							两种模式，处理特殊字符和中文。
 						</p>
 					</div>
 
@@ -218,8 +219,14 @@ export default function URLEncoderPage() {
 					{/* 使用提示 - 紧凑版 */}
 					<Card className="flex-shrink-0">
 						<CardContent className="pt-3 space-y-1 text-xs text-muted-foreground">
-							<p>• <strong>encodeURIComponent</strong>：编码所有特殊字符，适用于查询参数、表单数据等。</p>
-							<p>• <strong>encodeURI</strong>：保留 URL 结构字符（如 :、/、?、#），适用于完整 URL 编码。</p>
+							<p>
+								• <strong>encodeURIComponent</strong>
+								：编码所有特殊字符，适用于查询参数、表单数据等。
+							</p>
+							<p>
+								• <strong>encodeURI</strong>：保留 URL 结构字符（如
+								:、/、?、#），适用于完整 URL 编码。
+							</p>
 							<p>• 解码时自动识别编码格式，优先使用 decodeURIComponent。</p>
 							<p>• 支持中文、特殊符号和 emoji 的正确编解码。</p>
 						</CardContent>

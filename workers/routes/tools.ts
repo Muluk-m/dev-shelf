@@ -7,7 +7,10 @@ toolsRouter.get("/analytics/usage", async (c) => {
 	try {
 		const limitParam = c.req.query("limit");
 		const limit = limitParam ? Number.parseInt(limitParam, 10) : 8;
-		const usageStats = await toolsDb.getToolUsageStats(c.env.DB, Number.isNaN(limit) ? 8 : limit);
+		const usageStats = await toolsDb.getToolUsageStats(
+			c.env.DB,
+			Number.isNaN(limit) ? 8 : limit,
+		);
 		return c.json(usageStats);
 	} catch (error) {
 		console.error("Error fetching usage stats:", error);

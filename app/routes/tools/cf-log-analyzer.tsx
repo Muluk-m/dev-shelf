@@ -33,6 +33,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
+import { DatePicker } from "~/components/ui/date-picker";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { ScrollArea } from "~/components/ui/scroll-area";
@@ -215,11 +216,14 @@ export default function CfLogAnalyzerPage() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="log-date">日期</Label>
-						<Input
-							id="log-date"
-							type="date"
-							value={date}
-							onChange={(event) => setDate(event.target.value)}
+						<DatePicker
+							value={parseDate(date)}
+							onChange={(selectedDate) => {
+								if (selectedDate) {
+									setDate(formatDateInput(selectedDate));
+								}
+							}}
+							placeholder="选择要查询的日期"
 						/>
 						<p className="text-xs text-muted-foreground">选择要查询的日期</p>
 					</div>
@@ -737,6 +741,13 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function formatDateInput(date: Date): string {
 	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function parseDate(dateStr: string): Date | undefined {
+	if (!dateStr) return undefined;
+	const [year, month, day] = dateStr.split("-").map(Number);
+	if (!year || !month || !day) return undefined;
+	return new Date(year, month - 1, day);
 }
 
 function mergeListResults(

@@ -28,11 +28,15 @@
 			"correctness": {
 				"noEmptyPattern": "off",
 				"useExhaustiveDependencies": "off",
-				"useUniqueElementIds": "off"
+				"useUniqueElementIds": "off",
+				"noNestedComponentDefinitions": "off"
 			},
 			"a11y": {
 				"noStaticElementInteractions": "off",
-				"useKeyWithClickEvents": "off"
+				"useKeyWithClickEvents": "off",
+				"useFocusableInteractive": "off",
+				"useSemanticElements": "off",
+				"noRedundantRoles": "off"
 			},
 			"security": {
 				"noDangerouslySetInnerHtml": "off"

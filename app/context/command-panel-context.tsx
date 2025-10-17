@@ -1,14 +1,14 @@
 "use client";
 
-import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { createContext, useContext } from "react";
 import { CommandPanel } from "~/components/command-panel/command-panel";
 import { useCommandPanel } from "~/hooks/use-command-panel";
 import type { Tool } from "~/types/tool";
 
-const CommandPanelContext = createContext<
-	ReturnType<typeof useCommandPanel> | null
->(null);
+const CommandPanelContext = createContext<ReturnType<
+	typeof useCommandPanel
+> | null>(null);
 
 interface CommandPanelProviderProps {
 	tools: Tool[];

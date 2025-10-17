@@ -164,9 +164,7 @@ export function ToolForm({
 			return {
 				...prev,
 				environments,
-				...(field === "isExternal"
-					? { isInternal: !(value as boolean) }
-					: {}),
+				...(field === "isExternal" ? { isInternal: !(value as boolean) } : {}),
 			};
 		});
 	};
@@ -366,12 +364,19 @@ export function ToolForm({
 											/>
 										) : (
 											<div className="flex items-center gap-2">
-												<span className="text-sm text-muted-foreground">/tools/</span>
+												<span className="text-sm text-muted-foreground">
+													/tools/
+												</span>
 												<Input
 													value={getProductionEnvSlug()}
 													onChange={(e) => {
-														const slug = e.target.value.trim().replace(/^\/+/, "");
-														updateProductionEnvironment("url", `/tools/${slug}`);
+														const slug = e.target.value
+															.trim()
+															.replace(/^\/+/, "");
+														updateProductionEnvironment(
+															"url",
+															`/tools/${slug}`,
+														);
 													}}
 													placeholder="example"
 													required
@@ -382,127 +387,131 @@ export function ToolForm({
 								</CardContent>
 							</Card>
 
-						{/* 测试环境 - 内部工具限制 */}
-						{isInternalTool ? (
-							<Card>
-								<CardContent className="py-6 text-center text-muted-foreground">
-									内部工具仅支持生产环境，无需配置测试环境。
-								</CardContent>
-							</Card>
-						) : (
-							<div className="space-y-4">
-								<div className="flex items-center justify-between">
-									<h3 className="text-lg font-medium">测试环境</h3>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={addTestEnvironment}
-										className="gap-2"
-									>
-										<Plus className="h-4 w-4" />
-										添加测试环境
-									</Button>
-								</div>
+							{/* 测试环境 - 内部工具限制 */}
+							{isInternalTool ? (
+								<Card>
+									<CardContent className="py-6 text-center text-muted-foreground">
+										内部工具仅支持生产环境，无需配置测试环境。
+									</CardContent>
+								</Card>
+							) : (
+								<div className="space-y-4">
+									<div className="flex items-center justify-between">
+										<h3 className="text-lg font-medium">测试环境</h3>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={addTestEnvironment}
+											className="gap-2"
+										>
+											<Plus className="h-4 w-4" />
+											添加测试环境
+										</Button>
+									</div>
 
-								{testEnvironments.map((env, index) => (
-									<Card key={index}>
-										<CardHeader className="pb-3">
-											<CardTitle className="flex items-center justify-between text-base">
-												<span>测试环境 {index + 1}</span>
-												<Button
-													type="button"
-													variant="ghost"
-													size="sm"
-													onClick={() => removeTestEnvironment(index)}
-													className="text-destructive hover:text-destructive"
-												>
-													<X className="h-4 w-4" />
-												</Button>
-											</CardTitle>
-										</CardHeader>
-										<CardContent className="space-y-4">
-											<div className="grid grid-cols-2 gap-3">
+									{testEnvironments.map((env, index) => (
+										<Card key={index}>
+											<CardHeader className="pb-3">
+												<CardTitle className="flex items-center justify-between text-base">
+													<span>测试环境 {index + 1}</span>
+													<Button
+														type="button"
+														variant="ghost"
+														size="sm"
+														onClick={() => removeTestEnvironment(index)}
+														className="text-destructive hover:text-destructive"
+													>
+														<X className="h-4 w-4" />
+													</Button>
+												</CardTitle>
+											</CardHeader>
+											<CardContent className="space-y-4">
+												<div className="grid grid-cols-2 gap-3">
+													<div className="space-y-2">
+														<Label>环境名称</Label>
+														<Input
+															value={env.name}
+															onChange={(e) =>
+																updateTestEnvironment(
+																	index,
+																	"name",
+																	e.target.value,
+																)
+															}
+															placeholder="例如: test, uat, staging"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>显示名称</Label>
+														<Input
+															value={env.label}
+															onChange={(e) =>
+																updateTestEnvironment(
+																	index,
+																	"label",
+																	e.target.value,
+																)
+															}
+															placeholder="例如: 测试环境, UAT环境"
+														/>
+													</div>
+												</div>
+
 												<div className="space-y-2">
-													<Label>环境名称</Label>
+													<Label>访问类型</Label>
+													<Select
+														value={env.isExternal ? "external" : "internal"}
+														onValueChange={(value: "internal" | "external") =>
+															updateTestEnvironment(
+																index,
+																"isExternal",
+																value === "external",
+															)
+														}
+													>
+														<SelectTrigger>
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="internal">内部路由</SelectItem>
+															<SelectItem value="external">外部链接</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+
+												<div className="space-y-2">
+													<Label>
+														{env.isExternal ? "访问链接" : "路由路径"}
+													</Label>
 													<Input
-														value={env.name}
+														value={env.url}
 														onChange={(e) =>
 															updateTestEnvironment(
 																index,
-																"name",
+																"url",
 																e.target.value,
 															)
 														}
-														placeholder="例如: test, uat, staging"
-													/>
-												</div>
-												<div className="space-y-2">
-													<Label>显示名称</Label>
-													<Input
-														value={env.label}
-														onChange={(e) =>
-															updateTestEnvironment(
-																index,
-																"label",
-																e.target.value,
-															)
+														placeholder={
+															env.isExternal
+																? "https://test.example.com"
+																: "/tools/example-test"
 														}
-														placeholder="例如: 测试环境, UAT环境"
 													/>
 												</div>
-											</div>
+											</CardContent>
+										</Card>
+									))}
 
-											<div className="space-y-2">
-												<Label>访问类型</Label>
-												<Select
-													value={env.isExternal ? "external" : "internal"}
-													onValueChange={(value: "internal" | "external") =>
-														updateTestEnvironment(
-															index,
-															"isExternal",
-															value === "external",
-														)
-													}
-												>
-													<SelectTrigger>
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent>
-														<SelectItem value="internal">内部路由</SelectItem>
-														<SelectItem value="external">外部链接</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-
-											<div className="space-y-2">
-												<Label>
-													{env.isExternal ? "访问链接" : "路由路径"}
-												</Label>
-												<Input
-													value={env.url}
-													onChange={(e) =>
-														updateTestEnvironment(index, "url", e.target.value)
-													}
-													placeholder={
-														env.isExternal
-															? "https://test.example.com"
-															: "/tools/example-test"
-													}
-												/>
-											</div>
-										</CardContent>
-									</Card>
-								))}
-
-							{testEnvironments.length === 0 && (
-								<div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-									<p>暂无测试环境</p>
-									<p className="text-sm mt-1">点击上方按钮添加测试环境</p>
+									{testEnvironments.length === 0 && (
+										<div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+											<p>暂无测试环境</p>
+											<p className="text-sm mt-1">点击上方按钮添加测试环境</p>
+										</div>
+									)}
 								</div>
 							)}
-						</div>
-						)}
 						</TabsContent>
 
 						<TabsContent value="advanced" className="space-y-4">

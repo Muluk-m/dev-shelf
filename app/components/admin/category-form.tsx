@@ -157,11 +157,13 @@ export function CategoryForm({
 	const SelectedIconComponent = getIconComponent(formData.icon);
 
 	// 获取当前选中的颜色信息
-	const selectedColorOption = colorOptions.find((opt) => opt.value === formData.color);
+	const selectedColorOption = colorOptions.find(
+		(opt) => opt.value === formData.color,
+	);
 
 	// 过滤图标列表
 	const filteredIcons = popularIcons.filter((iconName) =>
-		iconName.toLowerCase().includes(iconSearch.toLowerCase())
+		iconName.toLowerCase().includes(iconSearch.toLowerCase()),
 	);
 
 	return (
@@ -184,9 +186,7 @@ export function CategoryForm({
 								/>
 							</div>
 							<div>
-								<h3 className="font-semibold">
-									{formData.name || "分类名称"}
-								</h3>
+								<h3 className="font-semibold">{formData.name || "分类名称"}</h3>
 								<p className="text-sm text-muted-foreground">
 									{formData.description || "分类描述"}
 								</p>

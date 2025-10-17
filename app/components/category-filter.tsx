@@ -57,18 +57,16 @@ export function CategoryFilter({
 										backgroundColor: category.color,
 										borderColor: category.color,
 										color: "white",
-								  }
+									}
 								: {
 										borderColor: `${category.color}40`,
-								  }
+									}
 						}
 					>
 						<IconComponent
 							className="h-4 w-4"
 							style={
-								isSelected
-									? { color: "white" }
-									: { color: category.color }
+								isSelected ? { color: "white" } : { color: category.color }
 							}
 						/>
 						{category.name}
