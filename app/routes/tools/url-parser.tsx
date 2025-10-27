@@ -1,11 +1,21 @@
 "use client";
 
-import { Check, Copy, Globe, Link2, RefreshCw } from "lucide-react";
+import {
+	Check,
+	Copy,
+	Globe,
+	Link2,
+	Plus,
+	RefreshCw,
+	Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 
 interface ParsedURL {
@@ -67,28 +77,32 @@ const CopyRow = ({
 
 // 查询参数行组件
 const QueryParamRow = ({
-	param,
 	index,
+	editedKey,
 	editedValue,
+	onKeyChange,
 	onValueChange,
 	copiedItems,
 	onCopy,
+	onDelete,
 }: {
-	param: { key: string; value: string };
 	index: number;
+	editedKey: string;
 	editedValue: string;
+	onKeyChange: (value: string) => void;
 	onValueChange: (value: string) => void;
 	copiedItems: Set<string>;
 	onCopy: (text: string, label: string) => void;
+	onDelete: (index: number) => void;
 }) => {
-	const keyCopyKey = `参数名-${param.key}`;
+	const keyCopyKey = `参数名-${editedKey}`;
 	const valueCopyKey = `参数值-${editedValue}`;
 	const isKeyCopied = copiedItems.has(keyCopyKey);
 	const isValueCopied = copiedItems.has(valueCopyKey);
 
 	return (
-		<div className="flex items-center mb-2 group">
-			<div className="w-[110px] flex items-center justify-end text-muted-foreground mr-2">
+		<div className="flex items-center mb-2">
+			<div className="w-[40px] flex items-center justify-center text-muted-foreground mr-2">
 				<span className="text-xs bg-muted px-2 rounded-full py-1 mr-2 min-w-[20px] text-center">
 					{index + 1}
 				</span>
@@ -100,9 +114,12 @@ const QueryParamRow = ({
 						<div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">
 							Key
 						</div>
-						<span className="font-mono text-xs font-medium break-all block">
-							{param.key}
-						</span>
+						<Input
+							className="font-mono text-xs h-[28px] py-1 px-2 bg-background/50"
+							value={editedKey}
+							onChange={(e) => onKeyChange(e.target.value)}
+							placeholder="key"
+						/>
 					</div>
 					<Button
 						size="sm"
@@ -112,7 +129,7 @@ const QueryParamRow = ({
 								? "text-green-600 bg-green-100 dark:bg-green-900/30"
 								: ""
 						}`}
-						onClick={() => onCopy(param.key, "参数名")}
+						onClick={() => onCopy(editedKey, "参数名")}
 					>
 						{isKeyCopied ? (
 							<Check className="h-3 w-3" />
@@ -135,22 +152,33 @@ const QueryParamRow = ({
 							rows={1}
 						/>
 					</div>
-					<Button
-						size="sm"
-						variant="ghost"
-						className={`h-6 w-6 p-0 ml-2 flex-shrink-0 transition-all duration-200 hover:bg-muted hover:scale-110 active:scale-95 ${
-							isValueCopied
-								? "text-green-600 bg-green-100 dark:bg-green-900/30"
-								: ""
-						}`}
-						onClick={() => onCopy(editedValue, "参数值")}
-					>
-						{isValueCopied ? (
-							<Check className="h-3 w-3" />
-						) : (
-							<Copy className="h-3 w-3" />
-						)}
-					</Button>
+					<div className="flex items-center gap-1 ml-2">
+						<Button
+							size="sm"
+							variant="ghost"
+							className={`h-6 w-6 p-0 flex-shrink-0 transition-all duration-200 hover:bg-muted hover:scale-110 active:scale-95 ${
+								isValueCopied
+									? "text-green-600 bg-green-100 dark:bg-green-900/30"
+									: ""
+							}`}
+							onClick={() => onCopy(editedValue, "参数值")}
+						>
+							{isValueCopied ? (
+								<Check className="h-3 w-3" />
+							) : (
+								<Copy className="h-3 w-3" />
+							)}
+						</Button>
+						{/* 删除按钮 */}
+						<Button
+							size="sm"
+							variant="ghost"
+							className="h-6 w-6 p-0 flex-shrink-0 transition-all duration-200 text-muted-foreground hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 hover:scale-110 active:scale-95"
+							onClick={() => onDelete(index)}
+						>
+							<Trash2 className="h-3.5 w-3.5" />
+						</Button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -163,23 +191,33 @@ const QueryParamsSection = ({
 	editedParams,
 	newUrl,
 	copiedItems,
+	onParamKeyChange,
 	onParamValueChange,
 	onCopy,
+	onDelete,
+	onAddParam,
 }: {
 	parsedUrl: ParsedURL | null;
 	editedParams: Array<{ key: string; value: string }>;
 	newUrl: string;
 	copiedItems: Set<string>;
+	onParamKeyChange: (index: number, value: string) => void;
 	onParamValueChange: (index: number, value: string) => void;
 	onCopy: (text: string, label: string) => void;
+	onDelete: (index: number) => void;
+	onAddParam: () => void;
 }) => {
-	if (!parsedUrl?.params || parsedUrl.params.length === 0) {
+	if (!parsedUrl) {
 		return null;
 	}
 
-	const hasChanges = editedParams.some(
-		(edited, i) => edited.value !== parsedUrl.params[i]?.value,
-	);
+	const hasChanges =
+		editedParams.length !== parsedUrl.params.length ||
+		editedParams.some(
+			(edited, i) =>
+				edited.key !== parsedUrl.params[i]?.key ||
+				edited.value !== parsedUrl.params[i]?.value,
+		);
 	const isNewUrlCopied = copiedItems.has(`新URL-${newUrl}`);
 
 	return (
@@ -191,11 +229,39 @@ const QueryParamsSection = ({
 							Query Parameters
 						</div>
 						<div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-							{parsedUrl.params.length} 个参数
+							{editedParams.length} 个参数
 						</div>
 					</div>
-					{hasChanges && newUrl && (
-						<div className="flex items-center gap-2">
+				</div>
+				<div className="space-y-1">
+					{editedParams.map((param, index) => (
+						<QueryParamRow
+							key={`${param.key}-${param.value}-${index}`}
+							index={index}
+							editedKey={editedParams[index]?.key || ""}
+							editedValue={editedParams[index]?.value || ""}
+							onKeyChange={(value) => onParamKeyChange(index, value)}
+							onValueChange={(value) => onParamValueChange(index, value)}
+							copiedItems={copiedItems}
+							onCopy={onCopy}
+							onDelete={onDelete}
+						/>
+					))}
+				</div>
+
+				{/* 底部操作区域 */}
+				<div className="mt-3 pt-3 border-t flex flex-col gap-2">
+					<div className="flex items-center gap-2">
+						<Button
+							size="sm"
+							variant="outline"
+							className="h-7 text-xs gap-1"
+							onClick={onAddParam}
+						>
+							<Plus className="h-3 w-3" />
+							添加参数
+						</Button>
+						{hasChanges && newUrl && (
 							<Button
 								size="sm"
 								variant="outline"
@@ -213,41 +279,29 @@ const QueryParamsSection = ({
 								)}
 								复制新URL
 							</Button>
-						</div>
-					)}
-				</div>
-				<div className="space-y-1">
-					{parsedUrl.params.map((param, index) => (
-						<QueryParamRow
-							key={`${param.key}-${param.value}-${index}`}
-							param={param}
-							index={index}
-							editedValue={editedParams[index]?.value || ""}
-							onValueChange={(value) => onParamValueChange(index, value)}
-							copiedItems={copiedItems}
-							onCopy={onCopy}
-						/>
-					))}
-				</div>
-				{hasChanges && newUrl && (
-					<div className="mt-3 pt-3 border-t">
-						<div className="flex items-center gap-2 mb-2">
+						)}
+					</div>
+					{hasChanges && newUrl && (
+						<div className="flex items-center gap-2">
 							<RefreshCw className="h-3.5 w-3.5 text-blue-600" />
 							<span className="text-xs font-medium text-blue-600">
 								生成的新URL
 							</span>
 						</div>
+					)}
+					{hasChanges && newUrl && (
 						<div className="font-mono text-xs break-all p-2 bg-blue-50 dark:bg-blue-950/30 rounded border border-blue-200 dark:border-blue-800">
 							{newUrl}
 						</div>
-					</div>
-				)}
+					)}
+				</div>
 			</CardContent>
 		</Card>
 	);
 };
 
-export default function URLParserPage() {
+// URL分析器组件
+const URLAnalyzer = ({ label }: { label?: string }) => {
 	const [inputUrl, setInputUrl] = useState(
 		"https://me:pwd@it-tools.tech:3000/url-parser?key1=value&key2=value2#the-hash",
 	);
@@ -314,6 +368,14 @@ export default function URLParserPage() {
 		}
 	};
 
+	const handleParamKeyChange = (index: number, newKey: string) => {
+		setEditedParams((prev) => {
+			const updated = [...prev];
+			updated[index] = { ...updated[index], key: newKey };
+			return updated;
+		});
+	};
+
 	const handleParamValueChange = (index: number, newValue: string) => {
 		setEditedParams((prev) => {
 			const updated = [...prev];
@@ -338,11 +400,119 @@ export default function URLParserPage() {
 		});
 	};
 
+	const handleAddParam = () => {
+		setEditedParams((prev) => [...prev, { key: "", value: "" }]);
+	};
+
+	const handleDeleteParam = (index: number) => {
+		setEditedParams((prev) => prev.filter((_, i) => i !== index));
+	};
+
+	return (
+		<div className="flex flex-col space-y-3 w-full">
+			{label && (
+				<div className="text-center flex-shrink-0">
+					<h2 className="text-sm font-medium">{label}</h2>
+				</div>
+			)}
+
+			{/* 输入框 */}
+			<Card>
+				<CardContent className="pt-3">
+					<div className="mb-2 text-sm flex items-center gap-2 text-muted-foreground">
+						<Globe className="h-4 w-4" />
+						Your url to parse:
+					</div>
+					<Textarea
+						className="font-mono text-sm resize-none h-12"
+						value={inputUrl}
+						onChange={(e) => {
+							setInputUrl(e.target.value);
+							parseURL(e.target.value);
+						}}
+					/>
+				</CardContent>
+			</Card>
+
+			{/* 基本字段 */}
+			<Card>
+				<CardContent className="pt-3">
+					<CopyRow
+						label="Protocol"
+						value={parsedUrl?.protocol || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+					<CopyRow
+						label="Username"
+						value={parsedUrl?.username || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+					<CopyRow
+						label="Password"
+						value={parsedUrl?.password || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+					<CopyRow
+						label="Hostname"
+						value={parsedUrl?.hostname || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+					<CopyRow
+						label="Port"
+						value={parsedUrl?.port || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+					<CopyRow
+						label="Path"
+						value={parsedUrl?.pathname || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+					<CopyRow
+						label="Params"
+						value={parsedUrl?.search || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+					<CopyRow
+						label="Hash"
+						value={parsedUrl?.hash || ""}
+						copiedItems={copiedItems}
+						onCopy={copyToClipboard}
+					/>
+				</CardContent>
+			</Card>
+
+			{/* Query 参数 */}
+			<QueryParamsSection
+				parsedUrl={parsedUrl}
+				editedParams={editedParams}
+				newUrl={generateNewURL()}
+				copiedItems={copiedItems}
+				onParamKeyChange={handleParamKeyChange}
+				onParamValueChange={handleParamValueChange}
+				onCopy={copyToClipboard}
+				onDelete={handleDeleteParam}
+				onAddParam={handleAddParam}
+			/>
+		</div>
+	);
+};
+
+// 主组件
+export default function URLParserPage() {
+	const [compareMode, setCompareMode] = useState(false);
+
 	return (
 		<div className="bg-background flex flex-col">
 			<main className="container mx-auto px-4 py-3 flex-1 flex flex-col overflow-hidden">
-				<div className="max-w-5xl mx-auto flex flex-col h-full space-y-3 w-full">
-					{/* 标题 */}
+				<div className="max-w-7xl mx-auto flex flex-col h-full space-y-3 w-full">
+					{/* 标题和模式切换 */}
 					<div className="text-center flex-shrink-0">
 						<div className="flex items-center justify-center gap-2 mb-1">
 							<div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -351,91 +521,48 @@ export default function URLParserPage() {
 							<h1 className="text-xl font-bold">URL分析器</h1>
 						</div>
 						<p className="text-xs text-muted-foreground">
-							解析URL中各种部分（协议、来源、参数、端口...），支持编辑参数值并生成新URL
+							可视化、编辑、分析和比较 URL，支持编辑参数值并生成新URL
 						</p>
+						<div className="flex items-center justify-center gap-2 mt-3">
+							<span
+								className={`text-sm font-medium transition-colors ${
+									!compareMode
+										? "text-blue-600 dark:text-blue-400"
+										: "text-muted-foreground"
+								}`}
+							>
+								单URL模式
+							</span>
+							<Switch
+								checked={compareMode}
+								onCheckedChange={setCompareMode}
+								className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300 dark:data-[state=unchecked]:bg-gray-600"
+							/>
+							<span
+								className={`text-sm font-medium transition-colors ${
+									compareMode
+										? "text-blue-600 dark:text-blue-400"
+										: "text-muted-foreground"
+								}`}
+							>
+								对比模式
+							</span>
+						</div>
 					</div>
 
-					{/* 输入框 */}
-					<Card>
-						<CardContent className="pt-3">
-							<div className="mb-2 text-sm flex items-center gap-2 text-muted-foreground">
-								<Globe className="h-4 w-4" />
-								Your url to parse:
+					{/* URL分析器 */}
+					{compareMode ? (
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+							<div className="flex flex-col">
+								<URLAnalyzer label="URL 1" />
 							</div>
-							<Textarea
-								className="font-mono text-sm resize-none h-12"
-								value={inputUrl}
-								onChange={(e) => {
-									setInputUrl(e.target.value);
-									parseURL(e.target.value);
-								}}
-							/>
-						</CardContent>
-					</Card>
-
-					{/* 基本字段 */}
-					<Card>
-						<CardContent className="pt-3">
-							<CopyRow
-								label="Protocol"
-								value={parsedUrl?.protocol || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-							<CopyRow
-								label="Username"
-								value={parsedUrl?.username || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-							<CopyRow
-								label="Password"
-								value={parsedUrl?.password || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-							<CopyRow
-								label="Hostname"
-								value={parsedUrl?.hostname || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-							<CopyRow
-								label="Port"
-								value={parsedUrl?.port || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-							<CopyRow
-								label="Path"
-								value={parsedUrl?.pathname || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-							<CopyRow
-								label="Params"
-								value={parsedUrl?.search || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-							<CopyRow
-								label="Hash"
-								value={parsedUrl?.hash || ""}
-								copiedItems={copiedItems}
-								onCopy={copyToClipboard}
-							/>
-						</CardContent>
-					</Card>
-
-					{/* Query 参数 */}
-					<QueryParamsSection
-						parsedUrl={parsedUrl}
-						editedParams={editedParams}
-						newUrl={generateNewURL()}
-						copiedItems={copiedItems}
-						onParamValueChange={handleParamValueChange}
-						onCopy={copyToClipboard}
-					/>
+							<div className="flex flex-col">
+								<URLAnalyzer label="URL 2" />
+							</div>
+						</div>
+					) : (
+						<URLAnalyzer />
+					)}
 				</div>
 			</main>
 		</div>
