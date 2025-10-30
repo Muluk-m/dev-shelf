@@ -236,7 +236,7 @@ const QueryParamsSection = ({
 				<div className="space-y-1">
 					{editedParams.map((param, index) => (
 						<QueryParamRow
-							key={`${param.key}-${param.value}-${index}`}
+							key={index}
 							index={index}
 							editedKey={editedParams[index]?.key || ""}
 							editedValue={editedParams[index]?.value || ""}
@@ -551,18 +551,16 @@ export default function URLParserPage() {
 					</div>
 
 					{/* URL分析器 */}
-					{compareMode ? (
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-							<div className="flex flex-col">
-								<URLAnalyzer label="URL 1" />
-							</div>
+					<div className={compareMode ? "grid grid-cols-1 md:grid-cols-2 gap-4 w-full" : "w-full"}>
+						<div className="flex flex-col">
+							<URLAnalyzer label={compareMode ? "URL 1" : undefined} />
+						</div>
+						{compareMode && (
 							<div className="flex flex-col">
 								<URLAnalyzer label="URL 2" />
 							</div>
-						</div>
-					) : (
-						<URLAnalyzer />
-					)}
+						)}
+					</div>
 				</div>
 			</main>
 		</div>
