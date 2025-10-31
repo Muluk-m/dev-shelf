@@ -19,6 +19,7 @@ export default [
 		route("jwt-decoder", "routes/tools/jwt-decoder.tsx"),
 		route("query-analyzer", "routes/tools/query-analyzer.tsx"),
 		route("ua-parser", "routes/tools/ua-parser.tsx"),
+		route("whitelist-token", "routes/tools/whitelist-token.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页

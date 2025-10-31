@@ -5,11 +5,14 @@ import {
 	Loader2,
 	Play,
 	Sparkles,
+	TrendingUp,
 	X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import remarkGfm from "remark-gfm";
 import { Header } from "~/components/layout/header";
 import { ChartVisualization } from "~/components/query-analyzer/chart-visualization";
 import { DataTable } from "~/components/query-analyzer/data-table";
@@ -35,7 +38,7 @@ import {
 } from "~/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
-import { convertToSQL, executeQuery } from "~/lib/api";
+import { analyzeData, convertToSQL, executeQuery } from "~/lib/api";
 import { getClickHouseService } from "~/lib/clickhouse-service";
 import {
 	COMMON_PROJECTS,
@@ -159,6 +162,12 @@ export default function QueryAnalyzerPage() {
 	const [chartType, setChartType] = useState<
 		"table" | "line" | "bar" | "pie" | "area"
 	>("table");
+
+	// Analysis state
+	const [analysisLoading, setAnalysisLoading] = useState(false);
+	const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+	const [showAnalysis, setShowAnalysis] = useState(false);
+	const [lastExecutedSQL, setLastExecutedSQL] = useState<string>("");
 
 	const clickhouseService = getClickHouseService();
 
@@ -397,6 +406,35 @@ export default function QueryAnalyzerPage() {
 		const result = await executeQuery({ sql });
 		setQueryResults(result.data);
 		setExecutionTime(result.statistics?.elapsed || null);
+		setLastExecutedSQL(sql);
+		// Reset analysis when new query is executed
+		setAnalysisResult(null);
+		setShowAnalysis(false);
+	};
+
+	// Handle AI analysis
+	const handleAnalyzeData = async () => {
+		if (!queryResults || queryResults.length === 0) {
+			setError("没有可分析的数据");
+			return;
+		}
+
+		setAnalysisLoading(true);
+		setError(null);
+
+		try {
+			const response = await analyzeData({
+				data: queryResults,
+				sql: lastExecutedSQL,
+				naturalQuery: activeTab === "natural" ? naturalQuery : undefined,
+			});
+			setAnalysisResult(response.analysis);
+			setShowAnalysis(true);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "数据分析失败");
+		} finally {
+			setAnalysisLoading(false);
+		}
 	};
 
 	// Initialize template parameters
@@ -846,16 +884,54 @@ ORDER BY date DESC`}
 				)}
 
 				{/* Results Display */}
-				{queryResults && queryResults.length > 0 && (
+				{queryResults && queryResults.length === 0 && (
+				<Card className="mt-6">
+					<CardContent className="flex flex-col items-center justify-center py-12">
+						<div className="text-center space-y-2">
+							<p className="text-lg text-muted-foreground">暂无数据</p>
+							<p className="text-sm text-muted-foreground">
+								请尝试调整查询条件或时间范围
+							</p>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
+			{queryResults && queryResults.length > 0 && (
 					<div className="mt-6 space-y-4">
 						<div className="flex items-center justify-between">
-							<h2 className="text-2xl font-bold">查询结果</h2>
+							<div className="flex items-center gap-3">
+								<h2 className="text-2xl font-bold">查询结果</h2>
+								<Badge variant="secondary" className="text-base px-3 py-1">
+									共 {queryResults.length} 条
+								</Badge>
+							</div>
 							<div className="flex items-center gap-4">
 								{executionTime && (
 									<Badge variant="outline">
 										执行时间: {executionTime.toFixed(2)}ms
 									</Badge>
 								)}
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={handleAnalyzeData}
+									disabled={analysisLoading}
+									className="gap-2"
+								>
+									{analysisLoading ? (
+										<>
+											<Loader2 className="w-4 h-4 animate-spin" />
+											分析中...
+										</>
+									) : (
+										<>
+											<TrendingUp className="w-4 h-4" />
+											AI 分析
+										</>
+									)}
+								</Button>
 								<Select
 									value={chartType}
 									onValueChange={(value: any) => setChartType(value)}
@@ -910,6 +986,38 @@ ORDER BY date DESC`}
 							<DataTable data={queryResults} />
 						) : (
 							<ChartVisualization data={queryResults} chartType={chartType} />
+						)}
+
+						{/* AI Analysis Section */}
+						{showAnalysis && analysisResult && (
+							<Card className="border-2 border-primary/20">
+								<CardHeader>
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<TrendingUp className="w-5 h-5 text-primary" />
+											<CardTitle>AI 数据分析报告</CardTitle>
+										</div>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											onClick={() => setShowAnalysis(false)}
+										>
+											<X className="w-4 h-4" />
+										</Button>
+									</div>
+									<CardDescription>
+										基于查询结果的深度分析和业务洞察
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground">
+										<ReactMarkdown remarkPlugins={[remarkGfm]}>
+											{analysisResult}
+										</ReactMarkdown>
+									</div>
+								</CardContent>
+							</Card>
 						)}
 					</div>
 				)}

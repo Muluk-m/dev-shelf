@@ -239,7 +239,7 @@ export async function queryCfLogs(
 export async function recordToolUsage(toolId: string): Promise<void> {
 	const url = `${API_BASE_URL}/api/tools/${toolId}/usage`;
 	try {
-		// biome-ignore lint/complexity/useOptionalChain: <explanation>
+		// biome-ignore lint/complexity/useOptionalChain: navigator.sendBeacon compatibility check
 		if (typeof navigator !== "undefined" && navigator.sendBeacon) {
 			navigator.sendBeacon(url, new Blob());
 			return;
@@ -314,6 +314,22 @@ export interface ExecuteQueryResponse {
 	};
 }
 
+export interface AnalyzeDataRequest {
+	data: any[];
+	sql: string;
+	naturalQuery?: string;
+}
+
+export interface AnalyzeDataResponse {
+	analysis: string;
+	metadata: {
+		rowCount: number;
+		columnCount: number;
+		columns: string[];
+		numericStats: Record<string, any> | null;
+	};
+}
+
 export async function convertToSQL(
 	request: ConvertToSQLRequest,
 ): Promise<ConvertToSQLResponse> {
@@ -353,6 +369,28 @@ export async function executeQuery(
 	if (!response.ok) {
 		const errorData: any = await response.json();
 		throw new Error(errorData.error || "查询执行失败");
+	}
+
+	return response.json();
+}
+
+export async function analyzeData(
+	request: AnalyzeDataRequest,
+): Promise<AnalyzeDataResponse> {
+	const response = await fetch(
+		`${API_BASE_URL}/api/query-analyzer/analyze-data`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(request),
+		},
+	);
+
+	if (!response.ok) {
+		const errorData: any = await response.json();
+		throw new Error(errorData.error || "数据分析失败");
 	}
 
 	return response.json();

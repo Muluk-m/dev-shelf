@@ -65,34 +65,35 @@ export class ClickHouseService {
 			.toUpperCase()
 			.trim();
 
-		// Check for dangerous operations
-		const dangerousKeywords = [
-			"DROP",
-			"DELETE",
-			"TRUNCATE",
-			"ALTER",
-			"CREATE",
-			"INSERT",
-			"UPDATE",
-			"GRANT",
-			"REVOKE",
-		];
-
-		for (const keyword of dangerousKeywords) {
-			if (normalizedSQL.includes(keyword)) {
-				return {
-					valid: false,
-					error: `不允许执行 ${keyword} 操作，仅支持 SELECT 查询`,
-				};
-			}
-		}
-
 		// Must start with SELECT
 		if (!normalizedSQL.startsWith("SELECT")) {
 			return {
 				valid: false,
 				error: "仅支持 SELECT 查询语句",
 			};
+		}
+
+		// Check for dangerous operations (as separate SQL statements, not in field names)
+		// Use word boundaries to match keywords as standalone SQL commands
+		const dangerousPatterns = [
+			/\bDROP\s+(TABLE|DATABASE|VIEW|INDEX)/i,
+			/\bDELETE\s+FROM/i,
+			/\bTRUNCATE\s+TABLE/i,
+			/\bALTER\s+TABLE/i,
+			/\bCREATE\s+(TABLE|DATABASE|VIEW|INDEX)/i,
+			/\bINSERT\s+INTO/i,
+			/\bUPDATE\s+\w+\s+SET/i,
+			/\bGRANT\s+/i,
+			/\bREVOKE\s+/i,
+		];
+
+		for (const pattern of dangerousPatterns) {
+			if (pattern.test(normalizedSQL)) {
+				return {
+					valid: false,
+					error: "不允许执行 DDL/DML 操作，仅支持 SELECT 查询",
+				};
+			}
 		}
 
 		// Must include msg_event_time filter

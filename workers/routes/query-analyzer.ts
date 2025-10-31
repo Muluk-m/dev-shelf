@@ -19,6 +19,12 @@ interface ExecuteQueryRequest {
 	sql: string;
 }
 
+interface AnalyzeDataRequest {
+	data: any[];
+	sql: string;
+	naturalQuery?: string;
+}
+
 /**
  * Convert natural language to SQL using LLM
  */
@@ -347,6 +353,173 @@ queryAnalyzerRouter.post("/execute-query", async (c) => {
 			{
 				error:
 					error instanceof Error ? error.message : "查询执行失败，请稍后重试",
+			},
+			500,
+		);
+	}
+});
+
+/**
+ * Analyze query results with AI insights
+ */
+queryAnalyzerRouter.post("/analyze-data", async (c) => {
+	try {
+		const body = await c.req.json<AnalyzeDataRequest>();
+		const { data, sql, naturalQuery } = body;
+
+		if (!data || data.length === 0) {
+			return c.json({ error: "数据不能为空" }, 400);
+		}
+
+		// Prepare data summary for LLM
+		const rowCount = data.length;
+		const sampleSize = Math.min(5, rowCount);
+		const sampleData = data.slice(0, sampleSize);
+
+		// Get column names and types
+		const columns = Object.keys(data[0]);
+		const columnInfo = columns
+			.map((col) => {
+				const sampleValue = data[0][col];
+				const type = typeof sampleValue;
+				return `${col} (${type})`;
+			})
+			.join(", ");
+
+		// Calculate basic statistics for numeric columns
+		const numericStats: Record<string, any> = {};
+		columns.forEach((col) => {
+			const values = data
+				.map((row) => row[col])
+				.filter((v) => !Number.isNaN(Number(v)));
+			if (values.length > 0) {
+				const numbers = values.map(Number);
+				const sum = numbers.reduce((a, b) => a + b, 0);
+				const avg = sum / numbers.length;
+				const max = Math.max(...numbers);
+				const min = Math.min(...numbers);
+				numericStats[col] = { sum, avg, max, min, count: numbers.length };
+			}
+		});
+
+		const prompt = `
+# 数据分析任务
+
+请基于以下查询结果，提供深入的数据分析和业务洞察。
+
+## 查询背景
+
+${naturalQuery ? `**用户需求**: ${naturalQuery}\n` : ""}**执行的 SQL**:
+\`\`\`sql
+${sql}
+\`\`\`
+
+## 数据概览
+
+- **总行数**: ${rowCount}
+- **字段列表**: ${columnInfo}
+- **数据样本** (前 ${sampleSize} 行):
+\`\`\`json
+${JSON.stringify(sampleData, null, 2)}
+\`\`\`
+
+${
+	Object.keys(numericStats).length > 0
+		? `
+## 数值字段统计
+
+${Object.entries(numericStats)
+	.map(
+		([col, stats]) => `
+**${col}**:
+- 总计: ${stats.sum.toFixed(2)}
+- 平均: ${stats.avg.toFixed(2)}
+- 最大: ${stats.max}
+- 最小: ${stats.min}
+- 有效值数量: ${stats.count}`,
+	)
+	.join("\n")}
+`
+		: ""
+}
+
+## 分析要求
+
+请提供以下维度的分析报告（使用 Markdown 格式）：
+
+### 1. 数据概览 (Data Overview)
+- 总体数据规模和分布特征
+- 数据质量评估（是否有异常值、缺失值等）
+
+### 2. 关键发现 (Key Findings)
+- 3-5 个最重要的数据洞察
+- 突出的趋势、模式或异常点
+- 用简洁的语言和具体数字说明
+
+### 3. 业务解读 (Business Insights)
+- 这些数据对业务意味着什么
+- 潜在的机会或风险点
+- 可能需要关注的指标
+
+### 4. 行动建议 (Action Items)
+- 基于数据的 2-3 条可执行建议
+- 进一步分析的方向
+
+## 输出格式
+
+请使用清晰的 Markdown 格式，包含标题、列表和重点标注。重要的数字用 **加粗** 显示。
+`;
+
+		// Call LLM API
+		const llmResponse = await fetch(
+			"https://new-api.qiliangjia.org/v1/chat/completions",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization:
+						"Bearer sk-c6RnsVbb6rtOGVPK2As0aC8ZhtGTP2FMxahCHXKiW076CnYx",
+				},
+				body: JSON.stringify({
+					model: "gpt-4o",
+					messages: [
+						{
+							role: "developer",
+							content:
+								"你是一个专业的数据分析师，擅长从查询结果中提炼关键洞察和业务价值。你需要提供清晰、可执行的分析报告。请使用中文回答。",
+						},
+						{
+							role: "user",
+							content: prompt,
+						},
+					],
+					temperature: 0.3,
+				}),
+			},
+		);
+
+		if (!llmResponse.ok) {
+			throw new Error(`LLM API 请求失败: ${llmResponse.statusText}`);
+		}
+
+		const llmData: any = await llmResponse.json();
+		const analysis = llmData.choices?.[0]?.message?.content || "";
+
+		return c.json({
+			analysis,
+			metadata: {
+				rowCount,
+				columnCount: columns.length,
+				columns,
+				numericStats: Object.keys(numericStats).length > 0 ? numericStats : null,
+			},
+		});
+	} catch (error) {
+		console.error("Analyze data error:", error);
+		return c.json(
+			{
+				error:
+					error instanceof Error ? error.message : "数据分析失败，请稍后重试",
 			},
 			500,
 		);
