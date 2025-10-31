@@ -5,6 +5,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "qlj-devhub-homepage",
   "compatibility_date": "2025-10-10",
+  "compatibility_flags": ["nodejs_compat"],
   "main": "./workers/app.ts",
   "upload_source_maps": true,
   "vars": {
