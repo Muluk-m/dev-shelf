@@ -20,6 +20,7 @@ export default [
 		route("query-analyzer", "routes/tools/query-analyzer.tsx"),
 		route("ua-parser", "routes/tools/ua-parser.tsx"),
 		route("whitelist-token", "routes/tools/whitelist-token.tsx"),
+		route("website-check", "routes/tools/website-check.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
