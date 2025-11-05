@@ -38,16 +38,7 @@ export function useCommandPanel(tools: Tool[]) {
 					void recordToolUsage(tool.id);
 					setIsOpen(false);
 					const environment = tool.environments?.[0];
-					if (environment) {
-						if (environment.isExternal) {
-							window.open(environment.url, "_blank");
-						} else {
-							window.location.href = environment.url;
-						}
-					} else {
-						// 如果没有环境配置，跳转到工具详情页
-						navigate(`/tools/${tool.id}`);
-					}
+					window.open(environment.url, "_blank");
 				},
 			})),
 		[tools, navigate],
