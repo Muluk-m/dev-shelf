@@ -65,10 +65,10 @@ export function useCommandPanel(tools: Tool[]) {
 				category: "navigation" as const,
 				action: () => {
 					setIsOpen(false);
-					navigate(`/tools/${tool.id}`);
+					window.open(`/tools/${tool.id}`, "_blank");
 				},
 			})),
-		[tools, navigate],
+		[tools],
 	);
 
 	// 所有命令
