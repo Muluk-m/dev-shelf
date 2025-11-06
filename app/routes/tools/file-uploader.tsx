@@ -100,7 +100,9 @@ export default function FileUploaderTool() {
 
 	const clearAll = useCallback(() => {
 		setItems((prev) => {
-			prev.forEach((it) => it.objectUrl && URL.revokeObjectURL(it.objectUrl));
+			prev.forEach((it) => {
+				if (it.objectUrl) URL.revokeObjectURL(it.objectUrl);
+			});
 			return [];
 		});
 	}, []);
@@ -115,7 +117,9 @@ export default function FileUploaderTool() {
 		setUploading(true);
 		try {
 			const form = new FormData();
-			items.forEach((it) => form.append("files", it.file, it.file.name));
+			items.forEach((it) => {
+				form.append("files", it.file, it.file.name);
+			});
 			const data = await uploadFiles(form);
 			setUploaded(
 				data.files.map((f: any) => {
@@ -250,7 +254,14 @@ export default function FileUploaderTool() {
 													className="object-contain max-h-48"
 												/>
 											) : (
-												<video src={it.objectUrl} controls className="h-48" />
+												<video
+													src={it.objectUrl}
+													controls
+													className="h-48"
+													aria-label={it.file.name}
+												>
+													<track kind="captions" />
+												</video>
 											)}
 										</div>
 									)}

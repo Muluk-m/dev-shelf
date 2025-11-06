@@ -50,6 +50,16 @@ import {
 const STORAGE_KEY = "query-analyzer-project-history";
 const MAX_HISTORY_SIZE = 10;
 
+export function meta() {
+	return [
+		{ title: "Query Analyzer | DevTools Platform" },
+		{
+			name: "description",
+			content: "Query Analyzer for DevTools Platform",
+		},
+	];
+}
+
 /**
  * Export data to CSV format
  */
@@ -885,19 +895,19 @@ ORDER BY date DESC`}
 
 				{/* Results Display */}
 				{queryResults && queryResults.length === 0 && (
-				<Card className="mt-6">
-					<CardContent className="flex flex-col items-center justify-center py-12">
-						<div className="text-center space-y-2">
-							<p className="text-lg text-muted-foreground">暂无数据</p>
-							<p className="text-sm text-muted-foreground">
-								请尝试调整查询条件或时间范围
-							</p>
-						</div>
-					</CardContent>
-				</Card>
-			)}
+					<Card className="mt-6">
+						<CardContent className="flex flex-col items-center justify-center py-12">
+							<div className="text-center space-y-2">
+								<p className="text-lg text-muted-foreground">暂无数据</p>
+								<p className="text-sm text-muted-foreground">
+									请尝试调整查询条件或时间范围
+								</p>
+							</div>
+						</CardContent>
+					</Card>
+				)}
 
-			{queryResults && queryResults.length > 0 && (
+				{queryResults && queryResults.length > 0 && (
 					<div className="mt-6 space-y-4">
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-3">

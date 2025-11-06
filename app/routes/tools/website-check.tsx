@@ -52,6 +52,16 @@ const RESOURCE_TYPE_COLORS: Record<ResourceType, string> = {
 	other: "#6b7280",
 };
 
+export function meta() {
+	return [
+		{ title: "Website Check | DevTools Platform" },
+		{
+			name: "description",
+			content: "Check website performance and resource loading",
+		},
+	];
+}
+
 export default function WebsiteCheck() {
 	const [url, setUrl] = useState("");
 	const [device, setDevice] = useState<"desktop" | "mobile">("desktop");

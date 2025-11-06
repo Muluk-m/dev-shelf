@@ -22,6 +22,16 @@ const SECRET_KEY = "c7d065b0d405ec46e2597c4e53368598";
 const DEFAULT_VALIDITY_MINUTES = 60;
 const DEFAULT_PARAM_NAME = "_wt";
 
+export function meta() {
+	return [
+		{ title: "Whitelist Token Generator | DevTools Platform" },
+		{
+			name: "description",
+			content: "Generate whitelist token for Green Shield preview environment",
+		},
+	];
+}
+
 /**
  * Generate whitelist token using HMAC-SHA256
  */

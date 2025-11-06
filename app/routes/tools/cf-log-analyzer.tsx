@@ -49,6 +49,16 @@ import type {
 
 const DEFAULT_QUERY_LIMIT = 200;
 
+export function meta() {
+	return [
+		{ title: "Cloudflare Log Analyzer | DevTools Platform" },
+		{
+			name: "description",
+			content: "Cloudflare Log Analyzer for DevTools Platform",
+		},
+	];
+}
+
 export default function CfLogAnalyzerPage() {
 	const [date, setDate] = useState(() => formatDateInput(new Date()));
 	const [domain, setDomain] = useState(() => "");

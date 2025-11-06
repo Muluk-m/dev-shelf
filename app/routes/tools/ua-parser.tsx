@@ -41,6 +41,17 @@ function parseUserAgent(ua: string): UaInfo {
 	};
 }
 
+export function meta() {
+	return [
+		{ title: "User-agent Parser | DevTools Platform" },
+		{
+			name: "description",
+			content:
+				"Parse User-agent string and get browser, engine, OS, CPU, and Device type/model",
+		},
+	];
+}
+
 export default function UAParserPage() {
 	const [ua, setUa] = useState<string>("");
 
