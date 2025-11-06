@@ -20,6 +20,17 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Switch } from "~/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
+import type { Route } from "./+types/json-formatter";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "JSON 工具箱 | DevTools Platform" },
+		{
+			name: "description",
+			content: "格式化、查询、对比和可视化 JSON 数据",
+		},
+	];
+}
 
 // JSON diff types
 type JsonValue =

@@ -6,6 +6,17 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
+import type { Route } from "./+types/url-encoder";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "URL Encoder/Decoder | DevTools Platform" },
+		{
+			name: "description",
+			content: "Encode and decode URLs with encodeURIComponent and decodeURIComponent",
+		},
+	];
+}
 
 const encodeURL = (value: string, encodeComponent: boolean) => {
 	if (encodeComponent) {

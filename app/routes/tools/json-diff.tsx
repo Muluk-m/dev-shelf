@@ -7,6 +7,17 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
+import type { Route } from "./+types/json-diff";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "JSON Diff | DevTools Platform" },
+		{
+			name: "description",
+			content: "Compare and visualize differences between JSON objects",
+		},
+	];
+}
 
 type JsonValue =
 	| null

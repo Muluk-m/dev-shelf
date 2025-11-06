@@ -11,6 +11,17 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
+import type { Route } from "./+types/time-formatter";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "Time Formatter | DevTools Platform" },
+		{
+			name: "description",
+			content: "Convert and format timestamps between different formats",
+		},
+	];
+}
 
 type InputFormat =
 	| "js"

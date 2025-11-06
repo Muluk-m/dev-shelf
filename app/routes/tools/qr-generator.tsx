@@ -11,6 +11,17 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
+import type { Route } from "./+types/qr-generator";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "QR Code Generator | DevTools Platform" },
+		{
+			name: "description",
+			content: "Generate customizable QR codes with various styles and options",
+		},
+	];
+}
 
 type DotsShape =
 	| "square"

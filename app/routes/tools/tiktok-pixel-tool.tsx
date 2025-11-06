@@ -20,6 +20,17 @@ import {
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
+import type { Route } from "./+types/tiktok-pixel-tool";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "TikTok Pixel Tool | DevTools Platform" },
+		{
+			name: "description",
+			content: "Test and debug TikTok Pixel events with custom parameters",
+		},
+	];
+}
 
 const TIKTOK_EVENTS = [
 	"PageView",

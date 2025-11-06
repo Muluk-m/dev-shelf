@@ -7,6 +7,17 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
+import type { Route } from "./+types/base64-converter";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "Base64 Encoder/Decoder | DevTools Platform" },
+		{
+			name: "description",
+			content: "Encode and decode Base64 data with customizable options",
+		},
+	];
+}
 
 const encodeBase64 = (
 	value: string,
