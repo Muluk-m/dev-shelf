@@ -13,6 +13,17 @@ import {
 	TableRow,
 } from "~/components/ui/table";
 import { Textarea } from "~/components/ui/textarea";
+import type { Route } from "./+types/jwt-decoder";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "JWT Parser | DevTools Platform" },
+		{
+			name: "description",
+			content: "Parse and decode your JSON Web Token (jwt) and display its content.",
+		},
+	];
+}
 
 type JwtParts = {
 	header?: Record<string, unknown>;

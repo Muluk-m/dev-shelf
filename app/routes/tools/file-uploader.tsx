@@ -14,6 +14,17 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/components/ui/use-toast";
 import { uploadFiles } from "~/lib/api";
+import type { Route } from "./+types/file-uploader";
+
+export function meta({}: Route.MetaArgs) {
+	return [
+		{ title: "File Uploader | DevTools Platform" },
+		{
+			name: "description",
+			content: "Upload and manage files with preview and URL generation",
+		},
+	];
+}
 
 type UploadPreview = {
 	file: File;
