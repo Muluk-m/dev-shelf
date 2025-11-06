@@ -21,6 +21,7 @@ export default [
 		route("ua-parser", "routes/tools/ua-parser.tsx"),
 		route("whitelist-token", "routes/tools/whitelist-token.tsx"),
 		route("website-check", "routes/tools/website-check.tsx"),
+		route("roibest-analyzer", "routes/tools/roibest-analyzer.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
