@@ -1,8 +1,11 @@
 "use client";
 
 import {
+	ArrowUpDown,
+	BarChart3,
 	Check,
 	Copy,
+	Filter,
 	Globe,
 	Link2,
 	Plus,
@@ -39,6 +42,13 @@ interface ParsedURL {
 	search: string;
 	hash: string;
 	params: Array<{ key: string; value: string }>;
+}
+
+// URLAnalyzer 对外上报的状态
+interface URLAnalyzerState {
+	inputUrl: string;
+	parsedUrl: ParsedURL | null;
+	editedParams: Array<{ key: string; value: string }>;
 }
 
 // 复制行组件
@@ -312,7 +322,13 @@ const QueryParamsSection = ({
 };
 
 // URL分析器组件
-const URLAnalyzer = ({ label }: { label?: string }) => {
+const URLAnalyzer = ({
+	label,
+	onStateChange,
+}: {
+	label?: string;
+	onStateChange?: (state: URLAnalyzerState) => void;
+}) => {
 	const [inputUrl, setInputUrl] = useState(
 		"https://me:pwd@it-tools.tech:3000/url-parser?key1=value&key2=value2#the-hash",
 	);
@@ -359,6 +375,13 @@ const URLAnalyzer = ({ label }: { label?: string }) => {
 	useEffect(() => {
 		parseURL(inputUrl);
 	}, []);
+
+	// 上报当前状态给父级（用于对比）
+	useEffect(() => {
+		if (onStateChange) {
+			onStateChange({ inputUrl, parsedUrl, editedParams });
+		}
+	}, [inputUrl, parsedUrl, editedParams, onStateChange]);
 
 	const generateNewURL = () => {
 		if (!parsedUrl) return "";
@@ -484,12 +507,12 @@ const URLAnalyzer = ({ label }: { label?: string }) => {
 						copiedItems={copiedItems}
 						onCopy={copyToClipboard}
 					/>
-					<CopyRow
-						label="Params"
-						value={parsedUrl?.search || ""}
-						copiedItems={copiedItems}
-						onCopy={copyToClipboard}
-					/>
+					{/* <CopyRow
+								label="Params"
+								value={parsedUrl?.search || ""}
+								copiedItems={copiedItems}
+								onCopy={copyToClipboard}
+          /> */}
 					<CopyRow
 						label="Hash"
 						value={parsedUrl?.hash || ""}
@@ -518,6 +541,10 @@ const URLAnalyzer = ({ label }: { label?: string }) => {
 // 主组件
 export default function URLParserPage() {
 	const [compareMode, setCompareMode] = useState(false);
+	const [leftState, setLeftState] = useState<URLAnalyzerState | null>(null);
+	const [rightState, setRightState] = useState<URLAnalyzerState | null>(null);
+	const [showOnlyDiff, setShowOnlyDiff] = useState(false);
+	const [sortByKey, setSortByKey] = useState(true);
 
 	return (
 		<div className="bg-background flex flex-col">
@@ -562,16 +589,250 @@ export default function URLParserPage() {
 					</div>
 
 					{/* URL分析器 */}
-					<div className={compareMode ? "grid grid-cols-1 md:grid-cols-2 gap-4 w-full" : "w-full"}>
+					<div
+						className={
+							compareMode
+								? "grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+								: "w-full"
+						}
+					>
 						<div className="flex flex-col">
-							<URLAnalyzer label={compareMode ? "URL 1" : undefined} />
+							<URLAnalyzer
+								label={compareMode ? "URL 1" : undefined}
+								onStateChange={setLeftState}
+							/>
 						</div>
 						{compareMode && (
 							<div className="flex flex-col">
-								<URLAnalyzer label="URL 2" />
+								<URLAnalyzer label="URL 2" onStateChange={setRightState} />
 							</div>
 						)}
 					</div>
+
+					{/* 对比结果区域 */}
+					{compareMode && leftState && rightState && (
+						<Card>
+							<CardContent className="pt-3">
+								<div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b">
+									<div className="flex items-center gap-2">
+										<RefreshCw className="h-3.5 w-3.5 text-blue-600" />
+										<span className="text-xs font-medium text-blue-600">
+											参数差异
+										</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Button
+											size="sm"
+											variant="outline"
+											className={`h-7 text-xs gap-1 ${
+												sortByKey ? "bg-blue-50 dark:bg-blue-900/20" : ""
+											}`}
+											onClick={() => setSortByKey(!sortByKey)}
+										>
+											<ArrowUpDown className="h-3 w-3" />
+											按Key排序
+										</Button>
+										<Button
+											size="sm"
+											variant="outline"
+											className={`h-7 text-xs gap-1 ${
+												showOnlyDiff ? "bg-amber-50 dark:bg-amber-900/20" : ""
+											}`}
+											onClick={() => setShowOnlyDiff(!showOnlyDiff)}
+										>
+											<Filter className="h-3 w-3" />
+											{showOnlyDiff ? "显示全部" : "仅显示差异"}
+										</Button>
+									</div>
+								</div>
+
+								{/* 统计信息 */}
+								{(() => {
+									const leftMap = new Map<string, string>(
+										(leftState.editedParams || []).map((p) => [p.key, p.value]),
+									);
+									const rightMap = new Map<string, string>(
+										(rightState.editedParams || []).map((p) => [
+											p.key,
+											p.value,
+										]),
+									);
+									const allKeys = Array.from(
+										new Set<string>([
+											...leftState.editedParams.map((p) => p.key),
+											...rightState.editedParams.map((p) => p.key),
+										]),
+									);
+
+									let total = allKeys.length;
+									let same = 0;
+									let diff = 0;
+									let missing = 0;
+
+									allKeys.forEach((k) => {
+										const lv = leftMap.get(k);
+										const rv = rightMap.get(k);
+										if (lv === rv) {
+											same++;
+										} else {
+											diff++;
+											if (lv === undefined || rv === undefined) {
+												missing++;
+											}
+										}
+									});
+
+									return (
+										<div className="flex items-center gap-4 mb-3 pb-2 border-b">
+											<div className="flex items-center gap-1.5">
+												<BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
+												<span className="text-xs text-muted-foreground">
+													统计:
+												</span>
+											</div>
+											<div className="flex items-center gap-4 text-xs">
+												<span className="text-muted-foreground">
+													总计{" "}
+													<span className="font-medium text-foreground">
+														{total}
+													</span>
+												</span>
+												<span className="text-green-600">
+													相同 <span className="font-medium">{same}</span>
+												</span>
+												<span className="text-red-600 dark:text-amber-400">
+													不同 <span className="font-medium">{diff}</span>
+												</span>
+												{missing > 0 && (
+													<span className="text-orange-600">
+														缺失 <span className="font-medium">{missing}</span>
+													</span>
+												)}
+											</div>
+										</div>
+									);
+								})()}
+
+								{/* 对比表格 */}
+								<div className="text-xs">
+									{(() => {
+										const leftMap = new Map<string, string>(
+											(leftState.editedParams || []).map((p) => [
+												p.key,
+												p.value,
+											]),
+										);
+										const rightMap = new Map<string, string>(
+											(rightState.editedParams || []).map((p) => [
+												p.key,
+												p.value,
+											]),
+										);
+										let allKeys = Array.from(
+											new Set<string>([
+												...leftState.editedParams.map((p) => p.key),
+												...rightState.editedParams.map((p) => p.key),
+											]),
+										);
+
+										// 排序
+										if (sortByKey) {
+											allKeys = allKeys.sort((a, b) => {
+												// 空key放在最后
+												if (!a && !b) return 0;
+												if (!a) return 1;
+												if (!b) return -1;
+												return a.localeCompare(b);
+											});
+										}
+
+										// 构建rows数据
+										const rowsData = allKeys.map((k) => {
+											const lv = leftMap.get(k);
+											const rv = rightMap.get(k);
+											const same = lv === rv;
+											return { k, lv, rv, same };
+										});
+
+										// 筛选
+										const filteredRows = showOnlyDiff
+											? rowsData.filter((row) => !row.same)
+											: rowsData;
+
+										const renderValue = (v: string | undefined) => {
+											if (v === undefined) {
+												return (
+													<span className="text-muted-foreground">
+														(missing)
+													</span>
+												);
+											}
+											if (v === "") {
+												return (
+													<span className="text-muted-foreground">(empty)</span>
+												);
+											}
+											return v;
+										};
+
+										const rows = filteredRows.map((row, idx) => (
+											<div
+												key={row.k || `__empty_${idx}`}
+												className={`grid grid-cols-12 gap-2 items-start py-1 px-2 rounded text-[12px] ${
+													row.same
+														? "bg-muted/30"
+														: "bg-amber-50 dark:bg-amber-900/20"
+												}`}
+											>
+												<div className="col-span-3 font-mono break-all">
+													{row.k ? (
+														row.k
+													) : (
+														<span className="text-muted-foreground">
+															(empty)
+														</span>
+													)}
+												</div>
+												<div className="col-span-4 font-mono break-all">
+													{renderValue(row.lv)}
+												</div>
+												<div className="col-span-4 font-mono break-all">
+													{renderValue(row.rv)}
+												</div>
+												<div
+													className={`col-span-1 text-[12px] text-right ${
+														row.same
+															? "text-green-600"
+															: "text-red-600 dark:text-amber-400"
+													}`}
+												>
+													{row.same ? "相同" : "不同"}
+												</div>
+											</div>
+										));
+
+										return (
+											<div className="space-y-1">
+												<div className="grid grid-cols-12 gap-2 text-[12px] text-muted-foreground px-2">
+													<div className="col-span-3">Key</div>
+													<div className="col-span-4">URL 1</div>
+													<div className="col-span-4">URL 2</div>
+													<div className="col-span-1 text-right">状态</div>
+												</div>
+												{rows.length ? (
+													rows
+												) : (
+													<div className="text-muted-foreground text-xs px-2 py-1">
+														{showOnlyDiff ? "无差异参数" : "无参数"}
+													</div>
+												)}
+											</div>
+										);
+									})()}
+								</div>
+							</CardContent>
+						</Card>
+					)}
 				</div>
 			</main>
 		</div>
