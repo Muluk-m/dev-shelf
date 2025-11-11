@@ -29,7 +29,7 @@ const ADVANCED_DETAIL_ID = "9528";
 const ADVANCED_ACCESS_WHITELIST = new Set<string>([
 	"梁济",
 	"马启骞",
-	"周扬",
+	"周杨",
 	"罗耿",
 ]);
 
