@@ -22,6 +22,7 @@ export default [
 		route("whitelist-token", "routes/tools/whitelist-token.tsx"),
 		route("website-check", "routes/tools/website-check.tsx"),
 		route("roibest-analyzer", "routes/tools/roibest-analyzer.tsx"),
+		route("rb-domain-check", "routes/tools/rb-domain-check.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
