@@ -62,7 +62,7 @@ export default function RBDomainCheckPage() {
 		const searchParams = new URLSearchParams({
 			additional: ADDITIONAL_ID,
 			check_detail: detailId,
-			debug: "1",
+			debug: "0",
 			domain: domain.trim(),
 		});
 		return `https://hook-admin-prod-1.roibest.com/admin/tools/domainCheck?${searchParams.toString()}`;
