@@ -1,9 +1,8 @@
 "use client";
 
 import { LogOut, Settings, User } from "lucide-react";
-import { useEffect, useState } from "react";
-import { getUserInfo } from "~/lib/api";
-import type { UserInfo } from "~/types/user-info";
+import { useEffect, useMemo } from "react";
+import { useUserInfoStore } from "~/stores/user-info-store";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
 	DropdownMenu,
@@ -19,23 +18,17 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ showName = false }: UserProfileProps) {
-	const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-	const [loading, setLoading] = useState(true);
+	const { userInfo, loading } = useUserInfoStore();
 
-	useEffect(() => {
-		const fetchUserInfo = async () => {
-			try {
-				const response = await getUserInfo();
-				setUserInfo(response.data);
-			} catch (error) {
-				console.error("Failed to fetch user info:", error);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		fetchUserInfo();
-	}, []);
+	const initials = useMemo(() => {
+		if (!userInfo?.userName) return "";
+		return userInfo.userName
+			.split(" ")
+			.map((n) => n[0])
+			.join("")
+			.toUpperCase()
+			.slice(0, 2);
+	}, [userInfo?.userName]);
 
 	if (loading) {
 		return (
@@ -57,21 +50,12 @@ export function UserProfile({ showName = false }: UserProfileProps) {
 		);
 	}
 
-	const getInitials = (name: string) => {
-		return name
-			.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase()
-			.slice(0, 2);
-	};
-
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-1 hover:bg-muted transition-colors outline-none">
 				<Avatar className="h-8 w-8">
 					<AvatarImage src={userInfo.avatar} alt={userInfo.userName} />
-					<AvatarFallback>{getInitials(userInfo.userName)}</AvatarFallback>
+					<AvatarFallback>{initials}</AvatarFallback>
 				</Avatar>
 				{showName && (
 					<span className="hidden md:inline text-sm font-medium">
