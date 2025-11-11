@@ -18,14 +18,7 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ showName = false }: UserProfileProps) {
-	const { userInfo, loading, hasFetched, lastUpdatedAt, fetchUserInfo } =
-		useUserInfoStore();
-
-	useEffect(() => {
-		if (!hasFetched && !loading) {
-			void fetchUserInfo();
-		}
-	}, [hasFetched, loading, fetchUserInfo]);
+	const { userInfo, loading } = useUserInfoStore();
 
 	const initials = useMemo(() => {
 		if (!userInfo?.userName) return "";
@@ -37,7 +30,7 @@ export function UserProfile({ showName = false }: UserProfileProps) {
 			.slice(0, 2);
 	}, [userInfo?.userName]);
 
-	if (!lastUpdatedAt || loading || !hasFetched) {
+	if (loading) {
 		return (
 			<div className="flex items-center gap-2">
 				<div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
