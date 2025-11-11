@@ -204,6 +204,7 @@ ${naturalLanguage}
 2. **时间范围** - 使用 msg_event_time 字段
 3. **时间聚合** - 按日期/小时分组，使用 toDate() 或 toHour()
 4. **统计指标** - COUNT(*) 事件数、COUNT(DISTINCT uuid) 用户数
+5. **事件代码描述** - 使用 CASE WHEN 将 event_code 转换为中文描述
 
 # 要求
 
@@ -218,6 +219,28 @@ ${naturalLanguage}
 7. **合理使用聚合函数** - COUNT、COUNT(DISTINCT)、SUM、AVG 等
 8. **使用 ClickHouse 特有函数** - toDate()、toHour()、formatDateTime() 等
 9. **适当添加 GROUP BY、ORDER BY、LIMIT**
+10. **重要: 在 SELECT 中添加 event_code_desc 字段**，使用 CASE WHEN 语句将 event_code 转换为对应的中文描述，这样查询结果更易读
+
+# CASE WHEN 示例
+
+\`\`\`sql
+SELECT
+    event_code,
+    CASE
+        WHEN event_code = 91001 THEN '广告平台内-落地页访问'
+        WHEN event_code = 91053 THEN 'chrome内访问'
+        WHEN event_code = 21008 THEN '调起原生安装窗口-Chrome内'
+        WHEN event_code = 21003 THEN 'install点击'
+        -- 添加更多相关的 event_code 映射
+        ELSE '未知事件'
+    END AS event_code_desc,
+    COUNT(*) AS event_count
+FROM ${schema.tableName}
+WHERE event_code IN (91001, 91053, 21008, 21003)
+  AND msg_event_time >= '2025-01-01'
+GROUP BY event_code, event_code_desc
+ORDER BY event_count DESC
+\`\`\`
 
 # 输出格式
 

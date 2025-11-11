@@ -3,6 +3,7 @@ import { index, type RouteConfig, route } from "@react-router/dev/routes";
 export default [
 	index("routes/home.tsx"),
 	route("admin", "routes/admin.tsx"),
+	route("admin/permissions", "routes/admin.permissions.tsx"),
 
 	// 内部工具路由 - 直接展示工具功能
 	route("tools", "routes/tools/_layout.tsx", [

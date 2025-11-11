@@ -13,19 +13,47 @@ import {
 
 import type { Route } from "./+types/tools.$id";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, context, request }: Route.LoaderArgs) {
 	try {
 		const toolsDb = await import("../../lib/database/tools");
+		const { checkToolAccess } = await import("../../lib/database/tool-permissions");
+		const { getCurrentUserId } = await import("../../workers/utils/auth");
+
 		const db = context.cloudflare.env.DB;
 
+		// 先获取工具信息
 		const tool = await toolsDb.getToolById(db, params.id);
-		if (tool) {
-			await toolsDb.recordToolUsage(db, tool.id);
+
+		if (!tool) {
+			return { tool: null, error: null };
 		}
-		return { tool };
+
+		// 如果工具没有配置权限要求，直接允许访问（性能优化）
+		if (!tool.permissionId) {
+			await toolsDb.recordToolUsage(db, tool.id);
+			return { tool, error: null };
+		}
+
+		// 只有配置了权限的工具才检查权限
+		const userId = await getCurrentUserId({
+			env: context.cloudflare.env,
+			req: { headers: request.headers } as any,
+		} as any);
+
+		// 检查访问权限
+		const accessCheck = await checkToolAccess(db, params.id, userId);
+		if (!accessCheck.allowed) {
+			return {
+				tool: null,
+				error: accessCheck.reason || "无权限访问此工具",
+			};
+		}
+
+		await toolsDb.recordToolUsage(db, tool.id);
+		return { tool, error: null };
 	} catch (error) {
 		console.error("Failed to load tool:", error);
-		return { tool: null };
+		return { tool: null, error: "加载工具失败" };
 	}
 }
 
@@ -45,7 +73,7 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
 	];
 }
 
-function NotFoundPage() {
+function NotFoundPage({ error }: { error?: string | null }) {
 	return (
 		<div className="min-h-screen bg-background">
 			<Header />
@@ -56,9 +84,9 @@ function NotFoundPage() {
 							<div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
 								<AlertTriangle className="h-6 w-6 text-destructive" />
 							</div>
-							<CardTitle>工具未找到</CardTitle>
+							<CardTitle>{error ? "无权限访问" : "工具未找到"}</CardTitle>
 							<CardDescription>
-								抱歉，您访问的工具不存在或已被移除。
+								{error || "抱歉，您访问的工具不存在或已被移除。"}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="text-center space-y-4">
@@ -77,10 +105,10 @@ function NotFoundPage() {
 }
 
 export default function ToolDetailPage() {
-	const { tool } = useLoaderData<typeof loader>();
+	const { tool, error } = useLoaderData<typeof loader>();
 
 	if (!tool) {
-		return <NotFoundPage />;
+		return <NotFoundPage error={error} />;
 	}
 
 	return (

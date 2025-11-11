@@ -181,10 +181,6 @@ export default function QueryAnalyzerPage() {
 	const [showGeneratedSQL, setShowGeneratedSQL] = useState(true);
 	const [isEditingSQL, setIsEditingSQL] = useState(false);
 
-	// Follow-up question for SQL refinement
-	const [followUpQuestion, setFollowUpQuestion] = useState("");
-	const [isRefining, setIsRefining] = useState(false);
-
 	// Custom SQL state
 	const [customSQL, setCustomSQL] = useState("");
 
@@ -366,53 +362,6 @@ export default function QueryAnalyzerPage() {
 			setError(err instanceof Error ? err.message : "查询失败");
 		} finally {
 			setLoading(false);
-		}
-	};
-
-	// Handle follow-up question to refine SQL
-	const handleFollowUpQuestion = async () => {
-		if (!followUpQuestion.trim()) {
-			setError("请输入追问内容");
-			return;
-		}
-
-		if (!generatedSQL) {
-			setError("请先生成 SQL 查询");
-			return;
-		}
-
-		setIsRefining(true);
-		setError(null);
-
-		try {
-			// Build context with previous SQL
-			const contextPrompt = `当前的 SQL:\n${generatedSQL}\n\n原始需求: ${naturalQuery}\n\n现在的追问: ${followUpQuestion}\n\n请基于当前 SQL 进行优化或调整。`;
-
-			// Call API to refine SQL
-			const { sql, explanation } = await convertToSQL({
-				naturalLanguage: contextPrompt,
-				schema: PWA_EVENT_TABLE_SCHEMA,
-			});
-
-			// Inject project_id and filters
-			const finalSQL = injectFiltersIntoSQL(sql);
-
-			setGeneratedSQL(finalSQL);
-			setSqlExplanation(`${explanation}\n\n(基于追问优化: "${followUpQuestion}")`);
-			setFollowUpQuestion(""); // Clear follow-up input
-
-			// Auto-execute refined SQL
-			const validation = clickhouseService.validateSQL(finalSQL);
-			if (!validation.valid) {
-				setError(validation.error || "SQL 验证失败");
-				return;
-			}
-
-			await executeQueryWrapper(finalSQL);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "优化失败");
-		} finally {
-			setIsRefining(false);
 		}
 	};
 
@@ -914,35 +863,6 @@ export default function QueryAnalyzerPage() {
 												</>
 											)}
 										</Button>
-
-										{/* Follow-up Question Section */}
-										<div className="border-t pt-4 space-y-2">
-											<Label className="text-sm font-medium">💬 追问优化</Label>
-											<div className="flex gap-2">
-												<Textarea
-													placeholder="例如：按日期分组、只看前10条、添加订阅相关的事件..."
-													value={followUpQuestion}
-													onChange={(e) => setFollowUpQuestion(e.target.value)}
-													rows={2}
-													disabled={isRefining}
-													className="flex-1"
-												/>
-												<Button
-													onClick={handleFollowUpQuestion}
-													disabled={isRefining || !followUpQuestion.trim()}
-													className="shrink-0"
-												>
-													{isRefining ? (
-														<Loader2 className="w-4 h-4 animate-spin" />
-													) : (
-														<Sparkles className="w-4 h-4" />
-													)}
-												</Button>
-											</div>
-											<p className="text-xs text-muted-foreground">
-												基于当前 SQL 进行优化,AI 会保留现有查询逻辑并应用你的调整
-											</p>
-										</div>
 									</div>
 								)}
 							</CardContent>

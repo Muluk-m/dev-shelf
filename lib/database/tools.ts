@@ -30,10 +30,10 @@ export async function getTools(db: D1Database, context?: CacheContext): Promise<
     TOOLS_CACHE_KEYS.list,
     async () => {
       const toolsQuery = `
-        SELECT 
-          t.id, t.name, t.description, t.category, t.icon, 
-          t.is_internal, t.status, t.last_updated
-        FROM tools t 
+        SELECT
+          t.id, t.name, t.description, t.category, t.icon,
+          t.is_internal, t.status, t.last_updated, t.permission_id
+        FROM tools t
         WHERE t.status = 'active'
         ORDER BY t.name
       `;
@@ -44,8 +44,10 @@ export async function getTools(db: D1Database, context?: CacheContext): Promise<
       for (const tool of tools) {
         tool.isInternal = Boolean(tool.is_internal);
         tool.lastUpdated = tool.last_updated;
+        tool.permissionId = tool.permission_id;
         delete tool.is_internal;
         delete tool.last_updated;
+        delete tool.permission_id;
 
         const envQuery = `
           SELECT name, label, url, is_external
@@ -60,8 +62,8 @@ export async function getTools(db: D1Database, context?: CacheContext): Promise<
         }));
 
         const tagsQuery = `
-          SELECT tag 
-          FROM tool_tags 
+          SELECT tag
+          FROM tool_tags
           WHERE tool_id = ?
         `;
         const tagsResult = await db.prepare(tagsQuery).bind(tool.id).all();
@@ -168,8 +170,8 @@ export async function createTool(
       db
         .prepare(
           `
-        INSERT INTO tools (id, name, description, category, icon, is_internal, status, last_updated)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO tools (id, name, description, category, icon, is_internal, status, last_updated, permission_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
         )
         .bind(
@@ -180,7 +182,8 @@ export async function createTool(
           tool.icon,
           tool.isInternal ? 1 : 0,
           tool.status,
-          tool.lastUpdated
+          tool.lastUpdated,
+          tool.permissionId || null
         ),
       // 插入环境信息
       ...tool.environments.map((env) =>
@@ -228,9 +231,9 @@ export async function updateTool(
       db
         .prepare(
           `
-        UPDATE tools 
-        SET name = ?, description = ?, category = ?, icon = ?, 
-            is_internal = ?, status = ?, last_updated = ?
+        UPDATE tools
+        SET name = ?, description = ?, category = ?, icon = ?,
+            is_internal = ?, status = ?, last_updated = ?, permission_id = ?
         WHERE id = ?
       `
         )
@@ -242,6 +245,7 @@ export async function updateTool(
           tool.isInternal ? 1 : 0,
           tool.status,
           tool.lastUpdated,
+          tool.permissionId || null,
           id
         ),
       // 删除旧的环境信息

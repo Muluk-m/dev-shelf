@@ -26,6 +26,13 @@ import { Textarea } from "~/components/ui/textarea";
 import { getToolCategories } from "~/lib/api";
 import type { Tool, ToolCategory, ToolEnvironment } from "~/types/tool";
 
+interface Permission {
+	id: string;
+	resource: string;
+	action: string;
+	description?: string;
+}
+
 interface ToolFormProps {
 	isOpen: boolean;
 	onClose: () => void;
@@ -57,6 +64,7 @@ export function ToolForm({
 	});
 
 	const [toolCategories, setToolCategories] = useState<ToolCategory[]>([]);
+	const [permissions, setPermissions] = useState<Permission[]>([]);
 	const [formData, setFormData] = useState<Omit<Tool, "id">>(() =>
 		initializeFormData(),
 	);
@@ -67,7 +75,7 @@ export function ToolForm({
 	);
 	const isInternalTool = formData.isInternal;
 
-	// Load tool categories
+	// Load tool categories and permissions
 	useEffect(() => {
 		const loadCategories = async () => {
 			try {
@@ -77,7 +85,20 @@ export function ToolForm({
 				console.error("Failed to load categories:", error);
 			}
 		};
+		const loadPermissions = async () => {
+			try {
+				const response = await fetch("/api/permissions/permissions");
+				const data: { code: number; data: Permission[] } =
+					await response.json();
+				if (data.code === 0) {
+					setPermissions(data.data);
+				}
+			} catch (error) {
+				console.error("Failed to load permissions:", error);
+			}
+		};
 		loadCategories();
+		loadPermissions();
 	}, []);
 
 	useEffect(() => {
@@ -549,6 +570,35 @@ export function ToolForm({
 										</Badge>
 									))}
 								</div>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="permissionId">权限控制</Label>
+								<Select
+									value={formData.permissionId || "none"}
+									onValueChange={(value) =>
+										setFormData((prev) => ({
+											...prev,
+											permissionId: value === "none" ? undefined : value,
+										}))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="无需权限(公开访问)" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="none">无需权限(公开访问)</SelectItem>
+										{permissions.map((perm) => (
+											<SelectItem key={perm.id} value={perm.id}>
+												{perm.resource}:{perm.action}
+												{perm.description && ` - ${perm.description}`}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<p className="text-sm text-muted-foreground">
+									选择访问该工具需要的权限。如果不选择，则所有人都可以访问。
+								</p>
 							</div>
 						</TabsContent>
 					</Tabs>

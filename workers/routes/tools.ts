@@ -1,6 +1,11 @@
 import { Hono } from "hono";
 import type { CacheContext } from "../../lib/cache-manager";
+import {
+	checkToolAccess,
+	filterToolsByUserPermissions,
+} from "../../lib/database/tool-permissions";
 import * as toolsDb from "../../lib/database/tools";
+import { getCurrentUserId } from "../utils/auth";
 
 const toolsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -31,7 +36,18 @@ toolsRouter.get("/analytics/usage", async (c) => {
 // 获取所有工具
 toolsRouter.get("/", async (c) => {
 	try {
-		const tools = await toolsDb.getTools(c.env.DB, getCacheContext(c));
+		const userId = await getCurrentUserId(c);
+
+		// 获取所有工具（带缓存）
+		const allTools = await toolsDb.getTools(c.env.DB, getCacheContext(c));
+
+		// 根据用户权限过滤
+		const tools = await filterToolsByUserPermissions(
+			c.env.DB,
+			allTools,
+			userId,
+		);
+
 		return c.json(tools);
 	} catch (error) {
 		console.error("Error fetching tools:", error);
@@ -62,14 +78,24 @@ toolsRouter.post("/:id/usage", async (c) => {
 toolsRouter.get("/:id", async (c) => {
 	try {
 		const toolId = c.req.param("id");
+		const userId = await getCurrentUserId(c);
+
+		// 检查访问权限
+		const accessCheck = await checkToolAccess(c.env.DB, toolId, userId);
+		if (!accessCheck.allowed) {
+			return c.json({ error: accessCheck.reason || "无权限访问此工具" }, 403);
+		}
+
 		const tool = await toolsDb.getToolById(
 			c.env.DB,
 			toolId,
 			getCacheContext(c),
 		);
+
 		if (!tool) {
 			return c.json({ error: "Tool not found" }, 404);
 		}
+
 		return c.json(tool);
 	} catch (error) {
 		console.error("Error fetching tool:", error);

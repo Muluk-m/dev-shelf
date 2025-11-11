@@ -20,10 +20,8 @@ function initializeUserInfo() {
 		return;
 	}
 	hasInitialized = true;
-	const { userInfo, refresh } = useUserInfoStore.getState();
-	if (!userInfo) {
-		void refresh();
-	}
+	const { refresh } = useUserInfoStore.getState();
+	void refresh();
 }
 
 /**

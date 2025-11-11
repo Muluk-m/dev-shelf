@@ -95,11 +95,7 @@ export default function Home() {
 	const handleViewDetails = (tool: Tool) => {
 		const url = tool.environments[0].url;
 		recordToolUsage(tool.id);
-		if (tool.isInternal) {
-			navigate(url);
-		} else {
-			window.open(url, "_blank");
-		}
+		window.open(url, "_blank");
 	};
 
 	const handleCategoryChange = (categoryId: string | null) => {

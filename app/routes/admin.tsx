@@ -1,10 +1,12 @@
-import { Activity, Flame, Plus, Search, Settings } from "lucide-react";
+import { Activity, Flame, Plus, Search, Settings, Shield } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 import { CategoryForm } from "~/components/admin/category-form";
 import { CategoryList } from "~/components/admin/category-list";
 import { ToolForm } from "~/components/admin/tool-form";
 import { ToolList } from "~/components/admin/tool-list";
 import { Header } from "~/components/layout/header";
+import { ProtectedRoute } from "~/components/protected-route";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -297,9 +299,10 @@ export default function AdminPage() {
 	);
 
 	return (
-		<div className="min-h-screen bg-background">
-			<Header showSearch={false} />
-			<main className="container mx-auto px-4 py-8">
+		<ProtectedRoute requiredRoles={["admin"]}>
+			<div className="min-h-screen bg-background">
+				<Header showSearch={false} />
+				<main className="container mx-auto px-4 py-8">
 				<div className="space-y-8">
 					<div className="flex items-center justify-between">
 						<div>
@@ -311,10 +314,18 @@ export default function AdminPage() {
 								管理和配置平台工具，支持添加自定义工具
 							</p>
 						</div>
-						<Button onClick={() => setIsFormOpen(true)} className="gap-2">
-							<Plus className="h-4 w-4" />
-							添加工具
-						</Button>
+						<div className="flex gap-2">
+							<Link to="/admin/permissions">
+								<Button variant="outline" className="gap-2">
+									<Shield className="h-4 w-4" />
+									权限管理
+								</Button>
+							</Link>
+							<Button onClick={() => setIsFormOpen(true)} className="gap-2">
+								<Plus className="h-4 w-4" />
+								添加工具
+							</Button>
+						</div>
 					</div>
 
 					<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -528,6 +539,7 @@ export default function AdminPage() {
 				title={editingCategory ? "编辑分类" : "添加分类"}
 				loading={categoryFormLoading}
 			/>
-		</div>
+			</div>
+		</ProtectedRoute>
 	);
 }

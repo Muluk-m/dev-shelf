@@ -16,6 +16,7 @@ export interface Tool {
 	isInternal: boolean;
 	status: "active" | "maintenance" | "deprecated";
 	lastUpdated: string;
+	permissionId?: string; // 访问该工具需要的权限 ID (可选)
 }
 
 export interface ToolCategory {
