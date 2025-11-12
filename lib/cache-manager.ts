@@ -14,6 +14,10 @@ export interface CacheContext {
 	 * Optional cache instance (defaults to caches.default)
 	 */
 	cacheApi?: Cache;
+	/**
+	 * Optional KV namespace for version management
+	 */
+	kv?: KVNamespace;
 }
 
 // biome-ignore lint/complexity/noStaticOnlyClass: -
