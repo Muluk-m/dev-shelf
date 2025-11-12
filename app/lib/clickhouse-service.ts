@@ -96,14 +96,6 @@ export class ClickHouseService {
 			}
 		}
 
-		// Must include msg_event_time filter
-		if (!normalizedSQL.includes("MSG_EVENT_TIME")) {
-			return {
-				valid: false,
-				error: "所有查询必须包含 msg_event_time 时间范围过滤",
-			};
-		}
-
 		return { valid: true };
 	}
 

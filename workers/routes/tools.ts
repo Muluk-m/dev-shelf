@@ -15,6 +15,7 @@ const toolsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 function getCacheContext(c: any): CacheContext {
 	return {
 		ctx: c.executionCtx,
+		kv: c.env.CACHE_KV,
 	};
 }
 

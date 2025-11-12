@@ -12,11 +12,54 @@ export interface ToolUsageStat {
 }
 
 const TOOLS_CACHE_NAME = "tools";
-const TOOLS_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
-export const TOOLS_CACHE_KEYS = {
-  list: "/tools/list",
-  detail: (id: string) => `/tools/${id}`,
-} as const;
+const TOOLS_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 天
+const TOOLS_CACHE_VERSION_KEY = "tools:cache:version";
+
+/**
+ * 获取缓存版本号（从 KV）
+ */
+async function getCacheVersion(context?: CacheContext): Promise<number> {
+  if (!context?.kv) {
+    // 如果没有 KV，使用时间戳作为版本（每次都不同）
+    return Date.now();
+  }
+
+  try {
+    const version = await context.kv.get(TOOLS_CACHE_VERSION_KEY);
+    return version ? Number.parseInt(version, 10) : 1;
+  } catch (error) {
+    console.warn("Failed to get cache version from KV:", error);
+    return 1;
+  }
+}
+
+/**
+ * 递增缓存版本号（存入 KV）
+ */
+async function incrementCacheVersion(context?: CacheContext): Promise<void> {
+  if (!context?.kv) {
+    return;
+  }
+
+  const newVersion = Date.now();
+
+  try {
+    await context.kv.put(TOOLS_CACHE_VERSION_KEY, newVersion.toString());
+    console.log("Cache version incremented to:", newVersion);
+  } catch (error) {
+    console.warn("Failed to increment cache version in KV:", error);
+  }
+}
+
+/**
+ * 获取带版本号的缓存 key
+ */
+function getToolsCacheKeys(version: number) {
+  return {
+    list: `/tools/list/v${version}`,
+    detail: (id: string) => `/tools/${id}/v${version}`,
+  };
+}
 
 const TOOL_CATEGORIES_CACHE_NAME = "categories";
 const TOOL_CATEGORIES_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -25,9 +68,13 @@ export const TOOL_CATEGORIES_CACHE_KEYS = {
 } as const;
 
 export async function getTools(db: D1Database, context?: CacheContext): Promise<Tool[]> {
+  // 获取当前缓存版本号
+  const version = await getCacheVersion(context);
+  const cacheKeys = getToolsCacheKeys(version);
+
   return CacheManager.getJson(
     TOOLS_CACHE_NAME,
-    TOOLS_CACHE_KEYS.list,
+    cacheKeys.list,
     async () => {
       const toolsQuery = `
         SELECT
@@ -101,15 +148,19 @@ export async function getToolById(
   id: string,
   context?: CacheContext
 ): Promise<Tool | null> {
+  // 获取当前缓存版本号
+  const version = await getCacheVersion(context);
+  const cacheKeys = getToolsCacheKeys(version);
+
   return CacheManager.getJson(
     TOOLS_CACHE_NAME,
-    TOOLS_CACHE_KEYS.detail(id),
+    cacheKeys.detail(id),
     async () => {
       const toolQuery = `
-        SELECT 
-          t.id, t.name, t.description, t.category, t.icon, 
+        SELECT
+          t.id, t.name, t.description, t.category, t.icon,
           t.is_internal, t.status, t.last_updated
-        FROM tools t 
+        FROM tools t
         WHERE t.id = ?
       `;
 
@@ -139,8 +190,8 @@ export async function getToolById(
       }));
 
       const tagsQuery = `
-        SELECT tag 
-        FROM tool_tags 
+        SELECT tag
+        FROM tool_tags
         WHERE tool_id = ?
       `;
       const tagsResult = await db.prepare(tagsQuery).bind(id).all();
@@ -209,7 +260,8 @@ export async function createTool(
       ),
     ]);
 
-    await CacheManager.clearCache(TOOLS_CACHE_NAME, [TOOLS_CACHE_KEYS.list], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await incrementCacheVersion(context);
 
     return toolId;
   } catch (error) {
@@ -276,10 +328,8 @@ export async function updateTool(
       ),
     ]);
 
-    await CacheManager.clearCache(TOOLS_CACHE_NAME, [
-      TOOLS_CACHE_KEYS.list,
-      TOOLS_CACHE_KEYS.detail(id),
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await incrementCacheVersion(context);
   } catch (error) {
     console.error("Error updating tool:", error);
     throw new Error("Failed to update tool");
@@ -298,10 +348,8 @@ export async function deleteTool(db: D1Database, id: string, context?: CacheCont
       db.prepare(`DELETE FROM tools WHERE id = ?`).bind(id),
     ]);
 
-    await CacheManager.clearCache(TOOLS_CACHE_NAME, [
-      TOOLS_CACHE_KEYS.list,
-      TOOLS_CACHE_KEYS.detail(id),
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await incrementCacheVersion(context);
   } catch (error) {
     console.error("Error deleting tool:", error);
     throw new Error("Failed to delete tool");

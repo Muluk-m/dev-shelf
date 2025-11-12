@@ -35,6 +35,13 @@
       "database_id": "61845697-203d-4a2c-9eaf-dc2985b7f727"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE_KV",
+      "id": "76fb6b23405646699f1eea148fac6079",
+      "preview_id": "76fb6b23405646699f1eea148fac6079"
+    }
+  ],
   "routes": [
     {
       "pattern": "qlj-devhub-homepage.qiliangjia.one",
