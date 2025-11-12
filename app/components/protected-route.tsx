@@ -1,15 +1,15 @@
 import { AlertCircle, Lock } from "lucide-react";
 import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router";
+import { useNavigate } from "react-router";
+import { useHydration } from "~/hooks/use-hydration";
 import { usePermissions } from "~/hooks/use-permissions";
-import { checkRouteAccess } from "~/lib/route-permissions";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 interface ProtectedRouteProps {
 	children: ReactNode;
-	requiredRoles?: string[];
+	requiredRoles?: "visitor" | "user" | "developer" | "admin" | ({} & string);
 	requiredPermissions?: Array<{ resource: string; action: string }>;
 	fallback?: ReactNode;
 }
@@ -24,8 +24,8 @@ export function ProtectedRoute({
 	requiredPermissions,
 	fallback,
 }: ProtectedRouteProps) {
-	const location = useLocation();
-	const { userPermissions, loading } = usePermissions();
+	const { roles, loading, hasPermission, hasRole } = usePermissions();
+	const hasHydrated = useHydration();
 
 	if (loading) {
 		return (
@@ -37,22 +37,14 @@ export function ProtectedRoute({
 		);
 	}
 
-	if (!userPermissions) {
-		// 未登录，重定向到登录页
-		return <Navigate to={`/auth/login?redirectTo=${location.pathname}`} replace />;
-	}
-
 	// 检查角色
-	if (requiredRoles && requiredRoles.length > 0) {
-		const hasRole = requiredRoles.some((role) =>
-			userPermissions.roles.includes(role),
-		);
-		if (!hasRole) {
+	if (requiredRoles && requiredRoles.length > 0 && hasHydrated) {
+		if (!hasRole(requiredRoles)) {
 			if (fallback) return <>{fallback}</>;
 			return (
 				<AccessDenied
-					reason={`需要以下角色之一: ${requiredRoles.join(", ")}`}
-					currentRoles={userPermissions.roles}
+					reason={`需要以下角色: ${requiredRoles}`}
+					currentRoles={roles}
 				/>
 			);
 		}
@@ -60,52 +52,14 @@ export function ProtectedRoute({
 
 	// 检查权限
 	if (requiredPermissions && requiredPermissions.length > 0) {
-		const hasPermissions = requiredPermissions.every((perm) =>
-			userPermissions.permissions.includes(`${perm.resource}:${perm.action}`),
-		);
-		if (!hasPermissions) {
+		if (
+			requiredPermissions.some(
+				(perm) => !hasPermission(perm.resource, perm.action),
+			)
+		) {
 			if (fallback) return <>{fallback}</>;
-			return (
-				<AccessDenied
-					reason="缺少必要的权限"
-					currentRoles={userPermissions.roles}
-				/>
-			);
+			return <AccessDenied reason="缺少必要的权限" currentRoles={roles} />;
 		}
-	}
-
-	return <>{children}</>;
-}
-
-/**
- * 基于路由配置的自动权限检查
- */
-export function AutoProtectedRoute({ children }: { children: ReactNode }) {
-	const location = useLocation();
-	const { userPermissions, loading } = usePermissions();
-
-	if (loading) {
-		return (
-			<div className="container mx-auto p-6">
-				<div className="flex items-center justify-center h-96">
-					<p className="text-muted-foreground">加载中...</p>
-				</div>
-			</div>
-		);
-	}
-
-	if (!userPermissions) {
-		return <Navigate to={`/auth/login?redirectTo=${location.pathname}`} replace />;
-	}
-
-	const { allowed, reason } = checkRouteAccess(
-		location.pathname,
-		userPermissions.roles,
-		userPermissions.permissions,
-	);
-
-	if (!allowed) {
-		return <AccessDenied reason={reason} currentRoles={userPermissions.roles} />;
 	}
 
 	return <>{children}</>;
@@ -121,6 +75,8 @@ function AccessDenied({
 	reason?: string;
 	currentRoles: string[];
 }) {
+	const navigate = useNavigate();
+
 	return (
 		<div className="container mx-auto p-6">
 			<div className="flex items-center justify-center min-h-[60vh]">
@@ -153,9 +109,7 @@ function AccessDenied({
 							<Button variant="outline" onClick={() => window.history.back()}>
 								返回上一页
 							</Button>
-							<Button onClick={() => (window.location.href = "/")}>
-								返回首页
-							</Button>
+							<Button onClick={() => navigate("/")}>返回首页</Button>
 						</div>
 					</CardContent>
 				</Card>

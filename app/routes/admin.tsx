@@ -299,246 +299,250 @@ export default function AdminPage() {
 	);
 
 	return (
-		<ProtectedRoute requiredRoles={["admin"]}>
+		<ProtectedRoute requiredRoles="developer">
 			<div className="min-h-screen bg-background">
 				<Header showSearch={false} />
 				<main className="container mx-auto px-4 py-8">
-				<div className="space-y-8">
-					<div className="flex items-center justify-between">
-						<div>
-							<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-								<Settings className="h-8 w-8" />
-								工具管理
-							</h1>
-							<p className="text-muted-foreground mt-2">
-								管理和配置平台工具，支持添加自定义工具
-							</p>
-						</div>
-						<div className="flex gap-2">
-							<Link to="/admin/permissions">
-								<Button variant="outline" className="gap-2">
-									<Shield className="h-4 w-4" />
-									权限管理
+					<div className="space-y-8">
+						<div className="flex items-center justify-between">
+							<div>
+								<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+									<Settings className="h-8 w-8" />
+									工具管理
+								</h1>
+								<p className="text-muted-foreground mt-2">
+									管理和配置平台工具，支持添加自定义工具
+								</p>
+							</div>
+							<div className="flex gap-2">
+								<Link to="/admin/permissions">
+									<Button variant="outline" className="gap-2">
+										<Shield className="h-4 w-4" />
+										权限管理
+									</Button>
+								</Link>
+								<Button onClick={() => setIsFormOpen(true)} className="gap-2">
+									<Plus className="h-4 w-4" />
+									添加工具
 								</Button>
-							</Link>
-							<Button onClick={() => setIsFormOpen(true)} className="gap-2">
-								<Plus className="h-4 w-4" />
-								添加工具
-							</Button>
+							</div>
 						</div>
-					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-2xl">{tools.length}</CardTitle>
-								<CardDescription>总工具数</CardDescription>
-							</CardHeader>
-						</Card>
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-2xl">{categories.length}</CardTitle>
-								<CardDescription>分类数</CardDescription>
-							</CardHeader>
-						</Card>
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-2xl">
-									{internalTools.length}
-								</CardTitle>
-								<CardDescription>内部工具</CardDescription>
-							</CardHeader>
-						</Card>
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-2xl">
-									{externalTools.length}
-								</CardTitle>
-								<CardDescription>外部工具</CardDescription>
-							</CardHeader>
-						</Card>
-					</div>
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-2xl">{tools.length}</CardTitle>
+									<CardDescription>总工具数</CardDescription>
+								</CardHeader>
+							</Card>
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-2xl">
+										{categories.length}
+									</CardTitle>
+									<CardDescription>分类数</CardDescription>
+								</CardHeader>
+							</Card>
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-2xl">
+										{internalTools.length}
+									</CardTitle>
+									<CardDescription>内部工具</CardDescription>
+								</CardHeader>
+							</Card>
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-2xl">
+										{externalTools.length}
+									</CardTitle>
+									<CardDescription>外部工具</CardDescription>
+								</CardHeader>
+							</Card>
+						</div>
 
-					<Tabs defaultValue="tools" className="space-y-6">
-						<TabsList className="grid w-full grid-cols-3">
-							<TabsTrigger value="tools">工具管理</TabsTrigger>
-							<TabsTrigger value="usage">工具使用看板</TabsTrigger>
-							<TabsTrigger value="categories">分类管理</TabsTrigger>
-						</TabsList>
+						<Tabs defaultValue="tools" className="space-y-6">
+							<TabsList className="grid w-full grid-cols-3">
+								<TabsTrigger value="tools">工具管理</TabsTrigger>
+								<TabsTrigger value="usage">工具使用看板</TabsTrigger>
+								<TabsTrigger value="categories">分类管理</TabsTrigger>
+							</TabsList>
 
-						<TabsContent value="tools" className="space-y-4">
-							<div className="rounded-lg border bg-card p-4 shadow-sm space-y-4">
-								<div className="relative w-full md:max-w-lg">
-									<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-									<Input
-										value={searchTerm}
-										onChange={(event) => setSearchTerm(event.target.value)}
-										placeholder="搜索工具名称、标签或描述"
-										className="pl-9"
-									/>
+							<TabsContent value="tools" className="space-y-4">
+								<div className="rounded-lg border bg-card p-4 shadow-sm space-y-4">
+									<div className="relative w-full md:max-w-lg">
+										<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+										<Input
+											value={searchTerm}
+											onChange={(event) => setSearchTerm(event.target.value)}
+											placeholder="搜索工具名称、标签或描述"
+											className="pl-9"
+										/>
+									</div>
+									<div className="flex flex-wrap items-center gap-2">
+										<span className="text-xs uppercase tracking-wide text-muted-foreground">
+											状态筛选
+										</span>
+										{statusOptions.map((option) => (
+											<Button
+												key={option.value}
+												variant={
+													statusFilter === option.value ? "default" : "outline"
+												}
+												size="sm"
+												onClick={() => handleStatusToggle(option.value)}
+												className={
+													statusFilter === option.value
+														? "shadow-sm"
+														: "bg-transparent"
+												}
+											>
+												{option.label}
+											</Button>
+										))}
+									</div>
 								</div>
+
 								<div className="flex flex-wrap items-center gap-2">
-									<span className="text-xs uppercase tracking-wide text-muted-foreground">
-										状态筛选
-									</span>
-									{statusOptions.map((option) => (
+									{viewOptions.map((option) => (
 										<Button
 											key={option.value}
 											variant={
-												statusFilter === option.value ? "default" : "outline"
+												toolView === option.value ? "default" : "outline"
 											}
 											size="sm"
-											onClick={() => handleStatusToggle(option.value)}
-											className={
-												statusFilter === option.value
-													? "shadow-sm"
-													: "bg-transparent"
-											}
+											onClick={() => handleToolViewChange(option.value)}
+											className="gap-2"
 										>
 											{option.label}
+											<Badge
+												variant="secondary"
+												className="ml-1"
+												style={
+													toolView === option.value
+														? {
+																backgroundColor: "#3a3a3a",
+																color: "white",
+															}
+														: {}
+												}
+											>
+												{option.count}
+											</Badge>
 										</Button>
 									))}
 								</div>
-							</div>
 
-							<div className="flex flex-wrap items-center gap-2">
-								{viewOptions.map((option) => (
+								<ToolList
+									tools={viewFilteredTools}
+									categories={categories}
+									onEdit={handleEditTool}
+									onDelete={handleDeleteTool}
+									showActions={true}
+									loading={loading}
+									deleting={deletingToolId}
+									searchTerm={searchTerm}
+									statusFilter={statusFilter}
+								/>
+							</TabsContent>
+
+							<TabsContent value="usage" className="space-y-4">
+								{usageStats.length === 0 ? (
+									<Card>
+										<CardContent className="py-12 text-center text-muted-foreground">
+											暂无使用记录
+										</CardContent>
+									</Card>
+								) : (
+									<Card>
+										<CardHeader className="pb-4">
+											<CardTitle className="flex items-center gap-2 text-xl">
+												<Flame className="h-5 w-5 text-primary" />
+												最近使用热点
+											</CardTitle>
+											<CardDescription>
+												关注调用次数较多的工具，及时评估容量与支持
+											</CardDescription>
+										</CardHeader>
+										<CardContent className="space-y-3">
+											{usageStats.map((stat) => (
+												<div
+													key={stat.toolId}
+													className="flex flex-col gap-2 rounded-lg border bg-card/40 px-4 py-3 md:flex-row md:items-center md:justify-between"
+												>
+													<div className="flex items-center gap-3">
+														<div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+															<Activity className="h-4 w-4" />
+														</div>
+														<div>
+															<p className="text-sm font-medium text-foreground">
+																{stat.name}
+															</p>
+															<p className="text-xs text-muted-foreground">
+																{stat.usageCount} 次使用 ·{" "}
+																{stat.isInternal ? "内部" : "外部"}
+															</p>
+														</div>
+													</div>
+													<div className="text-xs text-muted-foreground">
+														最后使用：
+														{stat.lastUsed
+															? stat.lastUsed.replace("T", " ")
+															: "--"}
+													</div>
+												</div>
+											))}
+										</CardContent>
+									</Card>
+								)}
+							</TabsContent>
+
+							<TabsContent value="categories" className="space-y-4">
+								<div className="flex justify-between items-center">
+									<div>
+										<h3 className="text-lg font-medium">分类管理</h3>
+										<p className="text-sm text-muted-foreground">
+											管理工具分类，用于组织和筛选工具
+										</p>
+									</div>
 									<Button
-										key={option.value}
-										variant={toolView === option.value ? "default" : "outline"}
-										size="sm"
-										onClick={() => handleToolViewChange(option.value)}
+										onClick={() => setIsCategoryFormOpen(true)}
 										className="gap-2"
 									>
-										{option.label}
-										<Badge
-											variant="secondary"
-											className="ml-1"
-											style={
-												toolView === option.value
-													? {
-															backgroundColor: "#3a3a3a",
-															color: "white",
-														}
-													: {}
-											}
-										>
-											{option.count}
-										</Badge>
+										<Plus className="h-4 w-4" />
+										添加分类
 									</Button>
-								))}
-							</div>
-
-							<ToolList
-								tools={viewFilteredTools}
-								categories={categories}
-								onEdit={handleEditTool}
-								onDelete={handleDeleteTool}
-								showActions={true}
-								loading={loading}
-								deleting={deletingToolId}
-								searchTerm={searchTerm}
-								statusFilter={statusFilter}
-							/>
-						</TabsContent>
-
-						<TabsContent value="usage" className="space-y-4">
-							{usageStats.length === 0 ? (
-								<Card>
-									<CardContent className="py-12 text-center text-muted-foreground">
-										暂无使用记录
-									</CardContent>
-								</Card>
-							) : (
-								<Card>
-									<CardHeader className="pb-4">
-										<CardTitle className="flex items-center gap-2 text-xl">
-											<Flame className="h-5 w-5 text-primary" />
-											最近使用热点
-										</CardTitle>
-										<CardDescription>
-											关注调用次数较多的工具，及时评估容量与支持
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										{usageStats.map((stat) => (
-											<div
-												key={stat.toolId}
-												className="flex flex-col gap-2 rounded-lg border bg-card/40 px-4 py-3 md:flex-row md:items-center md:justify-between"
-											>
-												<div className="flex items-center gap-3">
-													<div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-														<Activity className="h-4 w-4" />
-													</div>
-													<div>
-														<p className="text-sm font-medium text-foreground">
-															{stat.name}
-														</p>
-														<p className="text-xs text-muted-foreground">
-															{stat.usageCount} 次使用 ·{" "}
-															{stat.isInternal ? "内部" : "外部"}
-														</p>
-													</div>
-												</div>
-												<div className="text-xs text-muted-foreground">
-													最后使用：
-													{stat.lastUsed
-														? stat.lastUsed.replace("T", " ")
-														: "--"}
-												</div>
-											</div>
-										))}
-									</CardContent>
-								</Card>
-							)}
-						</TabsContent>
-
-						<TabsContent value="categories" className="space-y-4">
-							<div className="flex justify-between items-center">
-								<div>
-									<h3 className="text-lg font-medium">分类管理</h3>
-									<p className="text-sm text-muted-foreground">
-										管理工具分类，用于组织和筛选工具
-									</p>
 								</div>
-								<Button
-									onClick={() => setIsCategoryFormOpen(true)}
-									className="gap-2"
-								>
-									<Plus className="h-4 w-4" />
-									添加分类
-								</Button>
-							</div>
-							<CategoryList
-								categories={categories}
-								onEdit={handleEditCategory}
-								onDelete={handleDeleteCategory}
-								loading={loading}
-								deleting={deletingCategoryId}
-								toolCounts={toolCountsByCategory}
-							/>
-						</TabsContent>
-					</Tabs>
-				</div>
-			</main>
+								<CategoryList
+									categories={categories}
+									onEdit={handleEditCategory}
+									onDelete={handleDeleteCategory}
+									loading={loading}
+									deleting={deletingCategoryId}
+									toolCounts={toolCountsByCategory}
+								/>
+							</TabsContent>
+						</Tabs>
+					</div>
+				</main>
 
-			<ToolForm
-				isOpen={isFormOpen}
-				onClose={handleFormClose}
-				onSubmit={editingTool ? handleUpdateTool : handleAddTool}
-				initialData={editingTool}
-				title={editingTool ? "编辑工具" : "添加工具"}
-				loading={formLoading}
-			/>
+				<ToolForm
+					isOpen={isFormOpen}
+					onClose={handleFormClose}
+					onSubmit={editingTool ? handleUpdateTool : handleAddTool}
+					initialData={editingTool}
+					title={editingTool ? "编辑工具" : "添加工具"}
+					loading={formLoading}
+				/>
 
-			<CategoryForm
-				isOpen={isCategoryFormOpen}
-				onClose={handleCategoryFormClose}
-				onSubmit={editingCategory ? handleUpdateCategory : handleAddCategory}
-				initialData={editingCategory}
-				title={editingCategory ? "编辑分类" : "添加分类"}
-				loading={categoryFormLoading}
-			/>
+				<CategoryForm
+					isOpen={isCategoryFormOpen}
+					onClose={handleCategoryFormClose}
+					onSubmit={editingCategory ? handleUpdateCategory : handleAddCategory}
+					initialData={editingCategory}
+					title={editingCategory ? "编辑分类" : "添加分类"}
+					loading={categoryFormLoading}
+				/>
 			</div>
 		</ProtectedRoute>
 	);

@@ -18,7 +18,7 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ showName = false }: UserProfileProps) {
-	const { userInfo, loading } = useUserInfoStore();
+	const { userInfo, loading, logout } = useUserInfoStore();
 
 	const initials = useMemo(() => {
 		if (!userInfo?.userName) return "";
@@ -80,7 +80,10 @@ export function UserProfile({ showName = false }: UserProfileProps) {
 					<span>设置</span>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem disabled className="cursor-pointer text-red-600">
+				<DropdownMenuItem
+					onClick={logout}
+					className="cursor-pointer text-red-600"
+				>
 					<LogOut className="mr-2 h-4 w-4" />
 					<span>退出登录</span>
 				</DropdownMenuItem>

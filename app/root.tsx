@@ -86,6 +86,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
 	const { tools } = useLoaderData<typeof loader>();
+
 	return (
 		<CommandPanelProvider tools={tools}>
 			<Outlet />
