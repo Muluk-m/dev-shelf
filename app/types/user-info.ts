@@ -10,4 +10,6 @@ export interface UserInfo {
 	exp: number;
 	aud: string;
 	iss: string;
+	roles?: string[];
+	permissions?: string[];
 }

@@ -84,6 +84,12 @@ auth.get("/callback", async (c) => {
 	});
 
 	if (!response.ok) {
+		console.error(
+			"获取token失败",
+			response.status,
+			response.statusText,
+			await response.text(),
+		);
 		throw new Error("获取token失败");
 	}
 
@@ -114,7 +120,6 @@ auth.get("/callback", async (c) => {
 
 			// 分配默认角色 user
 			await assignRoleToUser(c.env.DB, userId, "user");
-			console.log(`✅ Created new user ${userName} with role: user`);
 		} else {
 			// 更新用户信息
 			await updateUser(c.env.DB, user.id, {
@@ -127,7 +132,6 @@ auth.get("/callback", async (c) => {
 			const userRoles = await getUserRoles(c.env.DB, user.id);
 			if (userRoles.length === 0) {
 				await assignRoleToUser(c.env.DB, user.id, "user");
-				console.log(`✅ Assigned default role to existing user ${userName}`);
 			}
 		}
 	} catch (error) {
@@ -140,6 +144,18 @@ auth.get("/callback", async (c) => {
 	});
 
 	return c.redirect(redirectTo);
+});
+
+// 退出登录
+auth.post("/logout", (c) => {
+	// 删除 auth_token cookie
+	setCookie(c, "auth_token", "", {
+		maxAge: 0,
+		sameSite: "none",
+		secure: true,
+	});
+
+	return c.json({ code: 0, message: "Logged out successfully" });
 });
 
 export { auth };

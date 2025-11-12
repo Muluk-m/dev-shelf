@@ -76,7 +76,6 @@ permissions.get("/roles", requireAdmin, async (c) => {
 permissions.get("/permissions", requireAdmin, async (c) => {
 	try {
 		const perms = await getAllPermissions(c.env.DB);
-		console.log("perms", perms);
 		return c.json({ code: 0, data: perms });
 	} catch (error) {
 		console.error("Failed to get permissions:", error);

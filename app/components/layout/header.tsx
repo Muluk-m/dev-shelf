@@ -1,11 +1,13 @@
 "use client";
 
 import { Command } from "lucide-react";
+import { Link } from "react-router";
 import { SearchInput } from "~/components/search/search-input";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { UserProfile } from "~/components/user-profile";
 import { useCommandPanelContext } from "~/context/command-panel-context";
+import { usePermissions } from "~/hooks/use-permissions";
 import logo from "../../../public/logo.svg";
 
 interface HeaderProps {
@@ -28,6 +30,7 @@ export function Header({
 	onOpenCommandPanel,
 }: HeaderProps) {
 	const commandPanel = useCommandPanelContext();
+	const { hasRole } = usePermissions();
 	const handleOpenCommandPanel = onOpenCommandPanel ?? commandPanel?.openPanel;
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -39,11 +42,13 @@ export function Header({
 					</div>
 					<nav className="hidden md:flex items-center gap-4">
 						<Button variant="ghost" size="sm" asChild>
-							<a href="/">首页</a>
+							<Link to="/">首页</Link>
 						</Button>
-						<Button variant="ghost" size="sm" asChild>
-							<a href="/admin">管理</a>
-						</Button>
+						{hasRole("developer") && (
+							<Button variant="ghost" size="sm" asChild>
+								<Link to="/admin">管理</Link>
+							</Button>
+						)}
 					</nav>
 				</div>
 

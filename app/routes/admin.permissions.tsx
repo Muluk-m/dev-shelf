@@ -336,7 +336,7 @@ export default function PermissionsPage() {
 
 	return (
 		<ProtectedRoute
-			requiredRoles={["admin"]}
+			requiredRoles="admin"
 			requiredPermissions={[{ resource: "user", action: "write" }]}
 		>
 			<div className="container mx-auto p-6">
