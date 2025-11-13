@@ -68,18 +68,21 @@ async function fetchToolAccess(toolSlug: string): Promise<ToolAccessResponse> {
 /**
  * Hook to check tool access permission
  * Uses Zustand store for caching with localStorage persistence
+ *
+ * Strategy:
+ * 1. Always trigger async request to check latest permission
+ * 2. Use cached data during loading state as fallback
+ * 3. Update cache after request completes
  */
 export function useToolAccess(toolSlug: string, enabled = true) {
 	const { setPermission, getPermission } = usePermissionsStore();
 
-	// Check cache first
+	// Get cached permission (used as fallback during loading)
 	const cachedPermission = getPermission(toolSlug);
 
 	const query = useQuery<ToolAccessResponse, Error>({
 		queryKey: ["tools", toolSlug, "access"],
 		queryFn: () => fetchToolAccess(toolSlug),
-		// Use cached data as initialData if available
-		initialData: cachedPermission || undefined,
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		gcTime: 15 * 60 * 1000, // 15 minutes
 		enabled,
@@ -94,5 +97,9 @@ export function useToolAccess(toolSlug: string, enabled = true) {
 		}
 	}, [query.data, toolSlug, setPermission]);
 
-	return query;
+	// Return cached data during loading if available, otherwise use query data
+	return {
+		...query,
+		data: query.data || cachedPermission || undefined,
+	};
 }
