@@ -339,11 +339,12 @@ export default function PermissionsPage() {
 			requiredRoles="admin"
 			requiredPermissions={[{ resource: "user", action: "write" }]}
 		>
-			<div className="container mx-auto p-6">
-				<div className="mb-8">
-					<h1 className="text-3xl font-bold mb-2">权限管理</h1>
-					<p className="text-muted-foreground">管理系统用户、角色和权限</p>
-				</div>
+			<div className="min-h-screen bg-background">
+				<div className="container mx-auto p-6">
+					<div className="mb-8">
+						<h1 className="text-3xl font-bold mb-2">权限管理</h1>
+						<p className="text-muted-foreground">管理系统用户、角色和权限</p>
+					</div>
 
 				<Tabs defaultValue="users" className="space-y-6">
 					<TabsList>
@@ -750,6 +751,7 @@ export default function PermissionsPage() {
 					</DialogContent>
 				</Dialog>
 			</div>
+		</div>
 		</ProtectedRoute>
 	);
 }

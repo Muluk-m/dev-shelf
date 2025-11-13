@@ -450,7 +450,7 @@ export async function getToolUsageStats(
       t.status,
       t.is_internal,
       COUNT(u.id) AS usage_count,
-      MAX(u.used_at) AS last_used
+      datetime(MAX(u.used_at), '+8 hours') AS last_used
     FROM tools t
     LEFT JOIN tool_usage_events u ON t.id = u.tool_id
     GROUP BY t.id, t.name, t.category, t.status, t.is_internal
