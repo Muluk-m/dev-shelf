@@ -108,11 +108,41 @@ toolsRouter.post("/:id/usage", async (c) => {
 // 检查工具访问权限
 toolsRouter.get("/:id/access", async (c) => {
 	try {
-		const toolId = c.req.param("id");
+		const toolIdOrSlug = c.req.param("id");
 		const userId = await getCurrentUserId(c);
 
+		// 获取所有工具
+		const allTools = await toolsDb.getTools(c.env.DB, getCacheContext(c));
+
+		// 根据 ID 或 slug 查找工具
+		const tool = allTools.find((t) => {
+			// 先尝试匹配 ID
+			if (t.id === toolIdOrSlug) return true;
+
+			// 再尝试匹配 URL slug
+			const prodEnv = t.environments.find((e) => e.name === "production");
+			if (!prodEnv || prodEnv.isExternal) return false;
+
+			// 提取内部路由的 slug
+			const slug = prodEnv.url.startsWith("/tools/")
+				? prodEnv.url.slice("/tools/".length)
+				: prodEnv.url.replace(/^\/+/, "");
+
+			return slug === toolIdOrSlug;
+		});
+
+		// 如果找不到工具，允许访问（可能是新工具还未在数据库中配置）
+		if (!tool) {
+			return c.json({ hasAccess: true, error: null });
+		}
+
+		// 如果工具没有配置权限要求，直接允许访问
+		if (!tool.permissionId) {
+			return c.json({ hasAccess: true, error: null });
+		}
+
 		// 检查访问权限
-		const accessCheck = await checkToolAccess(c.env.DB, toolId, userId);
+		const accessCheck = await checkToolAccess(c.env.DB, tool.id, userId);
 
 		return c.json({
 			hasAccess: accessCheck.allowed,
