@@ -16,7 +16,9 @@ import type { Route } from "./+types/tools.$id";
 export async function loader({ params, context, request }: Route.LoaderArgs) {
 	try {
 		const toolsDb = await import("../../lib/database/tools");
-		const { checkToolAccess } = await import("../../lib/database/tool-permissions");
+		const { checkToolAccess } = await import(
+			"../../lib/database/tool-permissions"
+		);
 		const { getCurrentUserId } = await import("../../workers/utils/auth");
 
 		const db = context.cloudflare.env.DB;

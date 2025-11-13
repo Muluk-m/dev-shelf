@@ -246,7 +246,9 @@ export default function JsonDiffTool() {
 									</div>
 								)}
 								{errorLeft && (
-									<div className="text-destructive text-xs mt-2">{errorLeft}</div>
+									<div className="text-destructive text-xs mt-2">
+										{errorLeft}
+									</div>
 								)}
 							</CardContent>
 						</Card>
@@ -307,7 +309,9 @@ export default function JsonDiffTool() {
 									</div>
 								)}
 								{errorRight && (
-									<div className="text-destructive text-xs mt-2">{errorRight}</div>
+									<div className="text-destructive text-xs mt-2">
+										{errorRight}
+									</div>
 								)}
 							</CardContent>
 						</Card>

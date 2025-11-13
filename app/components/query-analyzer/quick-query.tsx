@@ -1,11 +1,16 @@
 import { Download, Loader2, Play } from "lucide-react";
 import { useState } from "react";
-import { executeQuery } from "~/lib/api";
-import { getClickHouseService } from "~/lib/clickhouse-service";
-import { QUERY_TEMPLATES, type QueryTemplate } from "~/lib/query-templates";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "~/components/ui/card";
+import { DatePicker } from "~/components/ui/date-picker";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -15,10 +20,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
-import { DatePicker } from "~/components/ui/date-picker";
-import { Alert, AlertDescription } from "~/components/ui/alert";
-import { DataTable } from "./data-table";
+import { executeQuery } from "~/lib/api";
+import { getClickHouseService } from "~/lib/clickhouse-service";
+import { QUERY_TEMPLATES, type QueryTemplate } from "~/lib/query-templates";
 import { ChartVisualization } from "./chart-visualization";
+import { DataTable } from "./data-table";
 
 interface QuickQueryProps {
 	projectIds: string;
@@ -48,13 +54,16 @@ function parseStringToDate(dateStr: string): Date | undefined {
 }
 
 export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
-	const [selectedTemplate, setSelectedTemplate] = useState<QueryTemplate | null>(null);
+	const [selectedTemplate, setSelectedTemplate] =
+		useState<QueryTemplate | null>(null);
 	const [templateParams, setTemplateParams] = useState<Record<string, any>>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [queryResults, setQueryResults] = useState<any[] | null>(null);
 	const [executionTime, setExecutionTime] = useState<number | null>(null);
-	const [chartType, setChartType] = useState<"table" | "line" | "bar" | "pie" | "area">("table");
+	const [chartType, setChartType] = useState<
+		"table" | "line" | "bar" | "pie" | "area"
+	>("table");
 	const clickhouseService = getClickHouseService();
 
 	// Inject project_id and filters into SQL
@@ -72,7 +81,9 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 
 		// Project ID filter
 		const projectIdClause =
-			ids.length === 1 ? `project_id = '${ids[0]}'` : `project_id IN (${ids.map((id) => `'${id}'`).join(", ")})`;
+			ids.length === 1
+				? `project_id = '${ids[0]}'`
+				: `project_id IN (${ids.map((id) => `'${id}'`).join(", ")})`;
 		whereClauses.push(projectIdClause);
 
 		// Event code filter
@@ -86,8 +97,12 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 
 		// Date range filter
 		if (queryFilters.dateRange.startDate && queryFilters.dateRange.endDate) {
-			const startDate = queryFilters.dateRange.startDate.toISOString().split("T")[0];
-			const endDate = queryFilters.dateRange.endDate.toISOString().split("T")[0];
+			const startDate = queryFilters.dateRange.startDate
+				.toISOString()
+				.split("T")[0];
+			const endDate = queryFilters.dateRange.endDate
+				.toISOString()
+				.split("T")[0];
 			whereClauses.push(
 				`msg_event_time >= '${startDate} 00:00:00' AND msg_event_time <= '${endDate} 23:59:59'`,
 			);
@@ -135,15 +150,22 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 		try {
 			// Process template parameters
 			const processedParams: Record<string, any> = {};
-			for (const [key, param] of Object.entries(selectedTemplate.parameters || {})) {
+			for (const [key, param] of Object.entries(
+				selectedTemplate.parameters || {},
+			)) {
 				if (key === "projectIds") continue;
 				const value = templateParams[key] || param.default;
 				processedParams[key] =
-					param.type === "date" ? clickhouseService.processDateParameter(String(value)) : value;
+					param.type === "date"
+						? clickhouseService.processDateParameter(String(value))
+						: value;
 			}
 
 			// Replace template variables
-			let sql = clickhouseService.replaceTemplateVariables(selectedTemplate.sqlTemplate, processedParams);
+			let sql = clickhouseService.replaceTemplateVariables(
+				selectedTemplate.sqlTemplate,
+				processedParams,
+			);
 
 			// Inject project_id and filters
 			sql = injectFiltersIntoSQL(sql);
@@ -169,7 +191,10 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 			headers
 				.map((header) => {
 					const value = row[header];
-					if (typeof value === "string" && (value.includes(",") || value.includes('"'))) {
+					if (
+						typeof value === "string" &&
+						(value.includes(",") || value.includes('"'))
+					) {
 						return `"${value.replace(/"/g, '""')}"`;
 					}
 					return value;
@@ -214,18 +239,24 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 						<Card
 							key={template.id}
 							className={`cursor-pointer transition-colors hover:border-primary/50 ${
-								selectedTemplate?.id === template.id ? "border-primary bg-primary/5" : ""
+								selectedTemplate?.id === template.id
+									? "border-primary bg-primary/5"
+									: ""
 							}`}
 							onClick={() => initializeTemplateParams(template)}
 						>
 							<CardHeader className="p-4">
 								<div className="flex items-start justify-between">
-									<CardTitle className="text-sm font-medium">{template.name}</CardTitle>
+									<CardTitle className="text-sm font-medium">
+										{template.name}
+									</CardTitle>
 									<Badge variant="outline" className="text-xs">
 										{template.category}
 									</Badge>
 								</div>
-								<CardDescription className="text-xs mt-1">{template.description}</CardDescription>
+								<CardDescription className="text-xs mt-1">
+									{template.description}
+								</CardDescription>
 							</CardHeader>
 						</Card>
 					))}
@@ -240,40 +271,50 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 						<Card>
 							<CardHeader>
 								<CardTitle>参数配置</CardTitle>
-								<CardDescription>{selectedTemplate.description}</CardDescription>
+								<CardDescription>
+									{selectedTemplate.description}
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="grid grid-cols-2 gap-4 mb-4">
-									{Object.entries(selectedTemplate.parameters || {}).map(([key, param]) => (
-										<div key={key} className="space-y-2">
-											<Label>{param.label}</Label>
-											{param.type === "date" ? (
-												<DatePicker
-													value={parseStringToDate(templateParams[key] || String(param.default))}
-													onChange={(date) => {
-														setTemplateParams({
-															...templateParams,
-															[key]: formatDateToString(date),
-														});
-													}}
-													placeholder="选择日期"
-												/>
-											) : (
-												<Input
-													type={param.type === "number" ? "number" : "text"}
-													value={templateParams[key] || param.default}
-													onChange={(e) =>
-														setTemplateParams({
-															...templateParams,
-															[key]: e.target.value,
-														})
-													}
-												/>
-											)}
-										</div>
-									))}
+									{Object.entries(selectedTemplate.parameters || {}).map(
+										([key, param]) => (
+											<div key={key} className="space-y-2">
+												<Label>{param.label}</Label>
+												{param.type === "date" ? (
+													<DatePicker
+														value={parseStringToDate(
+															templateParams[key] || String(param.default),
+														)}
+														onChange={(date) => {
+															setTemplateParams({
+																...templateParams,
+																[key]: formatDateToString(date),
+															});
+														}}
+														placeholder="选择日期"
+													/>
+												) : (
+													<Input
+														type={param.type === "number" ? "number" : "text"}
+														value={templateParams[key] || param.default}
+														onChange={(e) =>
+															setTemplateParams({
+																...templateParams,
+																[key]: e.target.value,
+															})
+														}
+													/>
+												)}
+											</div>
+										),
+									)}
 								</div>
-								<Button onClick={handleTemplateExecution} disabled={loading} className="w-full">
+								<Button
+									onClick={handleTemplateExecution}
+									disabled={loading}
+									className="w-full"
+								>
 									{loading ? (
 										<>
 											<Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -303,13 +344,20 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-3">
 											<CardTitle>查询结果</CardTitle>
-											<Badge variant="secondary">{queryResults.length} 条</Badge>
+											<Badge variant="secondary">
+												{queryResults.length} 条
+											</Badge>
 											{executionTime && (
-												<Badge variant="outline">{executionTime.toFixed(2)}ms</Badge>
+												<Badge variant="outline">
+													{executionTime.toFixed(2)}ms
+												</Badge>
 											)}
 										</div>
 										<div className="flex items-center gap-2">
-											<Select value={chartType} onValueChange={(value: any) => setChartType(value)}>
+											<Select
+												value={chartType}
+												onValueChange={(value: any) => setChartType(value)}
+											>
 												<SelectTrigger className="w-32">
 													<SelectValue />
 												</SelectTrigger>
@@ -360,7 +408,10 @@ export function QuickQuery({ projectIds, queryFilters }: QuickQueryProps) {
 									{chartType === "table" ? (
 										<DataTable data={queryResults} />
 									) : (
-										<ChartVisualization data={queryResults} chartType={chartType} />
+										<ChartVisualization
+											data={queryResults}
+											chartType={chartType}
+										/>
 									)}
 								</CardContent>
 							</Card>

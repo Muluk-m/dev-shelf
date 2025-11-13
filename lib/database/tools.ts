@@ -63,9 +63,51 @@ function getToolsCacheKeys(version: number) {
 
 const TOOL_CATEGORIES_CACHE_NAME = "categories";
 const TOOL_CATEGORIES_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
-export const TOOL_CATEGORIES_CACHE_KEYS = {
-  list: "/tool-categories/list",
-} as const;
+const TOOL_CATEGORIES_CACHE_VERSION_KEY = "categories:cache:version";
+
+/**
+ * 获取分类缓存版本号（从 KV）
+ */
+async function getCategoriesCacheVersion(context?: CacheContext): Promise<number> {
+  if (!context?.kv) {
+    return Date.now();
+  }
+
+  try {
+    const version = await context.kv.get(TOOL_CATEGORIES_CACHE_VERSION_KEY);
+    return version ? Number.parseInt(version, 10) : 1;
+  } catch (error) {
+    console.warn("Failed to get categories cache version from KV:", error);
+    return 1;
+  }
+}
+
+/**
+ * 递增分类缓存版本号（存入 KV）
+ */
+async function incrementCategoriesCacheVersion(context?: CacheContext): Promise<void> {
+  if (!context?.kv) {
+    return;
+  }
+
+  const newVersion = Date.now();
+
+  try {
+    await context.kv.put(TOOL_CATEGORIES_CACHE_VERSION_KEY, newVersion.toString());
+    console.log("Categories cache version incremented to:", newVersion);
+  } catch (error) {
+    console.warn("Failed to increment categories cache version in KV:", error);
+  }
+}
+
+/**
+ * 获取带版本号的分类缓存 key
+ */
+function getCategoriesCacheKeys(version: number) {
+  return {
+    list: `/tool-categories/list/v${version}`,
+  };
+}
 
 export async function getTools(db: D1Database, context?: CacheContext): Promise<Tool[]> {
   // 获取当前缓存版本号
@@ -127,13 +169,17 @@ export async function getToolCategories(
   db: D1Database,
   context?: CacheContext
 ): Promise<ToolCategory[]> {
+  // 获取当前缓存版本号
+  const version = await getCategoriesCacheVersion(context);
+  const cacheKeys = getCategoriesCacheKeys(version);
+
   return CacheManager.getJson(
     TOOL_CATEGORIES_CACHE_NAME,
-    TOOL_CATEGORIES_CACHE_KEYS.list,
+    cacheKeys.list,
     async () => {
       const query = `
-        SELECT id, name, description, icon, color 
-        FROM tool_categories 
+        SELECT id, name, description, icon, color
+        FROM tool_categories
         ORDER BY name
       `;
       const result = await db.prepare(query).all();
@@ -374,9 +420,8 @@ export async function createToolCategory(
       .bind(categoryId, category.name, category.description, category.icon, category.color)
       .run();
 
-    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
-      TOOL_CATEGORIES_CACHE_KEYS.list,
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await incrementCategoriesCacheVersion(context);
 
     return categoryId;
   } catch (error) {
@@ -403,9 +448,8 @@ export async function updateToolCategory(
       .bind(category.name, category.description, category.icon, category.color, id)
       .run();
 
-    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
-      TOOL_CATEGORIES_CACHE_KEYS.list,
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await incrementCategoriesCacheVersion(context);
   } catch (error) {
     console.error("Error updating category:", error);
     throw new Error("Failed to update category");
@@ -418,9 +462,8 @@ export async function deleteToolCategory(db: D1Database, id: string, context?: C
     // 实际生产环境中可能需要先处理引用该分类的工具
     await db.prepare(`DELETE FROM tool_categories WHERE id = ?`).bind(id).run();
 
-    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
-      TOOL_CATEGORIES_CACHE_KEYS.list,
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await incrementCategoriesCacheVersion(context);
   } catch (error) {
     console.error("Error deleting category:", error);
     throw new Error("Failed to delete category");

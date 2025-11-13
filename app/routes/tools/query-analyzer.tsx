@@ -398,7 +398,9 @@ export default function QueryAnalyzerPage() {
 			const finalSQL = injectFiltersIntoSQL(sql);
 
 			setGeneratedSQL(finalSQL);
-			setSqlExplanation(`${explanation}\n\n(基于追问优化: "${followUpQuestion}")`);
+			setSqlExplanation(
+				`${explanation}\n\n(基于追问优化: "${followUpQuestion}")`,
+			);
 			setFollowUpQuestion(""); // Clear follow-up input
 
 			// Auto-execute refined SQL
@@ -940,7 +942,8 @@ export default function QueryAnalyzerPage() {
 												</Button>
 											</div>
 											<p className="text-xs text-muted-foreground">
-												基于当前 SQL 进行优化,AI 会保留现有查询逻辑并应用你的调整
+												基于当前 SQL 进行优化,AI
+												会保留现有查询逻辑并应用你的调整
 											</p>
 										</div>
 									</div>

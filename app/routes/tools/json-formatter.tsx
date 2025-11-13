@@ -1,14 +1,14 @@
+import { JSONPath } from "jsonpath-plus";
 import {
 	Copy,
 	Download,
 	Edit3,
-	Search,
 	GitCompare,
+	Search,
 	Upload,
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
-import { JSONPath } from "jsonpath-plus";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "~/components/ui/button";
@@ -384,7 +384,10 @@ export default function JsonFormatterPage() {
 						}
 
 						// Check if value matches
-						if (searchOptions.searchIn !== "keys" && typeof value === "string") {
+						if (
+							searchOptions.searchIn !== "keys" &&
+							typeof value === "string"
+						) {
 							if (matchesSearch(value)) {
 								count++;
 							}
@@ -432,9 +435,7 @@ export default function JsonFormatterPage() {
 		const searchLower = searchOptions.caseSensitive
 			? searchText
 			: searchText.toLowerCase();
-		const textLower = searchOptions.caseSensitive
-			? text
-			: text.toLowerCase();
+		const textLower = searchOptions.caseSensitive ? text : text.toLowerCase();
 		return textLower.includes(searchLower);
 	};
 
@@ -459,7 +460,10 @@ export default function JsonFormatterPage() {
 						}
 
 						// Replace in value
-						if (searchOptions.searchIn !== "keys" && typeof value === "string") {
+						if (
+							searchOptions.searchIn !== "keys" &&
+							typeof value === "string"
+						) {
 							value = replaceInString(value, replaceAll);
 						}
 
@@ -560,7 +564,11 @@ export default function JsonFormatterPage() {
 		}
 
 		if (errL || errR) {
-			return { diffNode: null as DiffNode | null, leftError: errL, rightError: errR };
+			return {
+				diffNode: null as DiffNode | null,
+				leftError: errL,
+				rightError: errR,
+			};
 		}
 
 		return { diffNode: diffJson(a, b), leftError: "", rightError: "" };
@@ -592,7 +600,11 @@ export default function JsonFormatterPage() {
 					</div>
 
 					{/* 主功能 Tabs */}
-					<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+					<Tabs
+						value={activeTab}
+						onValueChange={setActiveTab}
+						className="flex-1 flex flex-col min-h-0"
+					>
 						<TabsList className="grid w-full grid-cols-4">
 							<TabsTrigger value="format" className="flex items-center gap-2">
 								<Edit3 className="h-4 w-4" />
@@ -613,7 +625,10 @@ export default function JsonFormatterPage() {
 						</TabsList>
 
 						{/* Tab 1: Format */}
-						<TabsContent value="format" className="flex-1 flex flex-col min-h-0 space-y-4">
+						<TabsContent
+							value="format"
+							className="flex-1 flex flex-col min-h-0 space-y-4"
+						>
 							<div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
 								{/* 输入区域 */}
 								<Card className="flex flex-col min-h-0">
@@ -755,7 +770,10 @@ export default function JsonFormatterPage() {
 						</TabsContent>
 
 						{/* Tab 2: JSONPath Query */}
-						<TabsContent value="query" className="flex-1 flex flex-col min-h-0 space-y-4">
+						<TabsContent
+							value="query"
+							className="flex-1 flex flex-col min-h-0 space-y-4"
+						>
 							<Card className="flex-shrink-0">
 								<CardHeader className="pb-3">
 									<CardTitle className="text-base">JSONPath 查询</CardTitle>
@@ -861,7 +879,10 @@ export default function JsonFormatterPage() {
 						</TabsContent>
 
 						{/* Tab 4: Find & Replace */}
-						<TabsContent value="search" className="flex-1 flex flex-col min-h-0 space-y-4">
+						<TabsContent
+							value="search"
+							className="flex-1 flex flex-col min-h-0 space-y-4"
+						>
 							<Card className="flex-shrink-0">
 								<CardHeader className="pb-3">
 									<CardTitle className="text-base">查找和替换</CardTitle>
@@ -903,7 +924,10 @@ export default function JsonFormatterPage() {
 														})
 													}
 												/>
-												<Label htmlFor="case-sensitive" className="cursor-pointer">
+												<Label
+													htmlFor="case-sensitive"
+													className="cursor-pointer"
+												>
 													区分大小写
 												</Label>
 											</div>
@@ -938,19 +962,28 @@ export default function JsonFormatterPage() {
 											>
 												<div className="flex items-center space-x-2">
 													<RadioGroupItem value="all" id="search-all" />
-													<Label htmlFor="search-all" className="cursor-pointer">
+													<Label
+														htmlFor="search-all"
+														className="cursor-pointer"
+													>
 														全部
 													</Label>
 												</div>
 												<div className="flex items-center space-x-2">
 													<RadioGroupItem value="keys" id="search-keys" />
-													<Label htmlFor="search-keys" className="cursor-pointer">
+													<Label
+														htmlFor="search-keys"
+														className="cursor-pointer"
+													>
 														仅键名
 													</Label>
 												</div>
 												<div className="flex items-center space-x-2">
 													<RadioGroupItem value="values" id="search-values" />
-													<Label htmlFor="search-values" className="cursor-pointer">
+													<Label
+														htmlFor="search-values"
+														className="cursor-pointer"
+													>
 														仅值
 													</Label>
 												</div>
@@ -1014,7 +1047,10 @@ export default function JsonFormatterPage() {
 						</TabsContent>
 
 						{/* Tab 4: JSON Diff */}
-						<TabsContent value="diff" className="flex-1 flex flex-col min-h-0 space-y-4">
+						<TabsContent
+							value="diff"
+							className="flex-1 flex flex-col min-h-0 space-y-4"
+						>
 							<div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
 								{/* Left JSON Input */}
 								<Card className="flex flex-col min-h-0">
@@ -1031,7 +1067,9 @@ export default function JsonFormatterPage() {
 											}`}
 										/>
 										{leftError && (
-											<div className="text-destructive text-xs">{leftError}</div>
+											<div className="text-destructive text-xs">
+												{leftError}
+											</div>
 										)}
 									</CardContent>
 								</Card>
@@ -1051,7 +1089,9 @@ export default function JsonFormatterPage() {
 											}`}
 										/>
 										{rightError && (
-											<div className="text-destructive text-xs">{rightError}</div>
+											<div className="text-destructive text-xs">
+												{rightError}
+											</div>
 										)}
 									</CardContent>
 								</Card>
