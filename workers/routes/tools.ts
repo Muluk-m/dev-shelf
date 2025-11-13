@@ -19,6 +19,36 @@ function getCacheContext(c: any): CacheContext {
 	};
 }
 
+// 获取初始化数据（工具、分类、使用统计）
+toolsRouter.get("/init", async (c) => {
+	try {
+		const userId = await getCurrentUserId(c);
+
+		// 并行获取所有数据
+		const [allTools, toolCategories, usageStats] = await Promise.all([
+			toolsDb.getTools(c.env.DB, getCacheContext(c)),
+			toolsDb.getToolCategories(c.env.DB, getCacheContext(c)),
+			toolsDb.getToolUsageStats(c.env.DB, 12),
+		]);
+
+		// 根据用户权限过滤工具
+		const tools = await filterToolsByUserPermissions(
+			c.env.DB,
+			allTools,
+			userId,
+		);
+
+		return c.json({
+			tools,
+			toolCategories,
+			usageStats,
+		});
+	} catch (error) {
+		console.error("Error fetching initial data:", error);
+		return c.json({ error: "Internal server error" }, 500);
+	}
+});
+
 toolsRouter.get("/analytics/usage", async (c) => {
 	try {
 		const limitParam = c.req.query("limit");
@@ -72,6 +102,28 @@ toolsRouter.post("/:id/usage", async (c) => {
 	} catch (error) {
 		console.error("Error recording tool usage:", error);
 		return c.json({ error: "Internal server error" }, 500);
+	}
+});
+
+// 检查工具访问权限
+toolsRouter.get("/:id/access", async (c) => {
+	try {
+		const toolId = c.req.param("id");
+		const userId = await getCurrentUserId(c);
+
+		// 检查访问权限
+		const accessCheck = await checkToolAccess(c.env.DB, toolId, userId);
+
+		return c.json({
+			hasAccess: accessCheck.allowed,
+			error: accessCheck.allowed
+				? null
+				: accessCheck.reason || "无权限访问此工具",
+		});
+	} catch (error) {
+		console.error("Error checking tool access:", error);
+		// 出错时默认允许访问（fail-open）
+		return c.json({ hasAccess: true, error: null });
 	}
 });
 

@@ -13,7 +13,8 @@ export function meta({}: Route.MetaArgs) {
 		{ title: "URL Encoder/Decoder | DevTools Platform" },
 		{
 			name: "description",
-			content: "Encode and decode URLs with encodeURIComponent and decodeURIComponent",
+			content:
+				"Encode and decode URLs with encodeURIComponent and decodeURIComponent",
 		},
 	];
 }

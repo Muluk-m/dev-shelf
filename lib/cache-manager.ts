@@ -87,8 +87,10 @@ export class CacheManager {
 				console.warn(`Failed to read ${cacheName} cache:`, error);
 			}
 		}
-
+		
 		const payload = await resolver();
+		console.log('缓存失效-获取新资源',cacheName, key, payload);
+
 		const shouldCache = options.shouldCache?.(payload) ?? true;
 
 		if (!cacheStore || !shouldCache) {

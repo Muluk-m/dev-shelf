@@ -11,72 +11,64 @@ export interface ToolUsageStat {
 	isInternal: boolean;
 }
 
+/**
+ * 通用缓存版本管理器
+ */
+class CacheVersionManager {
+	constructor(
+		private readonly versionKey: string,
+		private readonly cacheName: string,
+	) {}
+
+	async getVersion(context?: CacheContext): Promise<number> {
+		if (!context?.kv) {
+			return Date.now();
+		}
+
+		try {
+			const version = await context.kv.get(this.versionKey);
+			return version ? Number.parseInt(version, 10) : 1;
+		} catch (error) {
+			console.warn(`Failed to get ${this.cacheName} cache version:`, error);
+			return 1;
+		}
+	}
+
+	async incrementVersion(context?: CacheContext): Promise<void> {
+		if (!context?.kv) {
+			return;
+		}
+
+		const newVersion = Date.now();
+		try {
+			await context.kv.put(this.versionKey, newVersion.toString());
+			console.log(`${this.cacheName} cache version incremented to:`, newVersion);
+		} catch (error) {
+			console.warn(`Failed to increment ${this.cacheName} cache version:`, error);
+		}
+	}
+}
+
 const TOOLS_CACHE_NAME = "tools";
 const TOOLS_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 天
-const TOOLS_CACHE_VERSION_KEY = "tools:cache:version";
-
-/**
- * 获取缓存版本号（从 KV）
- */
-async function getCacheVersion(context?: CacheContext): Promise<number> {
-  if (!context?.kv) {
-    // 如果没有 KV，使用时间戳作为版本（每次都不同）
-    return Date.now();
-  }
-
-  try {
-    const version = await context.kv.get(TOOLS_CACHE_VERSION_KEY);
-    return version ? Number.parseInt(version, 10) : 1;
-  } catch (error) {
-    console.warn("Failed to get cache version from KV:", error);
-    return 1;
-  }
-}
-
-/**
- * 递增缓存版本号（存入 KV）
- */
-async function incrementCacheVersion(context?: CacheContext): Promise<void> {
-  if (!context?.kv) {
-    return;
-  }
-
-  const newVersion = Date.now();
-
-  try {
-    await context.kv.put(TOOLS_CACHE_VERSION_KEY, newVersion.toString());
-    console.log("Cache version incremented to:", newVersion);
-  } catch (error) {
-    console.warn("Failed to increment cache version in KV:", error);
-  }
-}
-
-/**
- * 获取带版本号的缓存 key
- */
-function getToolsCacheKeys(version: number) {
-  return {
-    list: `/tools/list/v${version}`,
-    detail: (id: string) => `/tools/${id}/v${version}`,
-  };
-}
+const toolsCacheManager = new CacheVersionManager("tools:cache:version", TOOLS_CACHE_NAME);
 
 const TOOL_CATEGORIES_CACHE_NAME = "categories";
 const TOOL_CATEGORIES_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
-export const TOOL_CATEGORIES_CACHE_KEYS = {
-  list: "/tool-categories/list",
-} as const;
+const categoriesCacheManager = new CacheVersionManager(
+	"categories:cache:version",
+	TOOL_CATEGORIES_CACHE_NAME,
+);
 
 export async function getTools(db: D1Database, context?: CacheContext): Promise<Tool[]> {
-  // 获取当前缓存版本号
-  const version = await getCacheVersion(context);
-  const cacheKeys = getToolsCacheKeys(version);
+	const version = await toolsCacheManager.getVersion(context);
+	const cacheKey = `/tools/list/v${version}`;
 
-  return CacheManager.getJson(
-    TOOLS_CACHE_NAME,
-    cacheKeys.list,
-    async () => {
-      const toolsQuery = `
+	return CacheManager.getJson(
+		TOOLS_CACHE_NAME,
+		cacheKey,
+		async () => {
+			const toolsQuery = `
         SELECT
           t.id, t.name, t.description, t.category, t.icon,
           t.is_internal, t.status, t.last_updated, t.permission_id
@@ -85,78 +77,80 @@ export async function getTools(db: D1Database, context?: CacheContext): Promise<
         ORDER BY t.name
       `;
 
-      const toolsResult = await db.prepare(toolsQuery).all();
-      const tools = toolsResult.results as any[];
+			const toolsResult = await db.prepare(toolsQuery).all();
+			const tools = toolsResult.results as any[];
 
-      for (const tool of tools) {
-        tool.isInternal = Boolean(tool.is_internal);
-        tool.lastUpdated = tool.last_updated;
-        tool.permissionId = tool.permission_id;
-        delete tool.is_internal;
-        delete tool.last_updated;
-        delete tool.permission_id;
+			for (const tool of tools) {
+				tool.isInternal = Boolean(tool.is_internal);
+				tool.lastUpdated = tool.last_updated;
+				tool.permissionId = tool.permission_id;
+				delete tool.is_internal;
+				delete tool.last_updated;
+				delete tool.permission_id;
 
-        const envQuery = `
+				const envQuery = `
           SELECT name, label, url, is_external
           FROM tool_environments
           WHERE tool_id = ?
           ORDER BY name ASC
         `;
-        const envResult = await db.prepare(envQuery).bind(tool.id).all();
-        tool.environments = (envResult.results as any[]).map((env) => ({
-          ...env,
-          isExternal: Boolean(env.is_external)
-        }));
+				const envResult = await db.prepare(envQuery).bind(tool.id).all();
+				tool.environments = (envResult.results as any[]).map((env) => ({
+					...env,
+					isExternal: Boolean(env.is_external),
+				}));
 
-        const tagsQuery = `
+				const tagsQuery = `
           SELECT tag
           FROM tool_tags
           WHERE tool_id = ?
         `;
-        const tagsResult = await db.prepare(tagsQuery).bind(tool.id).all();
-        tool.tags = tagsResult.results.map((t: any) => t.tag);
-      }
+				const tagsResult = await db.prepare(tagsQuery).bind(tool.id).all();
+				tool.tags = tagsResult.results.map((t: any) => t.tag);
+			}
 
-      return tools as Tool[];
-    },
-    { ttlSeconds: TOOLS_CACHE_TTL_SECONDS, context }
-  );
+			return tools as Tool[];
+		},
+		{ ttlSeconds: TOOLS_CACHE_TTL_SECONDS, context },
+	);
 }
 
 export async function getToolCategories(
-  db: D1Database,
-  context?: CacheContext
+	db: D1Database,
+	context?: CacheContext,
 ): Promise<ToolCategory[]> {
-  return CacheManager.getJson(
-    TOOL_CATEGORIES_CACHE_NAME,
-    TOOL_CATEGORIES_CACHE_KEYS.list,
-    async () => {
-      const query = `
-        SELECT id, name, description, icon, color 
-        FROM tool_categories 
+	const version = await categoriesCacheManager.getVersion(context);
+	const cacheKey = `/tool-categories/list/v${version}`;
+
+	return CacheManager.getJson(
+		TOOL_CATEGORIES_CACHE_NAME,
+		cacheKey,
+		async () => {
+			const query = `
+        SELECT id, name, description, icon, color
+        FROM tool_categories
         ORDER BY name
       `;
-      const result = await db.prepare(query).all();
-      return result.results as any as ToolCategory[];
-    },
-    { ttlSeconds: TOOL_CATEGORIES_CACHE_TTL_SECONDS, context }
-  );
+			const result = await db.prepare(query).all();
+			return result.results as any as ToolCategory[];
+		},
+		{ ttlSeconds: TOOL_CATEGORIES_CACHE_TTL_SECONDS, context },
+	);
 }
 
 export async function getToolById(
-  db: D1Database,
-  id: string,
-  context?: CacheContext
+	db: D1Database,
+	id: string,
+	context?: CacheContext,
 ): Promise<Tool | null> {
-  // 获取当前缓存版本号
-  const version = await getCacheVersion(context);
-  const cacheKeys = getToolsCacheKeys(version);
+	const version = await toolsCacheManager.getVersion(context);
+	const cacheKey = `/tools/${id}/v${version}`;
 
-  return CacheManager.getJson(
-    TOOLS_CACHE_NAME,
-    cacheKeys.detail(id),
-    async () => {
-      const toolQuery = `
+	return CacheManager.getJson(
+		TOOLS_CACHE_NAME,
+		cacheKey,
+		async () => {
+			const toolQuery = `
         SELECT
           t.id, t.name, t.description, t.category, t.icon,
           t.is_internal, t.status, t.last_updated
@@ -164,47 +158,47 @@ export async function getToolById(
         WHERE t.id = ?
       `;
 
-      const toolResult = await db.prepare(toolQuery).bind(id).first();
+			const toolResult = await db.prepare(toolQuery).bind(id).first();
 
-      if (!toolResult) {
-        return null;
-      }
+			if (!toolResult) {
+				return null;
+			}
 
-      const tool = toolResult as any;
+			const tool = toolResult as any;
 
-      tool.isInternal = Boolean(tool.is_internal);
-      tool.lastUpdated = tool.last_updated;
-      delete tool.is_internal;
-      delete tool.last_updated;
+			tool.isInternal = Boolean(tool.is_internal);
+			tool.lastUpdated = tool.last_updated;
+			delete tool.is_internal;
+			delete tool.last_updated;
 
-      const envQuery = `
+			const envQuery = `
         SELECT name, label, url, is_external
         FROM tool_environments
         WHERE tool_id = ?
         ORDER BY name ASC
       `;
-      const envResult = await db.prepare(envQuery).bind(id).all();
-      tool.environments = (envResult.results as any[]).map((env) => ({
-        ...env,
-        isExternal: Boolean(env.is_external)
-      }));
+			const envResult = await db.prepare(envQuery).bind(id).all();
+			tool.environments = (envResult.results as any[]).map((env) => ({
+				...env,
+				isExternal: Boolean(env.is_external),
+			}));
 
-      const tagsQuery = `
+			const tagsQuery = `
         SELECT tag
         FROM tool_tags
         WHERE tool_id = ?
       `;
-      const tagsResult = await db.prepare(tagsQuery).bind(id).all();
-      tool.tags = tagsResult.results.map((t: any) => t.tag);
+			const tagsResult = await db.prepare(tagsQuery).bind(id).all();
+			tool.tags = tagsResult.results.map((t: any) => t.tag);
 
-      return tool as Tool;
-    },
-    {
-      ttlSeconds: TOOLS_CACHE_TTL_SECONDS,
-      shouldCache: (payload) => payload !== null,
-      context
-    }
-  );
+			return tool as Tool;
+		},
+		{
+			ttlSeconds: TOOLS_CACHE_TTL_SECONDS,
+			shouldCache: (payload) => payload !== null,
+			context,
+		},
+	);
 }
 
 export async function createTool(
@@ -261,7 +255,7 @@ export async function createTool(
     ]);
 
     // 递增缓存版本号，让所有地区的缓存失效
-    await incrementCacheVersion(context);
+    await toolsCacheManager.incrementVersion(context);
 
     return toolId;
   } catch (error) {
@@ -329,7 +323,7 @@ export async function updateTool(
     ]);
 
     // 递增缓存版本号，让所有地区的缓存失效
-    await incrementCacheVersion(context);
+    await toolsCacheManager.incrementVersion(context);
   } catch (error) {
     console.error("Error updating tool:", error);
     throw new Error("Failed to update tool");
@@ -349,7 +343,7 @@ export async function deleteTool(db: D1Database, id: string, context?: CacheCont
     ]);
 
     // 递增缓存版本号，让所有地区的缓存失效
-    await incrementCacheVersion(context);
+    await toolsCacheManager.incrementVersion(context);
   } catch (error) {
     console.error("Error deleting tool:", error);
     throw new Error("Failed to delete tool");
@@ -374,9 +368,8 @@ export async function createToolCategory(
       .bind(categoryId, category.name, category.description, category.icon, category.color)
       .run();
 
-    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
-      TOOL_CATEGORIES_CACHE_KEYS.list,
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await categoriesCacheManager.incrementVersion(context);
 
     return categoryId;
   } catch (error) {
@@ -403,9 +396,8 @@ export async function updateToolCategory(
       .bind(category.name, category.description, category.icon, category.color, id)
       .run();
 
-    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
-      TOOL_CATEGORIES_CACHE_KEYS.list,
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await categoriesCacheManager.incrementVersion(context);
   } catch (error) {
     console.error("Error updating category:", error);
     throw new Error("Failed to update category");
@@ -418,9 +410,8 @@ export async function deleteToolCategory(db: D1Database, id: string, context?: C
     // 实际生产环境中可能需要先处理引用该分类的工具
     await db.prepare(`DELETE FROM tool_categories WHERE id = ?`).bind(id).run();
 
-    await CacheManager.clearCache(TOOL_CATEGORIES_CACHE_NAME, [
-      TOOL_CATEGORIES_CACHE_KEYS.list,
-    ], context);
+    // 递增缓存版本号，让所有地区的缓存失效
+    await categoriesCacheManager.incrementVersion(context);
   } catch (error) {
     console.error("Error deleting category:", error);
     throw new Error("Failed to delete category");

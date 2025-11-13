@@ -1,12 +1,12 @@
 import { Loader2, Send, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { analyzeData, convertToSQL, executeQuery } from "~/lib/api";
-import { PWA_EVENT_TABLE_SCHEMA } from "~/lib/query-templates";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
-import { ChatMessageComponent, type ChatMessage } from "./chat-message";
+import { analyzeData, convertToSQL, executeQuery } from "~/lib/api";
 import { getClickHouseService } from "~/lib/clickhouse-service";
+import { PWA_EVENT_TABLE_SCHEMA } from "~/lib/query-templates";
+import { type ChatMessage, ChatMessageComponent } from "./chat-message";
 
 interface QueryChatProps {
 	projectIds: string;
@@ -47,7 +47,9 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 
 		// Project ID filter
 		const projectIdClause =
-			ids.length === 1 ? `project_id = '${ids[0]}'` : `project_id IN (${ids.map((id) => `'${id}'`).join(", ")})`;
+			ids.length === 1
+				? `project_id = '${ids[0]}'`
+				: `project_id IN (${ids.map((id) => `'${id}'`).join(", ")})`;
 		whereClauses.push(projectIdClause);
 
 		// Event code filter
@@ -61,8 +63,12 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 
 		// Date range filter
 		if (queryFilters.dateRange.startDate && queryFilters.dateRange.endDate) {
-			const startDate = queryFilters.dateRange.startDate.toISOString().split("T")[0];
-			const endDate = queryFilters.dateRange.endDate.toISOString().split("T")[0];
+			const startDate = queryFilters.dateRange.startDate
+				.toISOString()
+				.split("T")[0];
+			const endDate = queryFilters.dateRange.endDate
+				.toISOString()
+				.split("T")[0];
 			whereClauses.push(
 				`msg_event_time >= '${startDate} 00:00:00' AND msg_event_time <= '${endDate} 23:59:59'`,
 			);
@@ -138,7 +144,10 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 				role: "assistant",
 				content: "",
 				timestamp: new Date(),
-				error: error instanceof Error ? error.message : "Failed to process your request",
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to process your request",
 			};
 			setMessages((prev) => [...prev, errorMessage]);
 		} finally {
@@ -160,7 +169,9 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 			// Update the last assistant message with new results
 			setMessages((prev) => {
 				const newMessages = [...prev];
-				const lastAssistantIndex = newMessages.findLastIndex((m) => m.role === "assistant");
+				const lastAssistantIndex = newMessages.findLastIndex(
+					(m) => m.role === "assistant",
+				);
 				if (lastAssistantIndex !== -1) {
 					newMessages[lastAssistantIndex] = {
 						...newMessages[lastAssistantIndex],
@@ -175,11 +186,14 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 		} catch (error) {
 			setMessages((prev) => {
 				const newMessages = [...prev];
-				const lastAssistantIndex = newMessages.findLastIndex((m) => m.role === "assistant");
+				const lastAssistantIndex = newMessages.findLastIndex(
+					(m) => m.role === "assistant",
+				);
 				if (lastAssistantIndex !== -1) {
 					newMessages[lastAssistantIndex] = {
 						...newMessages[lastAssistantIndex],
-						error: error instanceof Error ? error.message : "Query execution failed",
+						error:
+							error instanceof Error ? error.message : "Query execution failed",
 					};
 				}
 				return newMessages;
@@ -201,7 +215,9 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 			// Update the last assistant message with analysis
 			setMessages((prev) => {
 				const newMessages = [...prev];
-				const lastAssistantIndex = newMessages.findLastIndex((m) => m.role === "assistant");
+				const lastAssistantIndex = newMessages.findLastIndex(
+					(m) => m.role === "assistant",
+				);
 				if (lastAssistantIndex !== -1) {
 					newMessages[lastAssistantIndex] = {
 						...newMessages[lastAssistantIndex],
@@ -264,7 +280,9 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 								onExecuteSQL={handleExecuteSQL}
 								onAnalyze={handleAnalyze}
 								onEditSQL={handleEditSQL}
-								isLatest={index === messages.length - 1 && message.role === "assistant"}
+								isLatest={
+									index === messages.length - 1 && message.role === "assistant"
+								}
 							/>
 						))}
 						<div ref={messagesEndRef} />
@@ -286,8 +304,16 @@ export function QueryChat({ projectIds, queryFilters }: QueryChatProps) {
 							disabled={loading}
 						/>
 						<div className="flex flex-col gap-2">
-							<Button onClick={handleSendMessage} disabled={loading || !input.trim()} className="h-full">
-								{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+							<Button
+								onClick={handleSendMessage}
+								disabled={loading || !input.trim()}
+								className="h-full"
+							>
+								{loading ? (
+									<Loader2 className="w-4 h-4 animate-spin" />
+								) : (
+									<Send className="w-4 h-4" />
+								)}
 							</Button>
 							{messages.length > 0 && (
 								<Button

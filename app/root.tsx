@@ -1,3 +1,5 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import {
 	isRouteErrorResponse,
 	Links,
@@ -5,30 +7,14 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
-	useLoaderData,
 } from "react-router";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { CommandPanelProvider } from "~/context/command-panel-context";
+import { useToolsInit } from "~/hooks/use-tools-query";
+import { useToolsStore } from "~/store/tools-store";
 import type { Route } from "./+types/root";
 import "./app.css";
-
-export async function loader({ context }: Route.LoaderArgs) {
-	try {
-		const toolsDb = await import("../lib/database/tools");
-		const db = context.cloudflare.env.DB;
-		const [tools, toolCategories, usageStats] = await Promise.all([
-			toolsDb.getTools(db),
-			toolsDb.getToolCategories(db),
-			toolsDb.getToolUsageStats(db, 12),
-		]);
-
-		return { tools, toolCategories, usageStats };
-	} catch (error) {
-		console.error("Failed to load global data:", error);
-		return { tools: [], toolCategories: [], usageStats: [] };
-	}
-}
 
 export const links: Route.LinksFunction = () => [
 	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -84,13 +70,36 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	);
 }
 
-export default function App() {
-	const { tools } = useLoaderData<typeof loader>();
+function AppContent() {
+	const { tools } = useToolsStore();
+	useToolsInit();
 
+	// Use cached tools immediately, query will update in background
 	return (
 		<CommandPanelProvider tools={tools}>
 			<Outlet />
 		</CommandPanelProvider>
+	);
+}
+
+export default function App() {
+	// Create a client instance per request to avoid sharing state
+	const [queryClient] = useState(
+		() =>
+			new QueryClient({
+				defaultOptions: {
+					queries: {
+						staleTime: 60 * 1000, // 1 minute default
+						retry: 2,
+					},
+				},
+			}),
+	);
+
+	return (
+		<QueryClientProvider client={queryClient}>
+			<AppContent />
+		</QueryClientProvider>
 	);
 }
 

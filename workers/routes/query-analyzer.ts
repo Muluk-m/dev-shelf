@@ -534,7 +534,8 @@ ${Object.entries(numericStats)
 				rowCount,
 				columnCount: columns.length,
 				columns,
-				numericStats: Object.keys(numericStats).length > 0 ? numericStats : null,
+				numericStats:
+					Object.keys(numericStats).length > 0 ? numericStats : null,
 			},
 		});
 	} catch (error) {

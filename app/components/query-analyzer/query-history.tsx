@@ -46,9 +46,9 @@ import {
 	filterQueryHistory,
 	getQueryHistory,
 	importQueryHistory,
+	type QueryHistoryItem,
 	toggleQueryFavorite,
 	updateQueryName,
-	type QueryHistoryItem,
 } from "~/lib/query-history-storage";
 
 interface QueryHistoryProps {
@@ -279,7 +279,10 @@ export function QueryHistory({
 							</div>
 
 							{/* Tabs */}
-							<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+							<Tabs
+								value={activeTab}
+								onValueChange={(v) => setActiveTab(v as any)}
+							>
 								<TabsList className="grid w-full grid-cols-2">
 									<TabsTrigger value="all">
 										全部 ({getQueryHistory().length})
@@ -298,7 +301,9 @@ export function QueryHistory({
 									<div className="flex flex-col items-center justify-center py-12 text-center">
 										<History className="w-12 h-12 text-muted-foreground mb-3" />
 										<p className="text-muted-foreground">
-											{activeTab === "favorites" ? "暂无收藏的查询" : "暂无查询历史"}
+											{activeTab === "favorites"
+												? "暂无收藏的查询"
+												: "暂无查询历史"}
 										</p>
 										<p className="text-sm text-muted-foreground mt-1">
 											执行查询后会自动保存到历史记录
@@ -359,7 +364,10 @@ export function QueryHistory({
 														</div>
 													)}
 													<div className="flex items-center gap-2 mt-1">
-														<Badge variant={getTypeColor(item.type)} className="text-xs">
+														<Badge
+															variant={getTypeColor(item.type)}
+															className="text-xs"
+														>
 															{getTypeLabel(item.type)}
 														</Badge>
 														<span className="text-xs text-muted-foreground">
@@ -395,7 +403,9 @@ export function QueryHistory({
 											{/* Query Content */}
 											<div className="space-y-2">
 												<div className="text-sm">
-													<Label className="text-xs text-muted-foreground">查询内容</Label>
+													<Label className="text-xs text-muted-foreground">
+														查询内容
+													</Label>
 													<p className="mt-1 text-muted-foreground line-clamp-2">
 														{item.query}
 													</p>

@@ -1,16 +1,30 @@
-import { Bot, ChevronDown, Copy, Edit3, Play, TrendingUp, User } from "lucide-react";
+import {
+	Bot,
+	ChevronDown,
+	Copy,
+	Edit3,
+	Play,
+	TrendingUp,
+	User,
+} from "lucide-react";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
-import { DataTable } from "./data-table";
 import { ChartVisualization } from "./chart-visualization";
+import { DataTable } from "./data-table";
 
 export interface ChatMessage {
 	id: string;
@@ -45,7 +59,9 @@ export function ChatMessageComponent({
 	const [showAnalysis, setShowAnalysis] = useState(true);
 	const [isEditingSQL, setIsEditingSQL] = useState(false);
 	const [editedSQL, setEditedSQL] = useState(message.sql || "");
-	const [chartType, setChartType] = useState<"table" | "line" | "bar" | "pie" | "area">("table");
+	const [chartType, setChartType] = useState<
+		"table" | "line" | "bar" | "pie" | "area"
+	>("table");
 
 	const handleCopySQL = () => {
 		if (message.sql) {
@@ -68,7 +84,9 @@ export function ChatMessageComponent({
 				</div>
 				<div className="flex-1">
 					<div className="bg-muted rounded-lg p-4">
-						<p className="text-sm text-foreground whitespace-pre-wrap">{message.content}</p>
+						<p className="text-sm text-foreground whitespace-pre-wrap">
+							{message.content}
+						</p>
 					</div>
 					<p className="text-xs text-muted-foreground mt-1">
 						{message.timestamp.toLocaleTimeString("zh-CN")}
@@ -87,7 +105,9 @@ export function ChatMessageComponent({
 				{/* AI Response */}
 				{message.content && (
 					<div className="bg-secondary/50 rounded-lg p-4">
-						<p className="text-sm text-foreground whitespace-pre-wrap">{message.content}</p>
+						<p className="text-sm text-foreground whitespace-pre-wrap">
+							{message.content}
+						</p>
 					</div>
 				)}
 
@@ -160,7 +180,9 @@ export function ChatMessageComponent({
 								</div>
 							</div>
 							{message.sqlExplanation && showSQL && (
-								<CardDescription className="text-sm mt-2">{message.sqlExplanation}</CardDescription>
+								<CardDescription className="text-sm mt-2">
+									{message.sqlExplanation}
+								</CardDescription>
 							)}
 						</CardHeader>
 						{showSQL && (
@@ -219,7 +241,9 @@ export function ChatMessageComponent({
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
 									<CardTitle className="text-base">查询结果</CardTitle>
-									<Badge variant="secondary">{message.queryResults.length} 条</Badge>
+									<Badge variant="secondary">
+										{message.queryResults.length} 条
+									</Badge>
 								</div>
 								<div className="flex items-center gap-2">
 									{isLatest && onAnalyze && (
@@ -227,7 +251,9 @@ export function ChatMessageComponent({
 											type="button"
 											variant="outline"
 											size="sm"
-											onClick={() => onAnalyze(message.queryResults!, message.sql!)}
+											onClick={() =>
+												onAnalyze(message.queryResults!, message.sql!)
+											}
 											className="h-7 text-xs gap-1"
 										>
 											<TrendingUp className="w-3 h-3" />
@@ -264,7 +290,10 @@ export function ChatMessageComponent({
 								{chartType === "table" ? (
 									<DataTable data={message.queryResults} />
 								) : (
-									<ChartVisualization data={message.queryResults} chartType={chartType} />
+									<ChartVisualization
+										data={message.queryResults}
+										chartType={chartType}
+									/>
 								)}
 							</CardContent>
 						)}
@@ -296,14 +325,18 @@ export function ChatMessageComponent({
 						{showAnalysis && (
 							<CardContent className="pt-0">
 								<div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground">
-									<ReactMarkdown remarkPlugins={[remarkGfm]}>{message.analysis}</ReactMarkdown>
+									<ReactMarkdown remarkPlugins={[remarkGfm]}>
+										{message.analysis}
+									</ReactMarkdown>
 								</div>
 							</CardContent>
 						)}
 					</Card>
 				)}
 
-				<p className="text-xs text-muted-foreground">{message.timestamp.toLocaleTimeString("zh-CN")}</p>
+				<p className="text-xs text-muted-foreground">
+					{message.timestamp.toLocaleTimeString("zh-CN")}
+				</p>
 			</div>
 		</div>
 	);

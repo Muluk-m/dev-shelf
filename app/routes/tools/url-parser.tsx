@@ -664,7 +664,7 @@ export default function URLParserPage() {
 										]),
 									);
 
-									let total = allKeys.length;
+									const total = allKeys.length;
 									let same = 0;
 									let diff = 0;
 									let missing = 0;

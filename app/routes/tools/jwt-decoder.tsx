@@ -20,7 +20,8 @@ export function meta({}: Route.MetaArgs) {
 		{ title: "JWT Parser | DevTools Platform" },
 		{
 			name: "description",
-			content: "Parse and decode your JSON Web Token (jwt) and display its content.",
+			content:
+				"Parse and decode your JSON Web Token (jwt) and display its content.",
 		},
 	];
 }
