@@ -26,3 +26,13 @@ export interface ToolCategory {
 	icon: string;
 	color: string;
 }
+
+export interface ToolUsageStat {
+	toolId: string;
+	name: string;
+	category: string;
+	usageCount: number;
+	lastUsed: string | null;
+	status: Tool["status"];
+	isInternal: boolean;
+}

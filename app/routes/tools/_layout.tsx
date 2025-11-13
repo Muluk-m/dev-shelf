@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, ArrowLeft } from "lucide-react";
-import { Link, Outlet, useLoaderData } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -10,66 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-
-import type { Route } from "./+types/_layout";
-
-export async function loader({ request, context }: Route.LoaderArgs) {
-	try {
-		const toolsDb = await import("../../../lib/database/tools");
-		const { checkToolAccess } = await import("../../../lib/database/tool-permissions");
-		const { getCurrentUserId } = await import("../../../workers/utils/auth");
-
-		const db = context.cloudflare.env.DB;
-
-		// 从 URL 路径获取工具 slug（例如 /tools/json-formatter → json-formatter）
-		const url = new URL(request.url);
-		const toolSlug = url.pathname.replace(/^\/tools\//, "").split("/")[0];
-
-		// 获取所有工具
-		const allTools = await toolsDb.getTools(db);
-
-		// 根据 URL 查找工具
-		const tool = allTools.find((t) => {
-			const prodEnv = t.environments.find((e) => e.name === "production");
-			if (!prodEnv || prodEnv.isExternal) return false;
-
-			// 提取内部路由的 slug
-			const slug = prodEnv.url.startsWith("/tools/")
-				? prodEnv.url.slice("/tools/".length)
-				: prodEnv.url.replace(/^\/+/, "");
-
-			return slug === toolSlug;
-		});
-
-		// 如果找不到工具，允许访问（可能是新工具还未在数据库中配置）
-		if (!tool) {
-			return { hasAccess: true, error: null };
-		}
-
-		// 如果工具没有配置权限要求，直接允许访问（性能优化）
-		if (!tool.permissionId) {
-			return { hasAccess: true, error: null };
-		}
-
-		// 只有配置了权限的工具才检查权限
-		const userId = await getCurrentUserId({
-			env: context.cloudflare.env,
-			req: { headers: request.headers } as any,
-		} as any);
-
-		// 检查访问权限
-		const accessCheck = await checkToolAccess(db, tool.id, userId);
-
-		return {
-			hasAccess: accessCheck.allowed,
-			error: accessCheck.allowed ? null : accessCheck.reason || "无权限访问此工具",
-		};
-	} catch (error) {
-		console.error("Failed to check tool access:", error);
-		// 出错时允许访问，避免阻塞所有工具
-		return { hasAccess: true, error: null };
-	}
-}
+import { useToolAccess } from "~/hooks/use-tools-query";
 
 function AccessDeniedPage({ error }: { error: string }) {
 	return (
@@ -111,10 +52,17 @@ function AccessDeniedPage({ error }: { error: string }) {
 }
 
 export default function ToolsLayout() {
-	const { hasAccess, error } = useLoaderData<typeof loader>();
+	const location = useLocation();
 
-	if (!hasAccess && error) {
-		return <AccessDeniedPage error={error} />;
+	// Extract tool slug from URL (e.g., /tools/json-formatter → json-formatter)
+	const toolSlug = location.pathname.replace(/^\/tools\//, "").split("/")[0];
+
+	// Check tool access permission using React Query
+	const { data, isLoading } = useToolAccess(toolSlug);
+
+	// Show access denied page if no access
+	if (!isLoading && data && !data.hasAccess && data.error) {
+		return <AccessDeniedPage error={data.error} />;
 	}
 
 	return (

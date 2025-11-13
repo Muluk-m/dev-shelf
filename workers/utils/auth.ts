@@ -6,7 +6,9 @@ import { getUserByFeishuId } from "../../lib/database/permissions";
 /**
  * 从请求中获取 auth token
  */
-function getAuthToken(c: Context | { req: { headers: Headers } }): string | null {
+function getAuthToken(
+	c: Context | { req: { headers: Headers } },
+): string | null {
 	// 如果是 Hono Context，使用 getCookie
 	if ("executionCtx" in c || "get" in c) {
 		return getCookie(c as Context, "auth_token") || null;

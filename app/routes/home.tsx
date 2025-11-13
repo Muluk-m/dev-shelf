@@ -1,12 +1,13 @@
 import { Flame, Layers } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useRouteLoaderData } from "react-router";
+import { useNavigate } from "react-router";
 import { CategoryFilter } from "~/components/category-filter";
 import { Header } from "~/components/layout/header";
 import { ToolCard } from "~/components/tool-card";
 import { useSearch } from "~/hooks/use-search";
+import { useToolsInit } from "~/hooks/use-tools-query";
 import { recordToolUsage } from "~/lib/api";
-import type { loader as rootLoader } from "~/root";
+import { useToolsStore } from "~/store/tools-store";
 import type { Tool } from "~/types/tool";
 import type { Route } from "./+types/home";
 
@@ -21,11 +22,8 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-	const rootData = useRouteLoaderData<typeof rootLoader>("root");
-	const tools = rootData?.tools ?? [];
-	const toolCategories = rootData?.toolCategories ?? [];
-	const usageStats = rootData?.usageStats ?? [];
-	const navigate = useNavigate();
+	const { tools, toolCategories, usageStats, _hasHydrated } = useToolsStore();
+	useToolsInit(); // Trigger background update
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
 	const {
@@ -102,6 +100,11 @@ export default function Home() {
 		setSelectedCategory(categoryId);
 		updateFilters({ category: categoryId || undefined });
 	};
+
+	// Don't render until hydration is complete to avoid flash
+	if (!_hasHydrated) {
+		return null;
+	}
 
 	return (
 		<div className="min-h-screen bg-background">
