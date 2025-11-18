@@ -1,5 +1,5 @@
 import { type Context, Hono } from "hono";
-import { getCookie, setCookie } from "hono/cookie";
+import { setCookie } from "hono/cookie";
 import { decode } from "hono/jwt";
 import {
 	assignRoleToUser,
@@ -10,6 +10,7 @@ import {
 	updateUser,
 } from "../../lib/database/permissions";
 import type { JwtPayload } from "../../lib/types/jwt";
+import { getAuthToken } from "../utils/auth";
 
 const getOauthApiBaseUrl = (c: Context) => {
 	const clientId = c.env.FEISHU_CLIENT_ID;
@@ -21,7 +22,7 @@ const getOauthApiBaseUrl = (c: Context) => {
 const auth = new Hono<{ Bindings: Cloudflare.Env }>();
 
 auth.get("/me", async (c) => {
-	const token = getCookie(c, "auth_token");
+	const token = getAuthToken(c);
 
 	if (!token) {
 		return c.json({ error: "Unauthorized" }, 401);

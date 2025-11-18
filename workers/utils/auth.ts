@@ -5,33 +5,60 @@ import { getUserByFeishuId } from "../../lib/database/permissions";
 
 /**
  * 从请求中获取 auth token
+ * 支持两种方式：
+ * 1. Authorization header: Bearer <token>
+ * 2. Cookie: auth_token=<token>
+ * 优先使用 Authorization header
  */
-function getAuthToken(
+export function getAuthToken(
 	c: Context | { req: { headers: Headers } },
 ): string | null {
+	// 1. 优先检查 Authorization header
+	let authHeader: string | null = null;
+	if ("executionCtx" in c || "get" in c) {
+		// Hono Context
+		authHeader = (c as Context).req.header("Authorization") || null;
+	} else {
+		// Request object
+		authHeader = c.req.headers.get("Authorization");
+	}
+
+	if (authHeader?.startsWith("Bearer ")) {
+		const token = authHeader.slice(7).trim();
+		if (token) {
+			return token;
+		}
+	}
+
+	// 2. 检查 Cookie
 	// 如果是 Hono Context，使用 getCookie
 	if ("executionCtx" in c || "get" in c) {
-		return getCookie(c as Context, "auth_token") || null;
-	}
+		const cookieToken = getCookie(c as Context, "auth_token");
+		if (cookieToken) {
+			return cookieToken;
+		}
+	} else {
+		// 如果是 Request，从 headers 中解析 cookie
+		const cookieHeader = c.req.headers.get("Cookie");
+		if (cookieHeader) {
+			const cookies = cookieHeader.split(";").reduce(
+				(acc, cookie) => {
+					const [key, value] = cookie.trim().split("=");
+					if (key && value) {
+						acc[key] = value;
+					}
+					return acc;
+				},
+				{} as Record<string, string>,
+			);
 
-	// 如果是 Request，从 headers 中解析 cookie
-	const cookieHeader = c.req.headers.get("Cookie");
-	if (!cookieHeader) {
-		return null;
-	}
-
-	const cookies = cookieHeader.split(";").reduce(
-		(acc, cookie) => {
-			const [key, value] = cookie.trim().split("=");
-			if (key && value) {
-				acc[key] = value;
+			if (cookies.auth_token) {
+				return cookies.auth_token;
 			}
-			return acc;
-		},
-		{} as Record<string, string>,
-	);
+		}
+	}
 
-	return cookies.auth_token || null;
+	return null;
 }
 
 /**

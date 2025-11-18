@@ -1,5 +1,5 @@
-import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
+import { getAuthToken } from "../utils/auth";
 
 const API_PREFIX = "/api";
 const PUBLIC_PATHS = ["/auth"];
@@ -12,7 +12,7 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 		return next();
 	}
 
-	const token = getCookie(c, "auth_token");
+	const token = getAuthToken(c);
 	const isApiRequest = path.startsWith(API_PREFIX);
 
 	// 对 API 读取请求放行，写操作需要认证
