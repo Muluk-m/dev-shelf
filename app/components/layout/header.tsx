@@ -1,5 +1,3 @@
-"use client";
-
 import { Command } from "lucide-react";
 import { Link } from "react-router";
 import { SearchInput } from "~/components/search/search-input";

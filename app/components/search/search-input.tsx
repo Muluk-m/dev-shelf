@@ -1,5 +1,3 @@
-"use client";
-
 import { Clock, Search, TrendingUp, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";

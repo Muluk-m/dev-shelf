@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	ArrowUpDown,
 	BarChart3,
