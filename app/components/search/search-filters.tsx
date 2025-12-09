@@ -1,5 +1,3 @@
-"use client";
-
 import { Filter, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "~/components/ui/badge";

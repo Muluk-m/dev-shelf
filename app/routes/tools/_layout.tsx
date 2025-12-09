@@ -1,5 +1,3 @@
-"use client";
-
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router";
 import { Button } from "~/components/ui/button";

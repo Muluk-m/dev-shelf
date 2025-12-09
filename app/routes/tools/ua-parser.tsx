@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { UAParser } from "ua-parser-js";
 import { Badge } from "~/components/ui/badge";

@@ -1,5 +1,3 @@
-"use client";
-
 import { LogOut, Settings, User } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useUserInfoStore } from "~/stores/user-info-store";

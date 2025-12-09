@@ -1,5 +1,3 @@
-"use client";
-
 import { SearchX } from "lucide-react";
 import { ToolCard } from "~/components/tool-card";
 import { Badge } from "~/components/ui/badge";
