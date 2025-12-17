@@ -24,6 +24,7 @@ export default [
 		route("website-check", "routes/tools/website-check.tsx"),
 		route("roibest-analyzer", "routes/tools/roibest-analyzer.tsx"),
 		route("rb-domain-check", "routes/tools/rb-domain-check.tsx"),
+		route("pwa-link-health", "routes/tools/pwa-link-health.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页
