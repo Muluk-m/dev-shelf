@@ -8,6 +8,7 @@ import {
 	Heart,
 	Link,
 	Loader2,
+	Info,
 	Smartphone,
 	XCircle,
 } from "lucide-react";
@@ -26,31 +27,26 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
-import { Progress } from "~/components/ui/progress";
 import type {
 	ResourceInfo,
 	ResourceType,
 	WebsiteCheckResult,
 } from "~/types/website-check";
-import type { ConfigV3Data, ConfigV3Response } from "~/types/roibest-analyzer";
-
-const API_ENDPOINT = "https://fe-toolkit.qiliangjia.org/website-check/analyze";
-
-const RESOURCE_TYPE_COLORS: Record<ResourceType, string> = {
-	document: "#3b82f6",
-	stylesheet: "#8b5cf6",
-	image: "#10b981",
-	media: "#f59e0b",
-	font: "#ef4444",
-	script: "#ec4899",
-	texttrack: "#14b8a6",
-	xhr: "#06b6d4",
-	fetch: "#0ea5e9",
-	eventsource: "#6366f1",
-	websocket: "#a855f7",
-	manifest: "#f97316",
-	other: "#6b7280",
-};
+import type { ConfigV3Data, ConfigV3Response } from "~/types/pwa-link-health";
+import {
+	displayFields,
+	fieldTranslations,
+	filterBusinessImpactErrors,
+	nestedFieldTranslations,
+	packageTypeMap,
+	preLoadMap,
+	packageStatusMap,
+	pixelTypeMap,
+	importantFields,
+	API_ENDPOINT,
+	RESOURCE_TYPE_COLORS,
+	PACKAGE_TYPE_ENUM,
+} from "~/lib/pwa-link-health";
 
 export function meta() {
 	return [
@@ -65,13 +61,15 @@ export function meta() {
 export default function PwaLinkHealth() {
 	const [url, setUrl] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [progress, setProgress] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 	const [result, setResult] = useState<WebsiteCheckResult | null>(null);
 	const [sortBy, setSortBy] = useState<keyof ResourceInfo>("startTime");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 	const [filterType, setFilterType] = useState<ResourceType | "all">("all");
 	const [expandedRow, setExpandedRow] = useState<number | null>(null);
+	const [linkInfoExpanded, setLinkInfoExpanded] = useState(false);
+	const [installPageResult, setInstallPageResult] =
+		useState<WebsiteCheckResult | null>(null);
 
 	// 需要检查的 API 端点列表
 	const REQUIRED_API_ENDPOINTS = [
@@ -86,7 +84,10 @@ export default function PwaLinkHealth() {
 	];
 
 	// 计算健康度评分
-	const calculateHealthScore = (data: WebsiteCheckResult) => {
+	const calculateHealthScore = (
+		data: WebsiteCheckResult,
+		installPageResult: WebsiteCheckResult | null,
+	) => {
 		let score = 100;
 		const issues: string[] = [];
 
@@ -109,7 +110,9 @@ export default function PwaLinkHealth() {
 		}
 
 		// 4. 控制台错误检查（-10 分）
-		const consoleErrorCount = data.console?.errorCount ?? 0;
+		const allConsoleErrors = data.console?.errors ?? [];
+		const filteredConsoleErrors = filterBusinessImpactErrors(allConsoleErrors);
+		const consoleErrorCount = filteredConsoleErrors.length;
 		if (consoleErrorCount > 0) {
 			score -= 10;
 			issues.push(`存在 ${consoleErrorCount} 个控制台错误`);
@@ -151,6 +154,17 @@ export default function PwaLinkHealth() {
 			}
 		}
 
+		// 6. 安装页可访问性检查（-10 分）
+		const installPageStatus = installPageResult?.status;
+		const isInstallPageAccessible =
+			installPageStatus !== undefined &&
+			installPageStatus >= 200 &&
+			installPageStatus < 300;
+		if (installPageResult && !isInstallPageAccessible) {
+			score -= 10;
+			issues.push(`安装页不可访问: 状态码 ${installPageStatus ?? "N/A"}`);
+		}
+
 		const allApisSuccess = Object.values(apiCheckResults).every(
 			(v) => v === true,
 		);
@@ -164,6 +178,9 @@ export default function PwaLinkHealth() {
 				hasFailedRequests: (data.failedRequests ?? 0) > 0,
 				hasConsoleErrors: consoleErrorCount > 0,
 				isApiCallSuccess: allApisSuccess,
+				isInstallPageAccessible: installPageResult
+					? isInstallPageAccessible
+					: true,
 				apiCheckResults,
 			},
 		};
@@ -176,65 +193,77 @@ export default function PwaLinkHealth() {
 		}
 
 		setLoading(true);
-		setProgress(0);
 		setError(null);
 		setResult(null);
+		setInstallPageResult(null);
+
+		// 构建安装页 URL 兼容appid和domain
+		const getInstallPageUrl = (originalUrl: string): string => {
+			try {
+				const urlObj = new URL(originalUrl);
+				const pathParts = urlObj.pathname.split("/").filter(Boolean);
+				if (pathParts.length > 0) {
+					const appId = pathParts[0];
+					return `${urlObj.protocol}//${urlObj.host}/${appId}/index.html`;
+				}
+				return `${urlObj.protocol}//${urlObj.host}/index.html`;
+			} catch {
+				return "";
+			}
+		};
+
+		const installPageUrl = getInstallPageUrl(url);
 
 		try {
-			const data = await new Promise<WebsiteCheckResult>((resolve, reject) => {
-				const xhr = new XMLHttpRequest();
-				xhr.open("POST", API_ENDPOINT);
-				xhr.setRequestHeader("Content-Type", "application/json");
-
-				xhr.upload.addEventListener("progress", (e) => {
-					if (e.lengthComputable) {
-						setProgress(Math.round((e.loaded / e.total) * 10));
-					}
-				});
-
-				xhr.addEventListener("progress", (e) => {
-					if (e.lengthComputable) {
-						setProgress(Math.round(10 + (e.loaded / e.total) * 90));
-					}
-				});
-
-				xhr.addEventListener("load", () => {
-					try {
-						const parsed = JSON.parse(xhr.responseText);
-						if (xhr.status >= 200 && xhr.status < 300) {
-							setProgress(100);
-							resolve(parsed);
-						} else {
-							reject(
-								new Error(
-									parsed?.message ||
-										parsed?.error ||
-										`Failed to analyze: ${xhr.statusText}`,
-								),
-							);
-						}
-					} catch {
-						reject(
-							new Error(
-								xhr.status >= 200 && xhr.status < 300
-									? "Failed to parse response"
-									: `Failed to analyze: ${xhr.statusText}`,
-							),
-						);
-					}
-				});
-
-				xhr.addEventListener("error", () => reject(new Error("Network error")));
-				xhr.addEventListener("abort", () =>
-					reject(new Error("Request aborted")),
-				);
-
-				xhr.send(JSON.stringify({ url, timeout: 30000, device: "mobile" }));
+			const response = await fetch(API_ENDPOINT, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ url, timeout: 30000, device: "mobile" }),
 			});
 
+			if (!response.ok) {
+				const errorData: any = await response.json().catch(() => ({}));
+				throw new Error(
+					errorData?.message ||
+						errorData?.error ||
+						`Failed to analyze: ${response.statusText}`,
+				);
+			}
+
+			const data: WebsiteCheckResult = await response.json();
 			setResult(data);
+
+			// 检查安装页
+			if (installPageUrl) {
+				try {
+					const installPageCheckResponse = await fetch(API_ENDPOINT, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							url: installPageUrl,
+							timeout: 10000,
+							device: "mobile",
+						}),
+					});
+
+					if (installPageCheckResponse.ok) {
+						const installPageData: WebsiteCheckResult =
+							await installPageCheckResponse.json();
+						setInstallPageResult(installPageData);
+					} else {
+						setInstallPageResult(null);
+					}
+				} catch {
+					setInstallPageResult(null);
+				}
+			} else {
+				setInstallPageResult(null);
+			}
 		} catch (err) {
-			setProgress(100);
 			setError(err instanceof Error ? err.message : "Unknown error occurred");
 		} finally {
 			setTimeout(() => setLoading(false), 300);
@@ -323,12 +352,6 @@ export default function PwaLinkHealth() {
 		return "text-red-600";
 	};
 
-	const getHealthScoreBgColor = (score: number) => {
-		if (score >= 80) return "bg-green-100 dark:bg-green-900/20";
-		if (score >= 60) return "bg-yellow-100 dark:bg-yellow-900/20";
-		return "bg-red-100 dark:bg-red-900/20";
-	};
-
 	const resourceTypeStats = useMemo(
 		() =>
 			result?.resourceStats.map((stat) => ({
@@ -342,8 +365,8 @@ export default function PwaLinkHealth() {
 	);
 
 	const healthScore = useMemo(
-		() => (result ? calculateHealthScore(result) : null),
-		[result],
+		() => (result ? calculateHealthScore(result, installPageResult) : null),
+		[result, installPageResult],
 	);
 
 	// 从 resources 中提取 configV3 数据
@@ -371,87 +394,206 @@ export default function PwaLinkHealth() {
 		}
 	}, [result]);
 
-	// 字段翻译映射
-	const fieldTranslations: Record<keyof ConfigV3Data, string> = {
-		id: "ID",
-		app_name: "应用名称",
-		app_icon: "应用图标",
-		company_name: "公司名称",
-		app_comments: "评论数",
-		app_score: "应用评分",
-		app_age_limit: "年龄限制",
-		app_desc: "应用描述",
-		pic_list: "图片列表",
-		status: "状态",
-		package_name: "包名",
-		package_link: "包链接",
-		domain: "域名",
-		creator: "创建者",
-		project_id: "项目ID",
-		created_at: "创建时间",
-		updated_at: "更新时间",
-		deleted_at: "删除时间",
-		version: "版本",
-		notes: "备注",
-		remark: "说明",
-		operate_remark: "运营备注",
-		package_status: "包状态",
-		applicable_age: "适用年龄",
-		domain_id: "域名ID",
-		theme_color: "主题色",
-		background_color: "背景色",
-		feishu_url: "飞书链接",
-		current_language_code: "当前语言代码",
-		package_type: "包类型",
-		telegram_url: "Telegram链接",
-		screen_way: "屏幕方向",
-		all_screen: "全屏",
-		pre_load: "预加载",
-		default_menu: "默认菜单",
-		hidden: "隐藏",
-		all_click: "全点击",
-		app_feedback_tpl_id: "反馈模板ID",
-		from_put_account_id: "投放账户ID",
-		label: "标签",
-		label_id: "标签ID",
-		language_json: "语言配置",
-		linkInfo: "链接信息",
-		pixels: "像素事件",
+	// 渲染字段的辅助函数
+	const renderField = (field: string, isPrimary: boolean) => {
+		if (!configV3Data) return null;
+
+		// 处理嵌套字段路径（如 "linkInfo.is_pixel_report"）
+		let value: unknown;
+		let fieldLabel: string;
+		let actualField: string;
+
+		if (field.includes(".")) {
+			// 嵌套字段
+			const parts = field.split(".");
+			let current: any = configV3Data;
+			for (const part of parts) {
+				if (current && typeof current === "object" && part in current) {
+					current = current[part];
+				} else {
+					current = undefined;
+					break;
+				}
+			}
+			value = current;
+			fieldLabel = nestedFieldTranslations[field] || field;
+			actualField = field;
+		} else {
+			// 普通字段
+			value = configV3Data?.[field as keyof ConfigV3Data];
+			fieldLabel = fieldTranslations[field as keyof ConfigV3Data];
+			actualField = field;
+		}
+
+		if (value === null || value === undefined || value === "") {
+			return null;
+		}
+
+		let displayValue: ReactNode;
+
+		// 特殊处理 language_json
+		if (actualField === "language_json") {
+			const languageJson = value as Record<string, unknown>;
+			const languageCodes = Object.keys(languageJson);
+			if (languageCodes.length === 0) {
+				return null;
+			}
+			displayValue = languageCodes.join(", ");
+		} else if (
+			actualField === "theme_color" ||
+			actualField === "background_color"
+		) {
+			displayValue = (
+				<div className="flex items-center gap-2">
+					<div
+						className="w-6 h-6 rounded border"
+						style={{ backgroundColor: String(value) }}
+					/>
+					<span className="font-mono text-xs">{String(value)}</span>
+				</div>
+			);
+		} else if (actualField === "package_status") {
+			const packageStatusValue = Number(value);
+			const packageStatusText =
+				packageStatusMap[packageStatusValue] || String(packageStatusValue);
+			displayValue = <span>{packageStatusText}</span>;
+		} else if (actualField === "package_link") {
+			displayValue = (
+				<a
+					href={String(value)}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-blue-600 hover:underline break-all"
+				>
+					{String(value)}
+				</a>
+			);
+		} else if (actualField === "package_type") {
+			const packageTypeValue = Number(value);
+			const packageTypeText =
+				packageTypeMap[packageTypeValue] || String(packageTypeValue);
+			displayValue = <span>{packageTypeText}</span>;
+		} else if (actualField === "pre_load") {
+			const preLoadValue = Number(value);
+			const preLoadText = preLoadMap[preLoadValue] || String(preLoadValue);
+			displayValue = <span>{preLoadText}</span>;
+		} else if (actualField === "linkInfo.is_pixel_report") {
+			// 特殊处理 is_pixel_report: "0" = 否, "1" = 是
+			const pixelReportValue = String(value);
+			displayValue = <span>{pixelReportValue === "1" ? "是" : "否"}</span>;
+		} else if (actualField === "linkInfo.rb_pixel_type") {
+			const pixelTypeValue = Number(value);
+			const pixelTypeText =
+				pixelTypeMap[pixelTypeValue] || String(pixelTypeValue);
+			displayValue = <span>{pixelTypeText}</span>;
+		} else if (typeof value === "object") {
+			// 对于其他对象类型，显示 JSON 字符串
+			try {
+				displayValue = JSON.stringify(value, null, 2);
+			} catch {
+				displayValue = String(value);
+			}
+		} else {
+			displayValue = String(value);
+		}
+
+		// 特殊处理 linkInfo - 使用折叠显示（只处理完整的 linkInfo 对象，不处理嵌套字段）
+		if (actualField === "linkInfo" && !actualField.includes(".")) {
+			return (
+				<div key={field} className="md:col-span-2 lg:col-span-3 min-w-0 w-full">
+					<div className="flex items-center gap-1.5 py-0.5 min-w-0 w-full">
+						<div
+							className={`text-xs flex-shrink-0 ${
+								isPrimary
+									? "font-semibold text-foreground"
+									: "text-muted-foreground"
+							}`}
+						>
+							{fieldLabel}:
+						</div>
+						<div
+							className={`text-xs flex-1 min-w-0 break-words ${
+								isPrimary ? "font-semibold text-foreground" : "font-medium"
+							}`}
+						>
+							{linkInfoExpanded ? (
+								<div className="space-y-1">
+									<pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-64 border">
+										{JSON.stringify(value, null, 2)}
+									</pre>
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={() => setLinkInfoExpanded(false)}
+										className="text-xs h-6"
+									>
+										收起
+									</Button>
+								</div>
+							) : (
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setLinkInfoExpanded(true)}
+									className={`text-xs h-6 ${
+										isPrimary ? "text-foreground" : "text-muted-foreground"
+									}`}
+								>
+									<Eye className="w-3 h-3 mr-1" />
+									点击查看详情
+								</Button>
+							)}
+						</div>
+					</div>
+				</div>
+			);
+		}
+
+		return (
+			<div
+				key={actualField}
+				className="flex items-start gap-1.5 py-0.5 min-w-0 w-full"
+			>
+				<div
+					className={`text-xs flex-shrink-0 ${
+						isPrimary
+							? "font-semibold text-foreground"
+							: "text-muted-foreground"
+					}`}
+				>
+					{fieldLabel}:
+				</div>
+				<div
+					className={`text-xs flex-1 min-w-0 break-words break-all ${
+						isPrimary ? "font-semibold text-foreground" : "font-medium"
+					}`}
+				>
+					{typeof displayValue === "string" && displayValue.length > 100 ? (
+						<pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-32 border">
+							{displayValue}
+						</pre>
+					) : (
+						displayValue
+					)}
+				</div>
+			</div>
+		);
 	};
 
-	// 要显示的字段列表（关键字段）
-	const displayFields: (keyof ConfigV3Data)[] = [
-		"company_name",
-		"domain",
-		"package_name",
-		"package_link",
-		"status",
-		"package_status",
-		"current_language_code",
-		"language_json",
-		"version",
-		"created_at",
-		"updated_at",
-		"notes",
-		"package_type",
-		"linkInfo",
-	];
-
 	return (
-		<div className="container mx-auto py-8 px-4">
-			<div className="mb-8">
+		<div className="container mx-auto px-2">
+			<div className="mb-4">
 				<h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
 					<Heart className="w-8 h-8" />
 					RoiBest Link Health Check
 				</h1>
 				<p className="text-muted-foreground">
-					Analyze RoiBest link health status, business information, and
-					performance
+					分析 RoiBest 链接健康状态、业务信息和性能
 				</p>
 			</div>
 
 			{/* Search Form */}
-			<Card className="mb-8">
+			<Card className="mb-4">
 				<CardContent className="pt-6">
 					<div className="space-y-4">
 						<div className="flex gap-4">
@@ -466,23 +608,14 @@ export default function PwaLinkHealth() {
 							<Button onClick={handleAnalyze} disabled={loading}>
 								{loading ? (
 									<>
-										<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-										Analyzing...
+										<Loader2 className="w-4 h-4 mr-1 animate-spin" />
+										<span>Analyzing...</span>
 									</>
 								) : (
-									"Analyze"
+									<span>Analyze</span>
 								)}
 							</Button>
 						</div>
-						{loading && (
-							<div className="space-y-1">
-								<div className="flex items-center justify-between text-xs text-muted-foreground">
-									<span>Analyzing website...</span>
-									<span>{progress}%</span>
-								</div>
-								<Progress value={progress} className="h-2" />
-							</div>
-						)}
 					</div>
 					{error && (
 						<div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-md flex items-center gap-2">
@@ -496,12 +629,12 @@ export default function PwaLinkHealth() {
 			{result && healthScore && (
 				<>
 					{/* Screenshot & Summary - Combined */}
-					<div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+					<div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-4">
 						{/* Screenshot - Left */}
 						{result.screenshot && (
 							<Card>
 								<CardHeader className="pb-2">
-									<CardTitle className="text-sm">Screenshot</CardTitle>
+									<CardTitle className="text-sm">页面截图</CardTitle>
 								</CardHeader>
 								<CardContent className="p-2">
 									<div className="rounded border overflow-hidden">
@@ -517,198 +650,182 @@ export default function PwaLinkHealth() {
 
 						{/* All Info - Right - Single Card - Vertical Layout */}
 						<Card
-							className={`${result.screenshot ? "lg:col-span-3" : "lg:col-span-4"}`}
+							className={`${result.screenshot ? "lg:col-span-4" : "lg:col-span-5"} min-w-0`}
 						>
-							<CardContent className="p-4">
+							<CardContent className="p-4 min-w-0 overflow-hidden">
 								<div className="space-y-4">
-									{/* Health Score - Top */}
-									<div
-										className={`p-4 rounded-lg border-2 ${getHealthScoreBgColor(healthScore.score)}`}
-									>
-										<div className="flex items-center justify-between">
-											<div>
-												<div className="text-xs text-muted-foreground mb-1">
-													Health Score
+									{/* 健康分 */}
+									{healthScore && (
+										<div className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+											<div className="flex items-center gap-2">
+												<Heart className="h-4 w-4" />
+												<span className="text-xs font-medium">健康分</span>
+											</div>
+											<div
+												className={`text-sm font-bold ${getHealthScoreColor(
+													healthScore.score,
+												)}`}
+											>
+												{healthScore.score}
+											</div>
+										</div>
+									)}
+
+									{/* 链接详情 */}
+									{configV3Data && (
+										<div className="space-y-3">
+											<div className="text-sm font-semibold mb-2 flex items-center gap-2">
+												<Link className="h-4 w-4" />
+												链接详情
+											</div>
+
+											{/* 重要信息 */}
+											<div className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200/50 dark:border-blue-800/50 p-3">
+												<div className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2">
+													重要信息
 												</div>
-												<div
-													className={`text-3xl font-bold ${getHealthScoreColor(healthScore.score)}`}
-												>
-													{healthScore.score}
+												<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm overflow-hidden">
+													{displayFields
+														.filter((field) => {
+															const actualField = field.includes(".")
+																? field
+																: field;
+															return importantFields.includes(actualField);
+														})
+														.map((field) => renderField(field, true))
+														.filter(Boolean)}
 												</div>
 											</div>
-											<Heart className="h-8 w-8 opacity-50" />
+
+											{/* 次要信息 */}
+											<div>
+												<div className="text-xs text-muted-foreground mb-2">
+													其他信息
+												</div>
+												<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm overflow-hidden">
+													{displayFields
+														.filter((field) => {
+															const actualField = field.includes(".")
+																? field
+																: field;
+															return !importantFields.includes(actualField);
+														})
+														.map((field) => renderField(field, false))
+														.filter(Boolean)}
+												</div>
+											</div>
 										</div>
-									</div>
+									)}
 
 									{/* Quick Stats */}
-									<div className="space-y-2">
-										<div className="flex items-center justify-between text-sm">
-											<span className="text-muted-foreground">Status:</span>
-											<Badge
-												variant={
-													result.status >= 200 && result.status < 300
-														? "default"
-														: "destructive"
-												}
-											>
-												{result.status}
-											</Badge>
+									<div className="space-y-2 pt-2 border-t">
+										<div className="text-sm font-semibold mb-2 flex items-center gap-2">
+											<Info className="h-4 w-4" />
+											页面信息/性能指标
 										</div>
-										<div className="flex items-center justify-between text-sm">
-											<span className="text-muted-foreground">Load:</span>
-											<span className="font-medium">
-												{formatTime(result.loadTime)}
-											</span>
-										</div>
-										<div className="flex items-center justify-between text-sm">
-											<span className="text-muted-foreground">Requests:</span>
-											<span className="font-medium">
-												{result.totalRequests}
-												{result.failedRequests > 0 && (
-													<span className="text-destructive ml-1">
-														({result.failedRequests})
+										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm">
+											<div className="flex items-start gap-1.5 py-0.5">
+												<span className="text-muted-foreground text-xs flex-shrink-0">
+													Status:
+												</span>
+												<div className="text-xs flex-1 break-words">
+													<Badge
+														variant={
+															result.status >= 200 && result.status < 300
+																? "default"
+																: "destructive"
+														}
+														className="text-xs"
+													>
+														{result.status}
+													</Badge>
+												</div>
+											</div>
+											<div className="flex items-start gap-1.5 py-0.5">
+												<span className="text-muted-foreground text-xs flex-shrink-0">
+													Load:
+												</span>
+												<span className="font-medium text-xs flex-1 break-words">
+													{formatTime(result.loadTime)}
+												</span>
+											</div>
+											<div className="flex items-start gap-1.5 py-0.5">
+												<span className="text-muted-foreground text-xs flex-shrink-0">
+													Requests:
+												</span>
+												<span className="font-medium text-xs flex-1 break-words">
+													{result.totalRequests}
+													{result.failedRequests > 0 && (
+														<span className="text-destructive ml-1">
+															({result.failedRequests})
+														</span>
+													)}
+												</span>
+											</div>
+											<div className="flex items-start gap-1.5 py-0.5">
+												<span className="text-muted-foreground text-xs flex-shrink-0">
+													Size:
+												</span>
+												<span className="font-medium text-xs flex-1 break-words">
+													{formatBytes(result.totalSize)}
+												</span>
+											</div>
+											{result.meta?.appVersion && (
+												<div className="flex items-start gap-1.5 py-0.5">
+													<span className="text-muted-foreground text-xs flex-shrink-0">
+														App Version:
 													</span>
-												)}
-											</span>
-										</div>
-										<div className="flex items-center justify-between text-sm">
-											<span className="text-muted-foreground">Size:</span>
-											<span className="font-medium">
-												{formatBytes(result.totalSize)}
-											</span>
-										</div>
-									</div>
-
-									{/* Page Info & Performance */}
-									<div className="space-y-2 pt-2 border-t">
-										{result.meta?.appVersion && (
-											<div>
-												<div className="text-xs text-muted-foreground mb-1">
-													App Version
+													<span className="font-medium font-mono text-xs flex-1 break-words">
+														{formatAppVersion(result.meta.appVersion)}
+													</span>
 												</div>
-												<div className="text-sm font-mono">
-													{formatAppVersion(result.meta.appVersion)}
-												</div>
-											</div>
-										)}
-										{result.performance && (
-											<div className="grid grid-cols-2 gap-2 text-sm">
-												{result.performance.fcp !== undefined && (
-													<div className="flex justify-between">
-														<span className="text-muted-foreground">FCP:</span>
-														<span className="font-medium">
-															{formatTime(result.performance.fcp)}
-														</span>
-													</div>
-												)}
-												{result.performance.lcp !== undefined && (
-													<div className="flex justify-between">
-														<span className="text-muted-foreground">LCP:</span>
-														<span className="font-medium">
-															{formatTime(result.performance.lcp)}
-														</span>
-													</div>
-												)}
-												{result.performance.domContentLoaded !== undefined && (
-													<div className="flex justify-between">
-														<span className="text-muted-foreground">DCL:</span>
-														<span className="font-medium">
-															{formatTime(result.performance.domContentLoaded)}
-														</span>
-													</div>
-												)}
-												{result.performance.loadEvent !== undefined && (
-													<div className="flex justify-between">
-														<span className="text-muted-foreground">Load:</span>
-														<span className="font-medium">
-															{formatTime(result.performance.loadEvent)}
-														</span>
-													</div>
-												)}
-											</div>
-										)}
-									</div>
-
-									{/* Health Checks & Issues */}
-									<div className="space-y-2 pt-2 border-t">
-										<div>
-											<div className="text-xs text-muted-foreground mb-2">
-												Health Checks
-											</div>
-											<div className="grid grid-cols-2 gap-2">
-												<div className="flex items-center gap-1.5 text-sm">
-													{healthScore.checks.isPwaInstallable ? (
-														<CheckCircle2 className="h-4 w-4 text-green-600" />
-													) : (
-														<XCircle className="h-4 w-4 text-red-600" />
-													)}
-													<span>PWA</span>
-												</div>
-												<div className="flex items-center gap-1.5 text-sm">
-													{healthScore.checks.isPageStatusOk ? (
-														<CheckCircle2 className="h-4 w-4 text-green-600" />
-													) : (
-														<XCircle className="h-4 w-4 text-red-600" />
-													)}
-													<span>Status</span>
-												</div>
-												<div className="flex items-center gap-1.5 text-sm">
-													{!healthScore.checks.hasFailedRequests ? (
-														<CheckCircle2 className="h-4 w-4 text-green-600" />
-													) : (
-														<XCircle className="h-4 w-4 text-red-600" />
-													)}
-													<span>Requests</span>
-												</div>
-												<div className="flex items-center gap-1.5 text-sm">
-													{!healthScore.checks.hasConsoleErrors ? (
-														<CheckCircle2 className="h-4 w-4 text-green-600" />
-													) : (
-														<XCircle className="h-4 w-4 text-red-600" />
-													)}
-													<span>Console</span>
-												</div>
-											</div>
-											<div className="mt-2 pt-2 border-t">
-												<div className="text-xs text-muted-foreground mb-2">
-													API Checks
-												</div>
-												<div className="grid grid-cols-2 gap-1.5">
-													{REQUIRED_API_ENDPOINTS.map((endpoint) => (
-														<div
-															key={endpoint}
-															className="flex items-center gap-1.5 text-xs"
-														>
-															{healthScore.checks.apiCheckResults?.[
-																endpoint
-															] ? (
-																<CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
-															) : (
-																<XCircle className="h-3 w-3 text-red-600 flex-shrink-0" />
-															)}
-															<span className="truncate">{endpoint}</span>
+											)}
+											{result.performance && (
+												<>
+													{result.performance.fcp !== undefined && (
+														<div className="flex items-start gap-1.5 py-0.5">
+															<span className="text-muted-foreground text-xs flex-shrink-0">
+																FCP:
+															</span>
+															<span className="font-medium text-xs flex-1 break-words">
+																{formatTime(result.performance.fcp)}
+															</span>
 														</div>
-													))}
-												</div>
-											</div>
-										</div>
-										<div className="pt-2 border-t">
-											<div className="text-xs text-muted-foreground mb-1.5">
-												Issues ({healthScore.issues.length})
-											</div>
-											{healthScore.issues.length > 0 ? (
-												<ul className="space-y-1">
-													{healthScore.issues.map((issue, index) => (
-														<li
-															key={index}
-															className="text-sm text-muted-foreground"
-														>
-															• {issue}
-														</li>
-													))}
-												</ul>
-											) : (
-												<div className="text-sm text-green-600">No issues</div>
+													)}
+													{result.performance.lcp !== undefined && (
+														<div className="flex items-start gap-1.5 py-0.5">
+															<span className="text-muted-foreground text-xs flex-shrink-0">
+																LCP:
+															</span>
+															<span className="font-medium text-xs flex-1 break-words">
+																{formatTime(result.performance.lcp)}
+															</span>
+														</div>
+													)}
+													{result.performance.domContentLoaded !==
+														undefined && (
+														<div className="flex items-start gap-1.5 py-0.5">
+															<span className="text-muted-foreground text-xs flex-shrink-0">
+																DCL:
+															</span>
+															<span className="font-medium text-xs flex-1 break-words">
+																{formatTime(
+																	result.performance.domContentLoaded,
+																)}
+															</span>
+														</div>
+													)}
+													{result.performance.loadEvent !== undefined && (
+														<div className="flex items-start gap-1.5 py-0.5">
+															<span className="text-muted-foreground text-xs flex-shrink-0">
+																Load:
+															</span>
+															<span className="font-medium text-xs flex-1 break-words">
+																{formatTime(result.performance.loadEvent)}
+															</span>
+														</div>
+													)}
+												</>
 											)}
 										</div>
 									</div>
@@ -717,104 +834,309 @@ export default function PwaLinkHealth() {
 						</Card>
 					</div>
 
-					{/* 链接详情 */}
-					{configV3Data && (
-						<Card className="mb-4 border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/20">
+					{/* 安装页检查 */}
+					{(loading || installPageResult) && (
+						<Card className="mb-4 border-purple-500/50 bg-purple-50/50 dark:bg-purple-950/20">
 							<CardHeader>
 								<CardTitle className="text-sm flex items-center gap-2">
-									<Link className="h-4 w-4 text-blue-600" />
-									链接详情
+									<Smartphone className="h-4 w-4 text-purple-600" />
+									安装页检查
 								</CardTitle>
 							</CardHeader>
-							<CardContent className="px-6">
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-									{displayFields.map((field) => {
-										const value = configV3Data[field];
-										if (value === null || value === undefined || value === "") {
-											return null;
-										}
-
-										let displayValue: ReactNode;
-
-										// 特殊处理 language_json
-										if (field === "language_json") {
-											const languageJson = value as Record<string, unknown>;
-											const languageCodes = Object.keys(languageJson);
-											if (languageCodes.length === 0) {
-												return null;
-											}
-											displayValue = languageCodes.join(", ");
-										} else if (
-											field === "theme_color" ||
-											field === "background_color"
-										) {
-											displayValue = (
-												<div className="flex items-center gap-2">
-													<div
-														className="w-6 h-6 rounded border"
-														style={{ backgroundColor: String(value) }}
+							<CardContent className="px-6 py-4">
+								{installPageResult ? (
+									<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+										{installPageResult.screenshot && (
+											<div className="lg:col-span-1">
+												<div className="rounded border overflow-hidden bg-white">
+													<img
+														src={`data:image/png;base64,${installPageResult.screenshot}`}
+														alt="安装页截图"
+														className="w-full h-auto"
 													/>
-													<span className="font-mono text-xs">
-														{String(value)}
-													</span>
 												</div>
-											);
-										} else if (
-											field === "status" ||
-											field === "package_status"
-										) {
-											const statusValue = Number(value);
-											displayValue = (
-												<Badge
-													variant={statusValue > 0 ? "default" : "secondary"}
-												>
-													{String(value)}
-												</Badge>
-											);
-										} else if (field === "package_link") {
-											displayValue = (
-												<a
-													href={String(value)}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-blue-600 hover:underline break-all"
-												>
-													{String(value)}
-												</a>
-											);
-										} else if (typeof value === "object") {
-											// 对于其他对象类型，显示 JSON 字符串
-											try {
-												displayValue = JSON.stringify(value, null, 2);
-											} catch {
-												displayValue = String(value);
-											}
-										} else {
-											displayValue = String(value);
-										}
+											</div>
+										)}
 
-										return (
-											<div key={field} className="space-y-1">
-												<div className="text-muted-foreground text-xs">
-													{fieldTranslations[field]}:
+										<div
+											className={`${
+												installPageResult.screenshot
+													? "lg:col-span-4"
+													: "lg:col-span-5"
+											} space-y-4`}
+										>
+											{/* 页面信息 */}
+											<div className="space-y-2">
+												<div className="text-sm font-semibold mb-2 flex items-center gap-2">
+													<Info className="h-4 w-4" />
+													页面信息
 												</div>
-												<div className="font-medium">
-													{typeof displayValue === "string" &&
-													displayValue.length > 100 ? (
-														<pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-48">
-															{displayValue}
-														</pre>
-													) : (
-														displayValue
+												<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm overflow-hidden">
+													<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full md:col-span-2 lg:col-span-3">
+														<span className="text-muted-foreground text-xs flex-shrink-0">
+															URL:
+														</span>
+														<span className="font-medium text-xs flex-1 break-words min-w-0 break-all">
+															{installPageResult.url}
+														</span>
+													</div>
+													<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+														<span className="text-muted-foreground text-xs flex-shrink-0">
+															Status:
+														</span>
+														<div className="text-xs flex-1 break-words min-w-0">
+															<Badge
+																variant={
+																	installPageResult.status >= 200 &&
+																	installPageResult.status < 300
+																		? "default"
+																		: "destructive"
+																}
+																className="text-xs"
+															>
+																{installPageResult.status}
+															</Badge>
+														</div>
+													</div>
+													<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+														<span className="text-muted-foreground text-xs flex-shrink-0">
+															Load:
+														</span>
+														<span className="font-medium text-xs flex-1 break-words min-w-0">
+															{formatTime(installPageResult.loadTime)}
+														</span>
+													</div>
+													<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+														<span className="text-muted-foreground text-xs flex-shrink-0">
+															Requests:
+														</span>
+														<span className="font-medium text-xs flex-1 break-words min-w-0">
+															{installPageResult.totalRequests}
+															{installPageResult.failedRequests > 0 && (
+																<span className="text-destructive ml-1">
+																	({installPageResult.failedRequests})
+																</span>
+															)}
+														</span>
+													</div>
+													<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+														<span className="text-muted-foreground text-xs flex-shrink-0">
+															Size:
+														</span>
+														<span className="font-medium text-xs flex-1 break-words min-w-0">
+															{formatBytes(installPageResult.totalSize)}
+														</span>
+													</div>
+													{installPageResult.performance && (
+														<>
+															{installPageResult.performance.fcp !==
+																undefined && (
+																<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+																	<span className="text-muted-foreground text-xs flex-shrink-0">
+																		FCP:
+																	</span>
+																	<span className="font-medium text-xs flex-1 break-words min-w-0">
+																		{formatTime(
+																			installPageResult.performance.fcp,
+																		)}
+																	</span>
+																</div>
+															)}
+															{installPageResult.performance.lcp !==
+																undefined && (
+																<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+																	<span className="text-muted-foreground text-xs flex-shrink-0">
+																		LCP:
+																	</span>
+																	<span className="font-medium text-xs flex-1 break-words min-w-0">
+																		{formatTime(
+																			installPageResult.performance.lcp,
+																		)}
+																	</span>
+																</div>
+															)}
+															{installPageResult.performance
+																.domContentLoaded !== undefined && (
+																<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+																	<span className="text-muted-foreground text-xs flex-shrink-0">
+																		DCL:
+																	</span>
+																	<span className="font-medium text-xs flex-1 break-words min-w-0">
+																		{formatTime(
+																			installPageResult.performance
+																				.domContentLoaded,
+																		)}
+																	</span>
+																</div>
+															)}
+															{installPageResult.performance.loadEvent !==
+																undefined && (
+																<div className="flex items-start gap-1.5 py-0.5 min-w-0 w-full">
+																	<span className="text-muted-foreground text-xs flex-shrink-0">
+																		Load:
+																	</span>
+																	<span className="font-medium text-xs flex-1 break-words min-w-0">
+																		{formatTime(
+																			installPageResult.performance.loadEvent,
+																		)}
+																	</span>
+																</div>
+															)}
+														</>
 													)}
 												</div>
 											</div>
-										);
-									})}
-								</div>
+
+											{/* 请求统计 */}
+											<div className="space-y-2">
+												<div className="text-sm font-semibold mb-2 flex items-center gap-2">
+													<FileText className="h-4 w-4" />
+													请求统计
+												</div>
+												{installPageResult.resourceStats && (
+													<div className="space-y-3">
+														{installPageResult.resourceStats.map((stat) => {
+															const successCount =
+																stat.count - stat.failedCount;
+															return (
+																<div
+																	key={stat.type}
+																	className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
+																>
+																	<div className="flex items-center gap-2">
+																		<div
+																			className="w-3 h-3 rounded"
+																			style={{
+																				backgroundColor:
+																					RESOURCE_TYPE_COLORS[stat.type],
+																			}}
+																		/>
+																		<span className="text-xs font-medium capitalize">
+																			{stat.type}
+																		</span>
+																	</div>
+																	<div className="flex items-center gap-3 text-xs">
+																		<span className="text-muted-foreground">
+																			总计: {stat.count}
+																		</span>
+																		<span className="text-green-600">
+																			成功: {successCount}
+																		</span>
+																		{stat.failedCount > 0 && (
+																			<span className="text-destructive">
+																				失败: {stat.failedCount}
+																			</span>
+																		)}
+																	</div>
+																</div>
+															);
+														})}
+													</div>
+												)}
+											</div>
+										</div>
+									</div>
+								) : (
+									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+										<Loader2 className="h-4 w-4 animate-spin" />
+										正在检查安装页...
+									</div>
+								)}
 							</CardContent>
 						</Card>
 					)}
+
+					{/* Health Checks & Issues */}
+					<Card className="mb-4 border-orange-500/50 bg-orange-50/50 dark:bg-orange-950/20">
+						<CardHeader>
+							<CardTitle className="text-sm flex items-center gap-2">
+								<AlertTriangle className="h-4 w-4 text-orange-600" />
+								健康检查与问题
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="px-6">
+							<div className="space-y-4">
+								<div>
+									<div className="text-xs text-muted-foreground mb-2">
+										Health Checks
+									</div>
+									<div className="grid grid-cols-2 gap-2">
+										<div className="flex items-center gap-1.5 text-sm">
+											{healthScore.checks.isPwaInstallable ? (
+												<CheckCircle2 className="h-4 w-4 text-green-600" />
+											) : (
+												<XCircle className="h-4 w-4 text-red-600" />
+											)}
+											<span>PWA</span>
+										</div>
+										<div className="flex items-center gap-1.5 text-sm">
+											{healthScore.checks.isPageStatusOk ? (
+												<CheckCircle2 className="h-4 w-4 text-green-600" />
+											) : (
+												<XCircle className="h-4 w-4 text-red-600" />
+											)}
+											<span>Status</span>
+										</div>
+										<div className="flex items-center gap-1.5 text-sm">
+											{!healthScore.checks.hasFailedRequests ? (
+												<CheckCircle2 className="h-4 w-4 text-green-600" />
+											) : (
+												<XCircle className="h-4 w-4 text-red-600" />
+											)}
+											<span>Requests</span>
+										</div>
+										<div className="flex items-center gap-1.5 text-sm">
+											{!healthScore.checks.hasConsoleErrors ? (
+												<CheckCircle2 className="h-4 w-4 text-green-600" />
+											) : (
+												<XCircle className="h-4 w-4 text-red-600" />
+											)}
+											<span>Console</span>
+										</div>
+									</div>
+									<div className="mt-2 pt-2 border-t">
+										<div className="text-xs text-muted-foreground mb-2">
+											API Checks
+										</div>
+										<div className="grid grid-cols-2 gap-1.5">
+											{REQUIRED_API_ENDPOINTS.map((endpoint) => (
+												<div
+													key={endpoint}
+													className="flex items-center gap-1.5 text-xs"
+												>
+													{healthScore.checks.apiCheckResults?.[endpoint] ? (
+														<CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+													) : (
+														<XCircle className="h-3 w-3 text-red-600 flex-shrink-0" />
+													)}
+													<span className="truncate">{endpoint}</span>
+												</div>
+											))}
+										</div>
+									</div>
+								</div>
+								<div className="pt-2 border-t">
+									<div className="text-xs text-muted-foreground mb-1.5">
+										Issues ({healthScore.issues.length})
+									</div>
+									{healthScore.issues.length > 0 ? (
+										<ul className="space-y-1">
+											{healthScore.issues.map((issue, index) => (
+												<li
+													key={index}
+													className="text-sm text-muted-foreground"
+												>
+													• {issue}
+												</li>
+											))}
+										</ul>
+									) : (
+										<div className="text-sm text-green-600">No issues</div>
+									)}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
 
 					{/* PWA Information */}
 					{result.pwa && (
@@ -902,93 +1224,105 @@ export default function PwaLinkHealth() {
 									</div>
 								)}
 								{result.pwa.manifest && (
-									<div className="space-y-3">
-										<div className="font-semibold flex items-center gap-2">
-											<FileText className="h-4 w-4" />
+									<div className="space-y-2">
+										<div className="font-semibold flex items-center gap-2 text-sm">
+											<FileText className="h-3.5 w-3.5" />
 											Manifest Information
 										</div>
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
 											{result.pwa.manifest.name && (
-												<div>
-													<span className="text-muted-foreground">Name:</span>{" "}
-													<span className="font-medium">
+												<div className="flex items-start gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
+														Name:
+													</span>
+													<span className="font-medium break-words">
 														{result.pwa.manifest.name}
 													</span>
 												</div>
 											)}
 											{result.pwa.manifest.short_name && (
-												<div>
-													<span className="text-muted-foreground">
+												<div className="flex items-start gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
 														Short Name:
-													</span>{" "}
-													<span className="font-medium">
+													</span>
+													<span className="font-medium break-words">
 														{result.pwa.manifest.short_name}
 													</span>
 												</div>
 											)}
 											{result.pwa.manifest.description && (
-												<div className="md:col-span-2">
-													<span className="text-muted-foreground">
+												<div className="md:col-span-2 flex items-start gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
 														Description:
-													</span>{" "}
-													<span className="font-medium">
+													</span>
+													<span className="font-medium break-words">
 														{result.pwa.manifest.description}
 													</span>
 												</div>
 											)}
-											{result.pwa.manifest.start_url && (
-												<div>
-													<span className="text-muted-foreground">
-														Start URL:
-													</span>{" "}
+											{result.pwa.manifest.default_lang && (
+												<div className="flex items-start gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
+														Default Lang:
+													</span>
 													<span className="font-medium">
+														{result.pwa.manifest.default_lang}
+													</span>
+												</div>
+											)}
+											{result.pwa.manifest.start_url && (
+												<div className="md:col-span-2 flex items-start gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
+														Start URL:
+													</span>
+													<span className="font-medium font-mono break-all">
 														{result.pwa.manifest.start_url}
 													</span>
 												</div>
 											)}
 											{result.pwa.manifest.display && (
-												<div>
-													<span className="text-muted-foreground">
+												<div className="flex items-start gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
 														Display:
-													</span>{" "}
+													</span>
 													<span className="font-medium">
 														{result.pwa.manifest.display}
 													</span>
 												</div>
 											)}
 											{result.pwa.manifest.theme_color && (
-												<div className="flex items-center gap-2">
-													<span className="text-muted-foreground">
+												<div className="flex items-center gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
 														Theme Color:
 													</span>
-													<div className="flex items-center gap-2">
+													<div className="flex items-center gap-1.5">
 														<div
-															className="w-6 h-6 rounded border"
+															className="w-4 h-4 rounded border flex-shrink-0"
 															style={{
 																backgroundColor:
 																	result.pwa.manifest.theme_color,
 															}}
 														/>
-														<span className="font-mono text-xs">
+														<span className="font-mono">
 															{result.pwa.manifest.theme_color}
 														</span>
 													</div>
 												</div>
 											)}
 											{result.pwa.manifest.background_color && (
-												<div className="flex items-center gap-2">
-													<span className="text-muted-foreground">
+												<div className="flex items-center gap-1.5">
+													<span className="text-muted-foreground flex-shrink-0">
 														Background Color:
 													</span>
-													<div className="flex items-center gap-2">
+													<div className="flex items-center gap-1.5">
 														<div
-															className="w-6 h-6 rounded border"
+															className="w-4 h-4 rounded border flex-shrink-0"
 															style={{
 																backgroundColor:
 																	result.pwa.manifest.background_color,
 															}}
 														/>
-														<span className="font-mono text-xs">
+														<span className="font-mono">
 															{result.pwa.manifest.background_color}
 														</span>
 													</div>
@@ -997,11 +1331,11 @@ export default function PwaLinkHealth() {
 										</div>
 										{result.pwa.manifest.icons &&
 											result.pwa.manifest.icons.length > 0 && (
-												<div className="mt-3">
-													<div className="text-sm text-muted-foreground mb-2">
+												<div className="mt-2 pt-2 border-t">
+													<div className="text-xs text-muted-foreground mb-1.5">
 														App Icons ({result.pwa.manifest.icons.length}):
 													</div>
-													<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+													<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
 														{result.pwa.manifest.icons.map((icon, i) => {
 															const iconUrl = resolveIconUrl(
 																icon.src,
@@ -1010,9 +1344,9 @@ export default function PwaLinkHealth() {
 															return (
 																<div
 																	key={i}
-																	className="flex flex-col items-center gap-2 p-3 border rounded-lg bg-background"
+																	className="flex flex-col items-center gap-1 p-2 border rounded bg-background"
 																>
-																	<div className="relative w-16 h-16 flex items-center justify-center">
+																	<div className="relative w-12 h-12 flex items-center justify-center">
 																		<img
 																			src={iconUrl}
 																			alt={`App icon ${icon.sizes}`}
@@ -1028,24 +1362,24 @@ export default function PwaLinkHealth() {
 																					const fallback =
 																						document.createElement("div");
 																					fallback.className =
-																						"w-16 h-16 flex items-center justify-center bg-muted rounded text-muted-foreground text-xs";
+																						"w-12 h-12 flex items-center justify-center bg-muted rounded text-muted-foreground text-[10px]";
 																					fallback.textContent = "No Preview";
 																					parent.appendChild(fallback);
 																				}
 																			}}
 																		/>
 																	</div>
-																	<div className="text-center">
-																		<div className="text-xs font-medium">
+																	<div className="text-center w-full">
+																		<div className="text-[10px] font-medium truncate">
 																			{icon.sizes}
 																		</div>
-																		<div className="text-xs text-muted-foreground">
+																		<div className="text-[10px] text-muted-foreground truncate">
 																			{icon.type}
 																		</div>
 																		{icon.purpose && (
 																			<Badge
 																				variant="outline"
-																				className="text-xs mt-1"
+																				className="text-[10px] h-4 px-1 mt-0.5"
 																			>
 																				{icon.purpose}
 																			</Badge>
@@ -1065,18 +1399,29 @@ export default function PwaLinkHealth() {
 
 					{/* Console Logs */}
 					{result.console &&
-						(result.console.errorCount > 0 ||
-							result.console.warningCount > 0) && (
+						(() => {
+							const filteredErrors = filterBusinessImpactErrors(
+								result.console.errors,
+							);
+							return (
+								filteredErrors.length > 0 || result.console.warningCount > 0
+							);
+						})() && (
 							<Card className="mb-4 border-red-500/100 bg-red-50/20 dark:bg-red-950/20">
 								<CardHeader>
 									<CardTitle className="text-sm flex items-center gap-2">
 										<Code className="h-4 w-4" />
 										Console
-										{result.console.errorCount > 0 && (
-											<Badge variant="destructive" className="ml-2 text-xs">
-												{result.console.errorCount} Errors
-											</Badge>
-										)}
+										{(() => {
+											const filteredErrors = filterBusinessImpactErrors(
+												result.console.errors,
+											);
+											return filteredErrors.length > 0 ? (
+												<Badge variant="destructive" className="ml-2 text-xs">
+													{filteredErrors.length} Errors
+												</Badge>
+											) : null;
+										})()}
 										{result.console.warningCount > 0 && (
 											<Badge variant="outline" className="ml-2 text-xs">
 												{result.console.warningCount} Warnings
@@ -1086,32 +1431,37 @@ export default function PwaLinkHealth() {
 								</CardHeader>
 								<CardContent className="px-6 space-y-2">
 									{/* Errors */}
-									{result.console.errors.length > 0 && (
-										<div className="space-y-1">
-											<div className="font-semibold text-xs flex items-center gap-1 text-destructive">
-												<XCircle className="h-3 w-3" />
-												Errors ({result.console.errors.length})
-											</div>
-											<div className="space-y-1 max-h-48 overflow-y-auto">
-												{result.console.errors.map((error, index) => (
-													<div
-														key={index}
-														className="p-2 bg-destructive/10 rounded text-xs border border-destructive/20"
-													>
-														<div className="font-mono text-xs break-all">
-															{error.message}
-														</div>
-														{error.source && (
-															<div className="text-xs text-muted-foreground mt-0.5">
-																{error.source}
-																{error.lineNumber && `:${error.lineNumber}`}
+									{(() => {
+										const filteredErrors = filterBusinessImpactErrors(
+											result.console.errors,
+										);
+										return filteredErrors.length > 0 ? (
+											<div className="space-y-1">
+												<div className="font-semibold text-xs flex items-center gap-1 text-destructive">
+													<XCircle className="h-3 w-3" />
+													Errors ({filteredErrors.length})
+												</div>
+												<div className="space-y-1 max-h-48 overflow-y-auto">
+													{filteredErrors.map((error, index) => (
+														<div
+															key={index}
+															className="p-2 bg-destructive/10 rounded text-xs border border-destructive/20"
+														>
+															<div className="font-mono text-xs break-all">
+																{error.message}
 															</div>
-														)}
-													</div>
-												))}
+															{error.source && (
+																<div className="text-xs text-muted-foreground mt-0.5">
+																	{error.source}
+																	{error.lineNumber && `:${error.lineNumber}`}
+																</div>
+															)}
+														</div>
+													))}
+												</div>
 											</div>
-										</div>
-									)}
+										) : null;
+									})()}
 
 									{/* Warnings */}
 									{result.console.warnings.length > 0 && (

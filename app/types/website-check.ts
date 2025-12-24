@@ -93,6 +93,8 @@ export interface PwaManifest {
 	}>;
 	/** App scope */
 	scope?: string;
+	/** Default language */
+	default_lang?: string;
 }
 
 /**
