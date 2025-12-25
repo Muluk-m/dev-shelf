@@ -117,6 +117,8 @@ export interface PwaInfo {
 	isInstallable: boolean;
 	/** Manifest information */
 	manifest?: PwaManifest;
+	/** Full manifest content (all fields from manifest) */
+	manifestRaw?: Record<string, unknown>;
 	/** Service Worker information */
 	serviceWorker?: ServiceWorkerInfo;
 	/** Reasons why not installable */

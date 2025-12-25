@@ -2,7 +2,7 @@ import type { ConfigV3Data } from "~/types/pwa-link-health";
 import type { ConsoleLogEntry, ResourceType } from "~/types/website-check";
 
 export const API_ENDPOINT =
-	"https://fe-toolkit-test.qiliangjia.org/website-check/analyze";
+	"https://fe-toolkit.qiliangjia.org/website-check/analyze";
 
 export const RESOURCE_TYPE_COLORS: Record<ResourceType, string> = {
 	document: "#3b82f6",
