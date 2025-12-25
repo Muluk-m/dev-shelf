@@ -1299,13 +1299,13 @@ export default function PwaLinkHealth() {
 													</span>
 												</div>
 											)}
-											{(result.pwa.manifestRaw?.default_lang as string) && (
+											{result.pwa.manifest.default_lang && (
 												<div className="flex items-start gap-1.5">
 													<span className="text-muted-foreground flex-shrink-0">
 														Default Lang:
 													</span>
 													<span className="font-medium">
-														{result.pwa.manifestRaw?.default_lang as string}
+														{result.pwa.manifest.default_lang}
 													</span>
 												</div>
 											)}
