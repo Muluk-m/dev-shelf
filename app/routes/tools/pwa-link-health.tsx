@@ -45,8 +45,14 @@ import {
 	importantFields,
 	API_ENDPOINT,
 	RESOURCE_TYPE_COLORS,
-	PACKAGE_TYPE_ENUM,
 } from "~/lib/pwa-link-health";
+import {
+	appendTokenToUrl,
+	DEFAULT_PARAM_NAME,
+	DEFAULT_VALIDITY_MINUTES,
+	generateWhitelistToken,
+	SECRET_KEY,
+} from "~/lib/whitelist-token";
 
 export function meta() {
 	return [
@@ -197,16 +203,45 @@ export default function PwaLinkHealth() {
 		setResult(null);
 		setInstallPageResult(null);
 
+		// 生成 whitelist token 并追加到 URL
+		let urlWithToken = url;
+		let token: string | null = null;
+		try {
+			token = await generateWhitelistToken(
+				SECRET_KEY,
+				DEFAULT_VALIDITY_MINUTES,
+			);
+			urlWithToken = appendTokenToUrl(url, token, DEFAULT_PARAM_NAME);
+		} catch (error) {
+			console.warn(
+				"Failed to generate whitelist token, using original URL:",
+				error,
+			);
+			// 如果生成 token 失败，使用原始 URL
+			urlWithToken = url;
+		}
+
 		// 构建安装页 URL 兼容appid和domain
 		const getInstallPageUrl = (originalUrl: string): string => {
 			try {
 				const urlObj = new URL(originalUrl);
 				const pathParts = urlObj.pathname.split("/").filter(Boolean);
+				let installPageBaseUrl: string;
 				if (pathParts.length > 0) {
 					const appId = pathParts[0];
-					return `${urlObj.protocol}//${urlObj.host}/${appId}/index.html`;
+					installPageBaseUrl = `${urlObj.protocol}//${urlObj.host}/${appId}/index.html`;
+				} else {
+					installPageBaseUrl = `${urlObj.protocol}//${urlObj.host}/index.html`;
 				}
-				return `${urlObj.protocol}//${urlObj.host}/index.html`;
+				// 如果有 token，也添加到安装页 URL
+				if (token) {
+					return appendTokenToUrl(
+						installPageBaseUrl,
+						token,
+						DEFAULT_PARAM_NAME,
+					);
+				}
+				return installPageBaseUrl;
 			} catch {
 				return "";
 			}
@@ -220,7 +255,11 @@ export default function PwaLinkHealth() {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ url, timeout: 30000, device: "mobile" }),
+				body: JSON.stringify({
+					url: urlWithToken,
+					timeout: 30000,
+					device: "mobile",
+				}),
 			});
 
 			if (!response.ok) {
