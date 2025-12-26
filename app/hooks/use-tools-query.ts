@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { API_BASE_URL } from "~/lib/api";
-import { usePermissionsStore } from "~/store/permissions-store";
-import { useToolsStore } from "~/store/tools-store";
+import { usePermissionsStore } from "~/stores/permissions-store";
+import { useToolsStore } from "~/stores/tools-store";
 import type { Tool, ToolCategory, ToolUsageStat } from "~/types/tool";
 
 interface ToolsInitResponse {

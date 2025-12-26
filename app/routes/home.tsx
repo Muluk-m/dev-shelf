@@ -7,7 +7,7 @@ import { ToolCard } from "~/components/tool-card";
 import { useSearch } from "~/hooks/use-search";
 import { useToolsInit } from "~/hooks/use-tools-query";
 import { recordToolUsage } from "~/lib/api";
-import { useToolsStore } from "~/store/tools-store";
+import { useToolsStore } from "~/stores/tools-store";
 import type { Tool } from "~/types/tool";
 import type { Route } from "./+types/home";
 

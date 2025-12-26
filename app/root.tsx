@@ -12,7 +12,7 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { CommandPanelProvider } from "~/context/command-panel-context";
 import { useToolsInit } from "~/hooks/use-tools-query";
-import { useToolsStore } from "~/store/tools-store";
+import { useToolsStore } from "~/stores/tools-store";
 import type { Route } from "./+types/root";
 import "./app.css";
 

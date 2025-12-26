@@ -127,6 +127,17 @@ export const pixelTypeMap: Record<number, string> = {
 };
 
 /**
+ * 投放渠道映射
+ * 4 = Facebook, 5 = TikTok, 9 = KWAI, 10 = Google
+ */
+export const channelMap: Record<number, string> = {
+	4: "Facebook",
+	5: "TikTok",
+	9: "KWAI",
+	10: "Google",
+};
+
+/**
  * 要显示的字段列表（关键字段）
  * 在链接详情板块中显示这些字段
  */

@@ -113,6 +113,9 @@ importers:
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.1)
+      enum-plus:
+        specifier: ^3.1.6
+        version: 3.1.6
       hono:
         specifier: 4.8.2
         version: 4.8.2
@@ -2414,6 +2417,10 @@ packages:
 
   enum-plus@2.4.3:
     resolution: {integrity: sha512-LInLHyVk7mFQ7+t/2Jfe3DyHBE6BVsZn6Yj8MEU8OtzcFpt8dyg/H7vRY0S6Qa2bYnemawMQTT/sDTmGZ/Yrpg==}
+    engines: {node: '>=7.10.1'}
+
+  enum-plus@3.1.6:
+    resolution: {integrity: sha512-9nHr0FqFpDYHlSFGyMOKVOCqm5TxqxZ00UWI3a+oHBkUc7bvD2O0ELfb22ijbfb/B2aTl4jKz0gXV9z3f3nJ5Q==}
     engines: {node: '>=7.10.1'}
 
   err-code@2.0.3:
@@ -5600,6 +5607,8 @@ snapshots:
       tapable: 2.3.0
 
   enum-plus@2.4.3: {}
+
+  enum-plus@3.1.6: {}
 
   err-code@2.0.3: {}
 
