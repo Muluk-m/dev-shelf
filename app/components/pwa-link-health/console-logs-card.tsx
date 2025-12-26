@@ -2,13 +2,10 @@ import { AlertTriangle, Code, XCircle } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { filterBusinessImpactErrors } from "~/lib/pwa-link-health";
+import type { ConsoleInfo } from "~/types/website-check";
 
 interface ConsoleLogsCardProps {
-	console: {
-		errors: Array<{ message: string; source?: string; lineNumber?: number }>;
-		warnings: Array<{ message: string; source?: string; lineNumber?: number }>;
-		warningCount: number;
-	};
+	console: ConsoleInfo;
 }
 
 export function ConsoleLogsCard({ console }: ConsoleLogsCardProps) {
@@ -71,11 +68,7 @@ export function ConsoleLogsCard({ console }: ConsoleLogsCardProps) {
 	);
 }
 
-function ConsoleError({
-	error,
-}: {
-	error: { message: string; source?: string; lineNumber?: number };
-}) {
+function ConsoleError({ error }: { error: ConsoleInfo["errors"][0] }) {
 	return (
 		<div className="p-2 bg-destructive/10 rounded text-xs border border-destructive/20">
 			<div className="font-mono text-xs break-all">{error.message}</div>
@@ -89,11 +82,7 @@ function ConsoleError({
 	);
 }
 
-function ConsoleWarning({
-	warning,
-}: {
-	warning: { message: string; source?: string; lineNumber?: number };
-}) {
+function ConsoleWarning({ warning }: { warning: ConsoleInfo["warnings"][0] }) {
 	return (
 		<div className="p-2 bg-yellow-50 dark:bg-yellow-950/20 rounded text-xs border border-yellow-200 dark:border-yellow-900">
 			<div className="font-mono text-xs break-all">{warning.message}</div>

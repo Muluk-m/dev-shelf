@@ -17,6 +17,7 @@ import { InstallPageCard } from "~/components/pwa-link-health/install-page-card"
 import { PageInfoCard } from "~/components/pwa-link-health/page-info-card";
 import { PwaInfoCard } from "~/components/pwa-link-health/pwa-info-card";
 import { ResourcesTable } from "~/components/pwa-link-health/resources-table";
+import { RoiBestWarningCard } from "~/components/pwa-link-health/roibest-warning-card";
 import { ScreenshotCard } from "~/components/pwa-link-health/screenshot-card";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -292,6 +293,12 @@ export default function PwaLinkHealth() {
 		[state.result],
 	);
 
+	// 判断是否是 RoiBest 链接
+	const isRoiBestLink = useMemo(() => {
+		if (!state.result) return true; // 未检测时不显示警告
+		return configV3Data !== null;
+	}, [state.result, configV3Data]);
+
 	return (
 		<div className="container mx-auto px-2">
 			<div className="mb-4">
@@ -342,6 +349,9 @@ export default function PwaLinkHealth() {
 
 			{state.result && healthScore && (
 				<>
+					{/* RoiBest Link Warning */}
+					<RoiBestWarningCard isRoiBestLink={isRoiBestLink} />
+
 					{/* Screenshot & Summary - Combined */}
 					<div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-4">
 						{state.result.screenshot && (
