@@ -346,412 +346,421 @@ export default function PermissionsPage() {
 						<p className="text-muted-foreground">管理系统用户、角色和权限</p>
 					</div>
 
-				<Tabs defaultValue="users" className="space-y-6">
-					<TabsList>
-						<TabsTrigger value="users">
-							<Users className="h-4 w-4 mr-2" />
-							用户管理
-						</TabsTrigger>
-						<TabsTrigger value="roles">
-							<Shield className="h-4 w-4 mr-2" />
-							角色管理
-						</TabsTrigger>
-						<TabsTrigger value="permissions">
-							<User className="h-4 w-4 mr-2" />
-							权限列表
-						</TabsTrigger>
-					</TabsList>
+					<Tabs defaultValue="users" className="space-y-6">
+						<TabsList>
+							<TabsTrigger value="users">
+								<Users className="h-4 w-4 mr-2" />
+								用户管理
+							</TabsTrigger>
+							<TabsTrigger value="roles">
+								<Shield className="h-4 w-4 mr-2" />
+								角色管理
+							</TabsTrigger>
+							<TabsTrigger value="permissions">
+								<User className="h-4 w-4 mr-2" />
+								权限列表
+							</TabsTrigger>
+						</TabsList>
 
-					{/* 用户管理标签 */}
-					<TabsContent value="users">
-						<Card>
-							<CardHeader>
-								<CardTitle>用户列表</CardTitle>
-								<CardDescription>共 {users.length} 位用户</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>用户</TableHead>
-											<TableHead>邮箱</TableHead>
-											<TableHead>当前角色</TableHead>
-											<TableHead>注册时间</TableHead>
-											<TableHead>操作</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{users.map((user) => (
-											<TableRow key={user.id}>
-												<TableCell>
-													<div className="flex items-center gap-3">
-														{user.avatar && (
-															<img
-																src={user.avatar}
-																alt={user.name}
-																className="h-8 w-8 rounded-full"
-															/>
-														)}
-														<div>
-															<p className="font-medium">{user.name}</p>
-															<p className="text-xs text-muted-foreground">
-																{user.feishuId}
-															</p>
+						{/* 用户管理标签 */}
+						<TabsContent value="users">
+							<Card>
+								<CardHeader>
+									<CardTitle>用户列表</CardTitle>
+									<CardDescription>共 {users.length} 位用户</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>用户</TableHead>
+												<TableHead>邮箱</TableHead>
+												<TableHead>当前角色</TableHead>
+												<TableHead>注册时间</TableHead>
+												<TableHead>操作</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{users.map((user) => (
+												<TableRow key={user.id}>
+													<TableCell>
+														<div className="flex items-center gap-3">
+															{user.avatar && (
+																<img
+																	src={user.avatar}
+																	alt={user.name}
+																	className="h-8 w-8 rounded-full"
+																/>
+															)}
+															<div>
+																<p className="font-medium">{user.name}</p>
+																<p className="text-xs text-muted-foreground">
+																	{user.feishuId}
+																</p>
+															</div>
 														</div>
-													</div>
-												</TableCell>
-												<TableCell>
-													{user.email || (
-														<span className="text-muted-foreground">-</span>
-													)}
-												</TableCell>
-												<TableCell>
-													{user.roles.map((role) => (
+													</TableCell>
+													<TableCell>
+														{user.email || (
+															<span className="text-muted-foreground">-</span>
+														)}
+													</TableCell>
+													<TableCell>
+														{user.roles.map((role) => (
+															<Badge
+																key={role.id}
+																variant="outline"
+																className={roleColors[role.name] || ""}
+															>
+																{role.name}
+															</Badge>
+														))}
+													</TableCell>
+													<TableCell>
+														{new Date(user.createdAt).toLocaleDateString(
+															"zh-CN",
+														)}
+													</TableCell>
+													<TableCell>
+														<Select
+															defaultValue={user.roles[0]?.id}
+															onValueChange={(value) =>
+																handleRoleChange(user.id, value)
+															}
+														>
+															<SelectTrigger className="w-32">
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																{roles.map((role) => (
+																	<SelectItem key={role.id} value={role.id}>
+																		{role.name}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</CardContent>
+							</Card>
+						</TabsContent>
+
+						{/* 角色管理标签 */}
+						<TabsContent value="roles">
+							<div className="grid gap-6 md:grid-cols-2">
+								{roles.map((role) => (
+									<Card key={role.id}>
+										<CardHeader>
+											<div className="flex items-start justify-between">
+												<div>
+													<CardTitle className="flex items-center gap-2">
 														<Badge
-															key={role.id}
 															variant="outline"
 															className={roleColors[role.name] || ""}
 														>
 															{role.name}
 														</Badge>
-													))}
-												</TableCell>
-												<TableCell>
-													{new Date(user.createdAt).toLocaleDateString("zh-CN")}
-												</TableCell>
-												<TableCell>
-													<Select
-														defaultValue={user.roles[0]?.id}
-														onValueChange={(value) =>
-															handleRoleChange(user.id, value)
-														}
-													>
-														<SelectTrigger className="w-32">
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															{roles.map((role) => (
-																<SelectItem key={role.id} value={role.id}>
-																	{role.name}
-																</SelectItem>
-															))}
-														</SelectContent>
-													</Select>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							</CardContent>
-						</Card>
-					</TabsContent>
-
-					{/* 角色管理标签 */}
-					<TabsContent value="roles">
-						<div className="grid gap-6 md:grid-cols-2">
-							{roles.map((role) => (
-								<Card key={role.id}>
-									<CardHeader>
-										<div className="flex items-start justify-between">
-											<div>
-												<CardTitle className="flex items-center gap-2">
-													<Badge
-														variant="outline"
-														className={roleColors[role.name] || ""}
-													>
-														{role.name}
+													</CardTitle>
+													<CardDescription className="mt-2">
+														{role.description}
+													</CardDescription>
+												</div>
+												<div className="flex items-center gap-2">
+													<Badge variant="secondary">
+														{role.userCount || 0} 位用户
 													</Badge>
-												</CardTitle>
-												<CardDescription className="mt-2">
-													{role.description}
-												</CardDescription>
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() => handleEditRole(role)}
+													>
+														编辑权限
+													</Button>
+												</div>
 											</div>
-											<div className="flex items-center gap-2">
-												<Badge variant="secondary">
-													{role.userCount || 0} 位用户
-												</Badge>
-												<Button
-													size="sm"
-													variant="outline"
-													onClick={() => handleEditRole(role)}
-												>
-													编辑权限
-												</Button>
+										</CardHeader>
+										<CardContent>
+											<div className="space-y-2">
+												<p className="text-sm font-medium">权限列表:</p>
+												<div className="flex flex-wrap gap-2">
+													{role.permissions && role.permissions.length > 0 ? (
+														role.permissions.map((perm) => (
+															<Badge
+																key={perm.id}
+																variant="secondary"
+																className="text-xs"
+															>
+																{perm.resource}:{perm.action}
+															</Badge>
+														))
+													) : (
+														<p className="text-sm text-muted-foreground">
+															无特殊权限
+														</p>
+													)}
+												</div>
 											</div>
-										</div>
-									</CardHeader>
-									<CardContent>
-										<div className="space-y-2">
-											<p className="text-sm font-medium">权限列表:</p>
-											<div className="flex flex-wrap gap-2">
-												{role.permissions && role.permissions.length > 0 ? (
-													role.permissions.map((perm) => (
-														<Badge
-															key={perm.id}
-															variant="secondary"
-															className="text-xs"
+										</CardContent>
+									</Card>
+								))}
+							</div>
+						</TabsContent>
+
+						{/* 权限列表标签 */}
+						<TabsContent value="permissions">
+							<Card>
+								<CardHeader className="flex flex-row items-center justify-between">
+									<div>
+										<CardTitle>系统权限</CardTitle>
+										<CardDescription>
+											共 {permissions.length} 项权限
+										</CardDescription>
+									</div>
+									<Button onClick={() => setShowAddPermissionDialog(true)}>
+										<Plus className="h-4 w-4 mr-2" />
+										添加权限
+									</Button>
+								</CardHeader>
+								<CardContent>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>权限ID</TableHead>
+												<TableHead>资源</TableHead>
+												<TableHead>操作</TableHead>
+												<TableHead>描述</TableHead>
+												<TableHead className="w-24">操作</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{permissions.map((perm) => (
+												<TableRow key={perm.id}>
+													<TableCell className="font-mono text-xs">
+														{perm.id}
+													</TableCell>
+													<TableCell>
+														<Badge variant="outline">{perm.resource}</Badge>
+													</TableCell>
+													<TableCell>
+														<Badge variant="secondary">{perm.action}</Badge>
+													</TableCell>
+													<TableCell>{perm.description}</TableCell>
+													<TableCell>
+														<Button
+															size="sm"
+															variant="ghost"
+															onClick={() => handleEditPermission(perm)}
 														>
-															{perm.resource}:{perm.action}
-														</Badge>
-													))
-												) : (
+															编辑
+														</Button>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</CardContent>
+							</Card>
+						</TabsContent>
+					</Tabs>
+
+					{/* 添加权限对话框 */}
+					<Dialog
+						open={showAddPermissionDialog}
+						onOpenChange={setShowAddPermissionDialog}
+					>
+						<DialogContent>
+							<DialogHeader>
+								<DialogTitle>添加新权限</DialogTitle>
+								<DialogDescription>创建一个新的系统权限</DialogDescription>
+							</DialogHeader>
+							<div className="space-y-4">
+								<div className="space-y-2">
+									<Label htmlFor="resource">资源类型 *</Label>
+									<Input
+										id="resource"
+										placeholder="例如: tool, category, user"
+										value={newPermission.resource}
+										onChange={(e) =>
+											setNewPermission({
+												...newPermission,
+												resource: e.target.value,
+											})
+										}
+									/>
+									<p className="text-xs text-muted-foreground">
+										权限控制的资源类型
+									</p>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="action">操作 *</Label>
+									<Input
+										id="action"
+										placeholder="例如: read, write, delete"
+										value={newPermission.action}
+										onChange={(e) =>
+											setNewPermission({
+												...newPermission,
+												action: e.target.value,
+											})
+										}
+									/>
+									<p className="text-xs text-muted-foreground">
+										允许的操作类型
+									</p>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="description">描述</Label>
+									<Textarea
+										id="description"
+										placeholder="权限的详细描述..."
+										value={newPermission.description}
+										onChange={(e) =>
+											setNewPermission({
+												...newPermission,
+												description: e.target.value,
+											})
+										}
+									/>
+								</div>
+							</div>
+							<DialogFooter>
+								<Button
+									variant="outline"
+									onClick={() => setShowAddPermissionDialog(false)}
+								>
+									取消
+								</Button>
+								<Button onClick={handleAddPermission}>添加</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+
+					{/* 编辑权限对话框 */}
+					<Dialog
+						open={showEditPermissionDialog}
+						onOpenChange={setShowEditPermissionDialog}
+					>
+						<DialogContent>
+							<DialogHeader>
+								<DialogTitle>编辑权限</DialogTitle>
+								<DialogDescription>修改权限的描述信息</DialogDescription>
+							</DialogHeader>
+							<div className="space-y-4">
+								<div className="space-y-2">
+									<Label>资源类型</Label>
+									<Input
+										value={selectedPermission?.resource || ""}
+										disabled
+										className="bg-muted"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label>操作</Label>
+									<Input
+										value={selectedPermission?.action || ""}
+										disabled
+										className="bg-muted"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="edit-description">描述 *</Label>
+									<Textarea
+										id="edit-description"
+										placeholder="权限的详细描述..."
+										value={newPermission.description}
+										onChange={(e) =>
+											setNewPermission({
+												...newPermission,
+												description: e.target.value,
+											})
+										}
+									/>
+								</div>
+							</div>
+							<DialogFooter>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setShowEditPermissionDialog(false);
+										setSelectedPermission(null);
+										setNewPermission({
+											resource: "",
+											action: "",
+											description: "",
+										});
+									}}
+								>
+									取消
+								</Button>
+								<Button onClick={handleUpdatePermission}>保存</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+
+					{/* 编辑角色权限对话框 */}
+					<Dialog
+						open={showEditRoleDialog}
+						onOpenChange={setShowEditRoleDialog}
+					>
+						<DialogContent className="max-w-2xl">
+							<DialogHeader>
+								<DialogTitle>编辑角色权限: {selectedRole?.name}</DialogTitle>
+								<DialogDescription>选择或取消该角色的权限</DialogDescription>
+							</DialogHeader>
+							<div className="max-h-96 overflow-y-auto space-y-2">
+								{permissions.map((permission) => {
+									const hasPermission = selectedRole?.permissions?.some(
+										(p) => p.id === permission.id,
+									);
+									return (
+										<div
+											key={permission.id}
+											className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+										>
+											<Checkbox
+												id={permission.id}
+												checked={hasPermission}
+												onCheckedChange={() =>
+													selectedRole &&
+													handleToggleRolePermission(
+														selectedRole.id,
+														permission.id,
+														hasPermission || false,
+													)
+												}
+											/>
+											<div className="flex-1 space-y-1">
+												<Label
+													htmlFor={permission.id}
+													className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+												>
+													<Badge variant="outline" className="mr-2">
+														{permission.resource}
+													</Badge>
+													<Badge variant="secondary">{permission.action}</Badge>
+												</Label>
+												{permission.description && (
 													<p className="text-sm text-muted-foreground">
-														无特殊权限
+														{permission.description}
 													</p>
 												)}
 											</div>
 										</div>
-									</CardContent>
-								</Card>
-							))}
-						</div>
-					</TabsContent>
-
-					{/* 权限列表标签 */}
-					<TabsContent value="permissions">
-						<Card>
-							<CardHeader className="flex flex-row items-center justify-between">
-								<div>
-									<CardTitle>系统权限</CardTitle>
-									<CardDescription>
-										共 {permissions.length} 项权限
-									</CardDescription>
-								</div>
-								<Button onClick={() => setShowAddPermissionDialog(true)}>
-									<Plus className="h-4 w-4 mr-2" />
-									添加权限
+									);
+								})}
+							</div>
+							<DialogFooter>
+								<Button onClick={() => setShowEditRoleDialog(false)}>
+									完成
 								</Button>
-							</CardHeader>
-							<CardContent>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>权限ID</TableHead>
-											<TableHead>资源</TableHead>
-											<TableHead>操作</TableHead>
-											<TableHead>描述</TableHead>
-											<TableHead className="w-24">操作</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{permissions.map((perm) => (
-											<TableRow key={perm.id}>
-												<TableCell className="font-mono text-xs">
-													{perm.id}
-												</TableCell>
-												<TableCell>
-													<Badge variant="outline">{perm.resource}</Badge>
-												</TableCell>
-												<TableCell>
-													<Badge variant="secondary">{perm.action}</Badge>
-												</TableCell>
-												<TableCell>{perm.description}</TableCell>
-												<TableCell>
-													<Button
-														size="sm"
-														variant="ghost"
-														onClick={() => handleEditPermission(perm)}
-													>
-														编辑
-													</Button>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							</CardContent>
-						</Card>
-					</TabsContent>
-				</Tabs>
-
-				{/* 添加权限对话框 */}
-				<Dialog
-					open={showAddPermissionDialog}
-					onOpenChange={setShowAddPermissionDialog}
-				>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>添加新权限</DialogTitle>
-							<DialogDescription>创建一个新的系统权限</DialogDescription>
-						</DialogHeader>
-						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="resource">资源类型 *</Label>
-								<Input
-									id="resource"
-									placeholder="例如: tool, category, user"
-									value={newPermission.resource}
-									onChange={(e) =>
-										setNewPermission({
-											...newPermission,
-											resource: e.target.value,
-										})
-									}
-								/>
-								<p className="text-xs text-muted-foreground">
-									权限控制的资源类型
-								</p>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="action">操作 *</Label>
-								<Input
-									id="action"
-									placeholder="例如: read, write, delete"
-									value={newPermission.action}
-									onChange={(e) =>
-										setNewPermission({
-											...newPermission,
-											action: e.target.value,
-										})
-									}
-								/>
-								<p className="text-xs text-muted-foreground">允许的操作类型</p>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="description">描述</Label>
-								<Textarea
-									id="description"
-									placeholder="权限的详细描述..."
-									value={newPermission.description}
-									onChange={(e) =>
-										setNewPermission({
-											...newPermission,
-											description: e.target.value,
-										})
-									}
-								/>
-							</div>
-						</div>
-						<DialogFooter>
-							<Button
-								variant="outline"
-								onClick={() => setShowAddPermissionDialog(false)}
-							>
-								取消
-							</Button>
-							<Button onClick={handleAddPermission}>添加</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
-
-				{/* 编辑权限对话框 */}
-				<Dialog
-					open={showEditPermissionDialog}
-					onOpenChange={setShowEditPermissionDialog}
-				>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>编辑权限</DialogTitle>
-							<DialogDescription>修改权限的描述信息</DialogDescription>
-						</DialogHeader>
-						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label>资源类型</Label>
-								<Input
-									value={selectedPermission?.resource || ""}
-									disabled
-									className="bg-muted"
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label>操作</Label>
-								<Input
-									value={selectedPermission?.action || ""}
-									disabled
-									className="bg-muted"
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="edit-description">描述 *</Label>
-								<Textarea
-									id="edit-description"
-									placeholder="权限的详细描述..."
-									value={newPermission.description}
-									onChange={(e) =>
-										setNewPermission({
-											...newPermission,
-											description: e.target.value,
-										})
-									}
-								/>
-							</div>
-						</div>
-						<DialogFooter>
-							<Button
-								variant="outline"
-								onClick={() => {
-									setShowEditPermissionDialog(false);
-									setSelectedPermission(null);
-									setNewPermission({
-										resource: "",
-										action: "",
-										description: "",
-									});
-								}}
-							>
-								取消
-							</Button>
-							<Button onClick={handleUpdatePermission}>保存</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
-
-				{/* 编辑角色权限对话框 */}
-				<Dialog open={showEditRoleDialog} onOpenChange={setShowEditRoleDialog}>
-					<DialogContent className="max-w-2xl">
-						<DialogHeader>
-							<DialogTitle>编辑角色权限: {selectedRole?.name}</DialogTitle>
-							<DialogDescription>选择或取消该角色的权限</DialogDescription>
-						</DialogHeader>
-						<div className="max-h-96 overflow-y-auto space-y-2">
-							{permissions.map((permission) => {
-								const hasPermission = selectedRole?.permissions?.some(
-									(p) => p.id === permission.id,
-								);
-								return (
-									<div
-										key={permission.id}
-										className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-									>
-										<Checkbox
-											id={permission.id}
-											checked={hasPermission}
-											onCheckedChange={() =>
-												selectedRole &&
-												handleToggleRolePermission(
-													selectedRole.id,
-													permission.id,
-													hasPermission || false,
-												)
-											}
-										/>
-										<div className="flex-1 space-y-1">
-											<Label
-												htmlFor={permission.id}
-												className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-											>
-												<Badge variant="outline" className="mr-2">
-													{permission.resource}
-												</Badge>
-												<Badge variant="secondary">{permission.action}</Badge>
-											</Label>
-											{permission.description && (
-												<p className="text-sm text-muted-foreground">
-													{permission.description}
-												</p>
-											)}
-										</div>
-									</div>
-								);
-							})}
-						</div>
-						<DialogFooter>
-							<Button onClick={() => setShowEditRoleDialog(false)}>完成</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+				</div>
 			</div>
-		</div>
 		</ProtectedRoute>
 	);
 }
