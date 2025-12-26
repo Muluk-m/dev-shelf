@@ -68,10 +68,10 @@ export function ConfigFieldsCard({ configV3Data }: ConfigFieldsCardProps) {
 		return (
 			<div
 				key={field}
-				className="flex items-center gap-3 py-1.5 min-w-0 w-full"
+				className="flex items-center gap-1.5 py-1.5 min-w-0 w-full"
 			>
 				<span
-					className={`text-xs flex-shrink-0 min-w-[80px] ${
+					className={`text-xs flex-shrink-0 ${
 						isPrimary
 							? "font-semibold text-foreground"
 							: "text-muted-foreground"
