@@ -70,7 +70,7 @@ export default function Home() {
 				.filter(
 					(item): item is { tool: Tool; usageCount: number } => item !== null,
 				)
-				.slice(0, 4);
+				.slice(0, 10);
 			if (withUsage.length > 0) {
 				return withUsage;
 			}
@@ -84,7 +84,7 @@ export default function Home() {
 				const bScore = (b.isInternal ? 1 : 0) * 100 + bUpdated;
 				return bScore - aScore;
 			})
-			.slice(0, 4)
+			.slice(0, 10)
 			.map((tool) => ({ tool, usageCount: 0 }));
 
 		return fallback;
@@ -129,7 +129,7 @@ export default function Home() {
 								</p>
 							</div>
 						</div>
-						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+						<div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
 							{recommendedTools.map(({ tool, usageCount }) => (
 								<button
 									key={tool.id}
