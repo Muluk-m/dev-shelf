@@ -47,7 +47,11 @@ interface LoginResponse {
 interface BusinessLine {
 	id: string;
 	name: string;
-	apiBaseUrl: string;
+	apiConfig: {
+		url: string;
+		method: "GET" | "POST";
+		getParams: (email: string, environment: string) => Record<string, unknown>;
+	};
 	loginUrlTemplate: string; // 使用 {environment} 作为占位符
 	environments: Array<{ value: string; label: string }>;
 }
@@ -56,7 +60,11 @@ const BUSINESS_LINES: BusinessLine[] = [
 	{
 		id: "roibest",
 		name: "ROIBest",
-		apiBaseUrl: "https://hook-admin-stg.roibest.com",
+		apiConfig: {
+			url: "https://hook-admin-stg.roibest.com/index/account/email_auth_login",
+			method: "GET",
+			getParams: (email) => ({ email }),
+		},
 		loginUrlTemplate: "https://mis-{environment}.qiliangjia.one/#/login",
 		environments: [
 			{ value: "stg", label: "测试环境 (stg)" },
@@ -64,14 +72,27 @@ const BUSINESS_LINES: BusinessLine[] = [
 			{ value: "test-2", label: "测试环境 (test-2)" },
 		],
 	},
-	// 未来可以在这里添加更多业务线
-	// {
-	//   id: "other-business",
-	//   name: "其他业务",
-	//   apiBaseUrl: "https://api.other.com",
-	//   loginUrlTemplate: "https://app-{environment}.other.com/login",
-	//   environments: [...]
-	// },
+	{
+		id: "deepclick",
+		name: "DeepClick",
+		apiConfig: {
+			url: "https://console-api-test.deepclick.com/api/console/account/register_by_captcha",
+			method: "POST",
+			getParams: (email) => ({
+				captcha_code: "Hmo2FGG",
+				email: email,
+				register_from: 0,
+			}),
+		},
+		loginUrlTemplate:
+			"https://console-{environment}-deepclick.qiliangjia.one/login",
+		environments: [
+			{ value: "test", label: "测试环境 (test)" },
+			{ value: "test-1", label: "测试环境 (test-1)" },
+			{ value: "test-2", label: "测试环境 (test-2)" },
+			{ value: "test-3", label: "测试环境 (test-3)" },
+		],
+	},
 ];
 
 // 登录模式
@@ -210,10 +231,28 @@ export default function QuickLoginPage() {
 		setLoginUrl(null);
 
 		try {
-			// 使用当前业务线的 API URL
-			const response = await fetch(
-				`${currentBusinessLine.apiBaseUrl}/index/account/email_auth_login?email=${encodeURIComponent(email)}`,
-			);
+			// 使用当前业务线的 API 配置
+			const { apiConfig } = currentBusinessLine;
+			const requestParams = apiConfig.getParams(email, environment);
+
+			let response: Response;
+
+			if (apiConfig.method === "GET") {
+				// GET 请求：参数拼接到 URL
+				const queryParams = new URLSearchParams(
+					requestParams as Record<string, string>,
+				);
+				response = await fetch(`${apiConfig.url}?${queryParams.toString()}`);
+			} else {
+				// POST 请求：参数放在 body
+				response = await fetch(apiConfig.url, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(requestParams),
+				});
+			}
 
 			if (!response.ok) {
 				throw new Error(`请求失败: ${response.status} ${response.statusText}`);
@@ -232,9 +271,12 @@ export default function QuickLoginPage() {
 			// 构建登录链接，使用当前业务线的登录 URL 模板
 			const params = new URLSearchParams({
 				token: result.data.token,
-				account: result.data.account,
-				merchant_no: result.data.merchant_no.toString(),
 			});
+
+			if (currentBusinessLine.id === "roibest") {
+				params.set("email", email);
+				params.set("merchant_no", result.data.merchant_no.toString());
+			}
 
 			const targetUrl = currentBusinessLine.loginUrlTemplate.replace(
 				"{environment}",
