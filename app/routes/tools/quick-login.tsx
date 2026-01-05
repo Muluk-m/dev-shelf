@@ -274,7 +274,7 @@ export default function QuickLoginPage() {
 			});
 
 			if (currentBusinessLine.id === "roibest") {
-				params.set("email", email);
+				params.set("account", email);
 				params.set("merchant_no", result.data.merchant_no.toString());
 			}
 
