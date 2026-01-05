@@ -334,6 +334,8 @@ export async function deleteTool(db: D1Database, id: string, context?: CacheCont
   try {
     // 开始事务
     await db.batch([
+      // 删除使用记录
+      db.prepare(`DELETE FROM tool_usage_events WHERE tool_id = ?`).bind(id),
       // 删除环境信息
       db.prepare(`DELETE FROM tool_environments WHERE tool_id = ?`).bind(id),
       // 删除标签信息
