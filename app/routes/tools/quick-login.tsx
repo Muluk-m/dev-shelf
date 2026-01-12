@@ -67,7 +67,7 @@ const BUSINESS_LINES: BusinessLine[] = [
 		},
 		loginUrlTemplate: "https://mis-{environment}.qiliangjia.one/#/login",
 		environments: [
-			{ value: "stg", label: "测试环境 (stg)" },
+			{ value: "test", label: "测试环境 (test)" },
 			{ value: "test-1", label: "测试环境 (test-1)" },
 			{ value: "test-2", label: "测试环境 (test-2)" },
 		],
