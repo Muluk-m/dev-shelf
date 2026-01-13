@@ -74,7 +74,7 @@ export default function AdminPage() {
 				const [allTools, toolCategories, usageSummary] = await Promise.all([
 					getTools(),
 					getToolCategories(),
-					getToolUsageStats(8),
+					getToolUsageStats(16),
 				]);
 				setCategories(toolCategories);
 				setTools(allTools);
@@ -97,7 +97,7 @@ export default function AdminPage() {
 			const [updatedTools, toolCategories, usageSummary] = await Promise.all([
 				getTools(),
 				getToolCategories(),
-				getToolUsageStats(8),
+				getToolUsageStats(16),
 			]);
 			setCategories(toolCategories);
 			setTools(updatedTools);
@@ -127,7 +127,7 @@ export default function AdminPage() {
 			const [updatedTools, toolCategories, usageSummary] = await Promise.all([
 				getTools(),
 				getToolCategories(),
-				getToolUsageStats(8),
+				getToolUsageStats(16),
 			]);
 			setCategories(toolCategories);
 			setTools(updatedTools);
@@ -152,12 +152,12 @@ export default function AdminPage() {
 			const [updatedTools, toolCategories, usageSummary] = await Promise.all([
 				getTools(),
 				getToolCategories(),
-				getToolUsageStats(8),
+				getToolUsageStats(16),
 			]);
 			setCategories(toolCategories);
 			setTools(updatedTools);
 			setUsageStats(usageSummary);
-			setUsageStats(await getToolUsageStats(8));
+			setUsageStats(await getToolUsageStats(16));
 		} catch (error) {
 			console.error("Failed to delete tool:", error);
 			alert(`Failed to delete tool: ${(error as Error).message}`);
@@ -178,7 +178,7 @@ export default function AdminPage() {
 			await createCategory(categoryData);
 			// Reload data after successful creation
 			const [updatedTools, updatedCategories, usageSummary] = await Promise.all(
-				[getTools(), getToolCategories(), getToolUsageStats(8)],
+				[getTools(), getToolCategories(), getToolUsageStats(16)],
 			);
 			setTools(updatedTools);
 			setCategories(updatedCategories);
@@ -207,7 +207,7 @@ export default function AdminPage() {
 			await updateCategory(editingCategory.id, categoryData);
 			// Reload data after successful update
 			const [updatedTools, updatedCategories, usageSummary] = await Promise.all(
-				[getTools(), getToolCategories(), getToolUsageStats(8)],
+				[getTools(), getToolCategories(), getToolUsageStats(16)],
 			);
 			setTools(updatedTools);
 			setCategories(updatedCategories);
@@ -228,7 +228,7 @@ export default function AdminPage() {
 			await deleteCategory(categoryId);
 			// Reload data after successful deletion
 			const [updatedTools, updatedCategories, usageSummary] = await Promise.all(
-				[getTools(), getToolCategories(), getToolUsageStats(8)],
+				[getTools(), getToolCategories(), getToolUsageStats(16)],
 			);
 			setTools(updatedTools);
 			setCategories(updatedCategories);
