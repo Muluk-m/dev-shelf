@@ -7,13 +7,21 @@ import {
 	Globe,
 	Link2,
 	Plus,
+	QrCode,
 	RefreshCw,
 	Trash2,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
@@ -335,6 +343,7 @@ const URLAnalyzer = ({
 		Array<{ key: string; value: string }>
 	>([]);
 	const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
+	const [showQrCode, setShowQrCode] = useState(false);
 
 	const parseURL = (urlString: string) => {
 		try {
@@ -451,9 +460,21 @@ const URLAnalyzer = ({
 			{/* 输入框 */}
 			<Card>
 				<CardContent className="pt-3">
-					<div className="mb-2 text-sm flex items-center gap-2 text-muted-foreground">
-						<Globe className="h-4 w-4" />
-						Your url to parse:
+					<div className="mb-2 text-sm flex items-center justify-between">
+						<div className="flex items-center gap-2 text-muted-foreground">
+							<Globe className="h-4 w-4" />
+							Your url to parse:
+						</div>
+						<Button
+							size="sm"
+							variant="outline"
+							className="h-7 text-xs gap-1"
+							onClick={() => setShowQrCode(true)}
+							disabled={!inputUrl.trim()}
+						>
+							<QrCode className="h-3.5 w-3.5" />
+							生成二维码
+						</Button>
 					</div>
 					<Textarea
 						className="font-mono text-sm resize-none h-12"
@@ -465,6 +486,87 @@ const URLAnalyzer = ({
 					/>
 				</CardContent>
 			</Card>
+
+			{/* 二维码对话框 */}
+			<Dialog open={showQrCode} onOpenChange={setShowQrCode}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<QrCode className="h-5 w-5" />
+							URL 二维码
+						</DialogTitle>
+					</DialogHeader>
+					<div className="flex flex-col items-center gap-4 py-4">
+						{/* 二维码显示 */}
+						<div className="p-4 bg-white rounded-lg border-2 border-gray-200">
+							<QRCodeSVG
+								value={inputUrl}
+								size={240}
+								level="M"
+								includeMargin={false}
+								className="qr-code-svg"
+							/>
+						</div>
+						{/* URL 显示 */}
+						<div className="w-full">
+							<div className="text-xs text-muted-foreground mb-1">URL:</div>
+							<div className="font-mono text-xs break-all p-2 bg-muted/30 rounded border max-h-20 overflow-y-auto">
+								{inputUrl}
+							</div>
+						</div>
+						{/* 操作按钮 */}
+						<div className="flex gap-2 w-full">
+							<Button
+								variant="outline"
+								className="flex-1 text-xs"
+								onClick={() => {
+									const canvas = document.createElement("canvas");
+									const qrSvg = document.querySelector(
+										".qr-code-svg",
+									) as SVGElement;
+									if (qrSvg) {
+										const svgData = new XMLSerializer().serializeToString(
+											qrSvg,
+										);
+										const img = new Image();
+										img.onload = () => {
+											canvas.width = img.width;
+											canvas.height = img.height;
+											const ctx = canvas.getContext("2d");
+											if (ctx) {
+												ctx.fillStyle = "white";
+												ctx.fillRect(0, 0, canvas.width, canvas.height);
+												ctx.drawImage(img, 0, 0);
+												canvas.toBlob((blob) => {
+													if (blob) {
+														const url = URL.createObjectURL(blob);
+														const a = document.createElement("a");
+														a.href = url;
+														a.download = "qrcode.png";
+														a.click();
+														URL.revokeObjectURL(url);
+														toast.success("二维码已下载");
+													}
+												});
+											}
+										};
+										img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
+									}
+								}}
+							>
+								下载二维码
+							</Button>
+							<Button
+								variant="default"
+								className="flex-1 text-xs"
+								onClick={() => setShowQrCode(false)}
+							>
+								关闭
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
 
 			{/* 基本字段 */}
 			<Card>
