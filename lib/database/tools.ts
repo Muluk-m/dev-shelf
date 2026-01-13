@@ -456,7 +456,7 @@ export async function getToolUsageStats(
     FROM tools t
     LEFT JOIN tool_usage_events u ON t.id = u.tool_id
     GROUP BY t.id, t.name, t.category, t.status, t.is_internal
-    ORDER BY usage_count DESC, last_used DESC
+    ORDER BY last_used IS NULL, last_used DESC, usage_count DESC
     LIMIT ?
   `;
   const result = await db.prepare(query).bind(limit).all();
