@@ -1,5 +1,6 @@
-import { Check, Copy, RefreshCw, Repeat } from "lucide-react";
+import { Check, Copy, Link, RefreshCw, Repeat } from "lucide-react";
 import { useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
@@ -96,14 +97,11 @@ export default function URLEncoderPage() {
 		<div className="bg-background flex flex-col">
 			<main className="container mx-auto px-4 py-4 flex-1 flex flex-col overflow-hidden">
 				<div className="max-w-7xl mx-auto flex flex-col h-full space-y-3">
-					{/* 页面标题 - 紧凑版 */}
-					<div className="text-center">
-						<h1 className="text-2xl font-bold">URL 编解码工具</h1>
-						<p className="text-sm text-muted-foreground">
-							支持 URL 编码/解码、encodeURI 和 encodeURIComponent
-							两种模式，处理特殊字符和中文。
-						</p>
-					</div>
+					<ToolPageHeader
+						icon={<Link className="h-5 w-5" />}
+						title="URL 编解码工具"
+						description="支持 URL 编码/解码、encodeURI 和 encodeURIComponent 两种模式，处理特殊字符和中文"
+					/>
 
 					<Card className="flex-1 flex flex-col min-h-0">
 						<CardHeader className="pb-3">

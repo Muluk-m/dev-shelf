@@ -14,6 +14,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import {
@@ -651,42 +652,33 @@ export default function URLParserPage() {
 			<main className="container mx-auto px-4 py-3 flex-1 flex flex-col overflow-hidden">
 				<div className="max-w-7xl mx-auto flex flex-col h-full space-y-3 w-full">
 					{/* 标题和模式切换 */}
-					<div className="text-center flex-shrink-0">
-						<div className="flex items-center justify-center gap-2 mb-1">
-							<div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
-								<Link2 className="h-5 w-5" />
+					<ToolPageHeader
+						icon={<Link2 className="h-5 w-5" />}
+						title="URL分析器"
+						description="可视化、编辑、分析和比较 URL，支持编辑参数值并生成新URL"
+						actions={
+							<div className="flex items-center gap-2">
+								<span
+									className={`text-sm font-medium transition-colors ${
+										!compareMode ? "text-primary" : "text-muted-foreground"
+									}`}
+								>
+									单URL模式
+								</span>
+								<Switch
+									checked={compareMode}
+									onCheckedChange={setCompareMode}
+								/>
+								<span
+									className={`text-sm font-medium transition-colors ${
+										compareMode ? "text-primary" : "text-muted-foreground"
+									}`}
+								>
+									对比模式
+								</span>
 							</div>
-							<h1 className="text-xl font-bold">URL分析器</h1>
-						</div>
-						<p className="text-xs text-muted-foreground">
-							可视化、编辑、分析和比较 URL，支持编辑参数值并生成新URL
-						</p>
-						<div className="flex items-center justify-center gap-2 mt-3">
-							<span
-								className={`text-sm font-medium transition-colors ${
-									!compareMode
-										? "text-blue-600 dark:text-blue-400"
-										: "text-muted-foreground"
-								}`}
-							>
-								单URL模式
-							</span>
-							<Switch
-								checked={compareMode}
-								onCheckedChange={setCompareMode}
-								className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300 dark:data-[state=unchecked]:bg-gray-600"
-							/>
-							<span
-								className={`text-sm font-medium transition-colors ${
-									compareMode
-										? "text-blue-600 dark:text-blue-400"
-										: "text-muted-foreground"
-								}`}
-							>
-								对比模式
-							</span>
-						</div>
-					</div>
+						}
+					/>
 
 					{/* URL分析器 */}
 					<div

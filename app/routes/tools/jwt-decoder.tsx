@@ -1,5 +1,6 @@
-import { BadgeCheck, Clipboard, ShieldAlert } from "lucide-react";
+import { BadgeCheck, Clipboard, KeyRound, ShieldAlert } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import {
@@ -103,13 +104,11 @@ export default function JwtDecoderPage() {
 			<div className="w-full flex-1 flex">
 				<div className="mx-auto w-full px-4 py-6">
 					<div className="mx-auto w-full max-w-[680px] sm:max-w-[720px] md:max-w-[860px] lg:max-w-[920px] xl:max-w-[980px] 2xl:max-w-[1100px]">
-						<div className="text-center mb-4">
-							<h1 className="text-2xl font-bold">JWT parser</h1>
-							<p className="text-sm text-muted-foreground">
-								Parse and decode your JSON Web Token (jwt) and display its
-								content.
-							</p>
-						</div>
+						<ToolPageHeader
+							icon={<KeyRound className="h-5 w-5" />}
+							title="JWT Parser"
+							description="Parse and decode your JSON Web Token (JWT) and display its content"
+						/>
 
 						<Card className="mb-4">
 							<CardContent className="pt-4">

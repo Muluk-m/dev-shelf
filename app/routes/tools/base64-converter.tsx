@@ -1,5 +1,6 @@
-import { Check, Copy, RefreshCw, Repeat } from "lucide-react";
+import { Binary, Check, Copy, RefreshCw, Repeat } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -113,13 +114,11 @@ export default function Base64ConverterPage() {
 		<div className="bg-background flex flex-col">
 			<main className="container mx-auto px-4 py-4 flex-1 flex flex-col overflow-hidden">
 				<div className="max-w-7xl mx-auto flex flex-col h-full space-y-3">
-					{/* 页面标题 - 紧凑版 */}
-					<div className="text-center">
-						<h1 className="text-2xl font-bold">Base64 编解码工具</h1>
-						<p className="text-sm text-muted-foreground">
-							支持文本编码/解码、按列换行以及结果一键复制，方便处理日志和令牌。
-						</p>
-					</div>
+					<ToolPageHeader
+						icon={<Binary className="h-5 w-5" />}
+						title="Base64 编解码工具"
+						description="支持文本编码/解码、按列换行以及结果一键复制，方便处理日志和令牌"
+					/>
 
 					<Card className="flex-1 flex flex-col min-h-0">
 						<CardHeader className="pb-3">

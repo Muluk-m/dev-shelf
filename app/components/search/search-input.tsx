@@ -1,10 +1,7 @@
-import { Clock, Search, TrendingUp, X } from "lucide-react";
+import { Clock, Search, Sparkles, TrendingUp, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Separator } from "~/components/ui/separator";
 import { cn } from "~/lib/utils";
 
 interface SearchInputProps {
@@ -27,6 +24,7 @@ export function SearchInput({
 	className,
 }: SearchInputProps) {
 	const [isOpen, setIsOpen] = useState(false);
+	const [isFocused, setIsFocused] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -111,49 +109,78 @@ export function SearchInput({
 
 	return (
 		<div ref={containerRef} className={cn("relative", className)}>
-			<div className="relative">
-				<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-				<Input
+			{/* Search Input Container */}
+			<div
+				className={cn(
+					"relative flex items-center rounded-xl transition-all duration-200",
+					"bg-secondary/50 border border-transparent",
+					isFocused &&
+						"bg-background border-primary/30 shadow-sm ring-2 ring-primary/10",
+				)}
+			>
+				<Search
+					className={cn(
+						"absolute left-3 h-4 w-4 transition-colors",
+						isFocused ? "text-primary" : "text-muted-foreground",
+					)}
+				/>
+				<input
 					ref={inputRef}
 					value={value}
 					onChange={handleInputChange}
 					onKeyDown={handleKeyDown}
-					onFocus={() => setIsOpen(true)}
+					onFocus={() => {
+						setIsOpen(true);
+						setIsFocused(true);
+					}}
+					onBlur={() => setIsFocused(false)}
 					placeholder={placeholder}
-					className="pl-10 pr-10"
+					className={cn(
+						"w-full bg-transparent py-2 pl-10 pr-10 text-sm",
+						"placeholder:text-muted-foreground focus:outline-none",
+					)}
 				/>
 				{value && (
 					<Button
 						variant="ghost"
 						size="sm"
 						onClick={handleClear}
-						className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0 hover:bg-transparent"
+						className="absolute right-1 h-7 w-7 p-0 hover:bg-muted rounded-lg"
 					>
 						<X className="h-4 w-4" />
 					</Button>
 				)}
 			</div>
 
+			{/* Suggestions Dropdown */}
 			{showSuggestions && (
-				<Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-y-auto">
-					<CardContent className="p-2">
+				<div
+					className={cn(
+						"absolute top-full left-0 right-0 z-50 mt-2",
+						"bg-popover border border-border rounded-xl shadow-xl shadow-black/10",
+						"overflow-hidden animate-scale-in",
+					)}
+				>
+					<div className="p-2 max-h-80 overflow-y-auto">
 						{suggestions.length > 0 && (
 							<div className="space-y-1">
-								<div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground">
-									<TrendingUp className="h-3 w-3" />
+								<div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+									<Sparkles className="h-3 w-3" />
 									搜索建议
 								</div>
 								{suggestions.map((suggestion, index) => (
 									<button
-										key={`suggestion-${index}`}
+										key={`suggestion-${suggestion}-${index}`}
+										type="button"
 										onClick={() => handleSuggestionClick(suggestion)}
 										className={cn(
-											"w-full text-left px-2 py-2 rounded-md text-sm hover:bg-muted transition-colors",
-											selectedIndex === index && "bg-muted",
+											"w-full text-left px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer",
+											"hover:bg-accent",
+											selectedIndex === index && "bg-accent",
 										)}
 									>
 										<div className="flex items-center gap-2">
-											<Search className="h-3 w-3 text-muted-foreground" />
+											<Search className="h-3.5 w-3.5 text-muted-foreground" />
 											<span>{suggestion}</span>
 										</div>
 									</button>
@@ -162,35 +189,37 @@ export function SearchInput({
 						)}
 
 						{suggestions.length > 0 && searchHistory.length > 0 && (
-							<Separator className="my-2" />
+							<div className="h-px bg-border my-2" />
 						)}
 
 						{searchHistory.length > 0 && (
 							<div className="space-y-1">
-								<div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground">
+								<div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground">
 									<Clock className="h-3 w-3" />
-									搜索历史
+									最近搜索
 								</div>
 								{searchHistory.slice(0, 5).map((item, index) => (
 									<button
-										key={`history-${index}`}
+										key={`history-${item}-${index}`}
+										type="button"
 										onClick={() => handleSuggestionClick(item)}
 										className={cn(
-											"w-full text-left px-2 py-2 rounded-md text-sm hover:bg-muted transition-colors",
+											"w-full text-left px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer",
+											"hover:bg-accent",
 											selectedIndex === suggestions.length + index &&
-												"bg-muted",
+												"bg-accent",
 										)}
 									>
 										<div className="flex items-center gap-2">
-											<Clock className="h-3 w-3 text-muted-foreground" />
+											<Clock className="h-3.5 w-3.5 text-muted-foreground" />
 											<span>{item}</span>
 										</div>
 									</button>
 								))}
 							</div>
 						)}
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 			)}
 		</div>
 	);

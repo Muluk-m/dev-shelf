@@ -1,9 +1,8 @@
 import * as LucideIcons from "lucide-react";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
+import { useRef, useState } from "react";
+import { cn } from "~/lib/utils";
 import type { ToolCategory } from "~/types/tool";
 
-// 动态获取图标组件
 const getIconComponent = (iconName: string) => {
 	const IconComponent = (LucideIcons as any)[iconName];
 	return IconComponent || LucideIcons.Code;
@@ -22,66 +21,112 @@ export function CategoryFilter({
 	onCategoryChange,
 	toolCounts,
 }: CategoryFilterProps) {
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const totalCount = Object.values(toolCounts).reduce(
+		(sum, count) => sum + count,
+		0,
+	);
+
 	return (
-		<div className="flex flex-wrap gap-2 mb-8">
-			<Button
-				variant={selectedCategory === null ? "default" : "outline"}
-				size="sm"
-				onClick={() => onCategoryChange(null)}
-				className="gap-2"
+		<div className="relative">
+			{/* Scrollable Pills Container */}
+			<div
+				ref={scrollRef}
+				className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+				style={{
+					scrollbarWidth: "none",
+					msOverflowStyle: "none",
+				}}
 			>
-				<LucideIcons.Grid3X3 className="h-4 w-4" />
-				全部工具
-				<Badge variant="secondary" className="ml-1">
-					{Object.values(toolCounts).reduce((sum, count) => sum + count, 0)}
-				</Badge>
-			</Button>
-
-			{categories.map((category) => {
-				const IconComponent = getIconComponent(category.icon);
-				const isSelected = selectedCategory === category.id;
-				const count = toolCounts[category.id] || 0;
-
-				return (
-					<Button
-						key={category.id}
-						variant={isSelected ? "default" : "outline"}
-						size="sm"
-						onClick={() => onCategoryChange(category.id)}
-						className="gap-2"
-						style={
-							isSelected
-								? {
-										backgroundColor: category.color,
-										borderColor: category.color,
-										color: "white",
-									}
-								: {
-										borderColor: `${category.color}40`,
-									}
-						}
+				{/* All Tools Pill */}
+				<button
+					type="button"
+					onClick={() => onCategoryChange(null)}
+					className={cn(
+						"flex-shrink-0 inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl",
+						"text-sm font-medium transition-all duration-200 cursor-pointer",
+						"border border-transparent",
+						selectedCategory === null
+							? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+							: "bg-secondary/50 text-secondary-foreground hover:bg-secondary hover:border-border",
+					)}
+				>
+					<LucideIcons.LayoutGrid className="h-4 w-4" />
+					<span>全部</span>
+					<span
+						className={cn(
+							"inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-md text-xs font-semibold",
+							selectedCategory === null
+								? "bg-white/20 text-primary-foreground"
+								: "bg-muted text-muted-foreground",
+						)}
 					>
-						<IconComponent
-							className="h-4 w-4"
-							style={
-								isSelected ? { color: "white" } : { color: category.color }
-							}
-						/>
-						{category.name}
-						<Badge
-							variant="secondary"
-							className="ml-1"
+						{totalCount}
+					</span>
+				</button>
+
+				{/* Category Pills */}
+				{categories.map((category) => {
+					const IconComponent = getIconComponent(category.icon);
+					const isSelected = selectedCategory === category.id;
+					const count = toolCounts[category.id] || 0;
+
+					return (
+						<button
+							key={category.id}
+							type="button"
+							onClick={() => onCategoryChange(category.id)}
+							className={cn(
+								"flex-shrink-0 inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl",
+								"text-sm font-medium transition-all duration-200 cursor-pointer",
+								"border",
+								isSelected
+									? "shadow-lg"
+									: "bg-secondary/50 text-secondary-foreground hover:bg-secondary border-transparent hover:border-border",
+							)}
 							style={
 								isSelected
-									? { backgroundColor: "rgba(255,255,255,0.2)", color: "white" }
-									: {}
+									? {
+											backgroundColor: category.color,
+											borderColor: category.color,
+											color: "white",
+											boxShadow: `0 10px 15px -3px ${category.color}40, 0 4px 6px -2px ${category.color}30`,
+										}
+									: undefined
 							}
 						>
-							{count}
-						</Badge>
-					</Button>
-				);
-			})}
+							<IconComponent
+								className="h-4 w-4 transition-colors"
+								style={{
+									color: isSelected ? "white" : category.color,
+								}}
+							/>
+							<span>{category.name}</span>
+							<span
+								className={cn(
+									"inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-md text-xs font-semibold transition-colors",
+									isSelected
+										? "bg-white/20 text-white"
+										: "bg-muted text-muted-foreground",
+								)}
+							>
+								{count}
+							</span>
+						</button>
+					);
+				})}
+			</div>
+
+			{/* Fade indicators for scroll */}
+			<div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent" />
+			<div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" />
+
+			{/* Hide scrollbar style */}
+			<style>{`
+				.scrollbar-hide::-webkit-scrollbar {
+					display: none;
+				}
+			`}</style>
 		</div>
 	);
 }

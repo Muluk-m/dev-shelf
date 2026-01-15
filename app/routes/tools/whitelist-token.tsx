@@ -1,5 +1,6 @@
 import { Copy, Info, Link, Loader2, Shield } from "lucide-react";
 import { useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -116,13 +117,11 @@ export default function WhitelistTokenPage() {
 		<div className="min-h-screen bg-background">
 			<main className="container mx-auto px-4 py-8 max-w-4xl">
 				<div className="mb-8">
-					<div className="flex items-center gap-3 mb-2">
-						<Shield className="w-8 h-8 text-primary" />
-						<h1 className="text-3xl font-bold">绿盾预览 Token 生成器</h1>
-					</div>
-					<p className="text-muted-foreground">
-						生成用于绿盾预览的临时访问令牌，支持自定义有效期和参数名
-					</p>
+					<ToolPageHeader
+						icon={<Shield className="h-5 w-5" />}
+						title="绿盾预览 Token 生成器"
+						description="生成用于绿盾预览的临时访问令牌，支持自定义有效期和参数名"
+					/>
 				</div>
 
 				<div className="space-y-6">

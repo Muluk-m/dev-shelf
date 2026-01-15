@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
 import { useEffect, useRef, useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -322,14 +323,12 @@ export default function QuickLoginPage() {
 			<div className="w-full flex-1 flex">
 				<div className="mx-auto w-full px-4 py-6">
 					<div className="mx-auto w-full max-w-[680px] sm:max-w-[720px] md:max-w-[860px]">
-						<div className="text-center mb-6">
-							<h1 className="text-2xl font-bold flex items-center justify-center gap-2">
-								<LogIn className="h-6 w-6" />
-								快捷登录工具
-							</h1>
-							<p className="text-sm text-muted-foreground mt-2">
-								输入邮箱地址，快速生成测试环境登录链接
-							</p>
+						<div className="mb-6">
+							<ToolPageHeader
+								icon={<LogIn className="h-5 w-5" />}
+								title="快捷登录工具"
+								description="输入邮箱地址，快速生成测试环境登录链接"
+							/>
 						</div>
 
 						<Card className="mb-4">

@@ -1,5 +1,7 @@
+import { Fingerprint } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { UAParser } from "ua-parser-js";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
@@ -100,13 +102,11 @@ export default function UAParserPage() {
 				<div className="mx-auto w-full px-4 py-6">
 					{/* 响应式居中内容区域宽度 */}
 					<div className="mx-auto w-full max-w-[680px] sm:max-w-[720px] md:max-w-[860px] lg:max-w-[920px] xl:max-w-[980px] 2xl:max-w-[1100px]">
-						<div className="text-center mb-4">
-							<h1 className="text-2xl font-bold">User-agent parser</h1>
-							<p className="text-sm text-muted-foreground">
-								Detect and parse Browser, Engine, OS, CPU, and Device type/model
-								from an user-agent string.
-							</p>
-						</div>
+						<ToolPageHeader
+							icon={<Fingerprint className="h-5 w-5" />}
+							title="User-Agent Parser"
+							description="Detect and parse Browser, Engine, OS, CPU, and Device type/model from a user-agent string"
+						/>
 
 						<Card className="mb-4">
 							<CardContent className="pt-4">

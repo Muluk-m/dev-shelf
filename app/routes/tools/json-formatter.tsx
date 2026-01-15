@@ -1,5 +1,6 @@
 import { JSONPath } from "jsonpath-plus";
 import {
+	Braces,
 	Copy,
 	Download,
 	Edit3,
@@ -11,6 +12,7 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -591,13 +593,11 @@ export default function JsonFormatterPage() {
 		<div className="bg-background flex flex-col">
 			<main className="container mx-auto px-4 py-4 flex-1 flex flex-col overflow-hidden">
 				<div className="max-w-7xl mx-auto flex flex-col h-full space-y-4 w-full">
-					{/* 页面标题 */}
-					<div className="text-center">
-						<h1 className="text-2xl font-bold">JSON 工具箱</h1>
-						<p className="text-sm text-muted-foreground">
-							格式化、查询、对比和可视化 JSON 数据
-						</p>
-					</div>
+					<ToolPageHeader
+						icon={<Braces className="h-5 w-5" />}
+						title="JSON 工具箱"
+						description="格式化、查询、对比和可视化 JSON 数据"
+					/>
 
 					{/* 主功能 Tabs */}
 					<Tabs

@@ -19,6 +19,7 @@ import { PwaInfoCard } from "~/components/pwa-link-health/pwa-info-card";
 import { ResourcesTable } from "~/components/pwa-link-health/resources-table";
 import { RoiBestWarningCard } from "~/components/pwa-link-health/roibest-warning-card";
 import { ScreenshotCard } from "~/components/pwa-link-health/screenshot-card";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -302,13 +303,11 @@ export default function PwaLinkHealth() {
 	return (
 		<div className="container mx-auto px-2">
 			<div className="mb-4">
-				<h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-					<Heart className="w-8 h-8" />
-					RoiBest Link Health Check
-				</h1>
-				<p className="text-muted-foreground">
-					分析 RoiBest 链接健康状态、业务信息和性能
-				</p>
+				<ToolPageHeader
+					icon={<Heart className="h-5 w-5" />}
+					title="RoiBest Link Health Check"
+					description="分析 RoiBest 链接健康状态、业务信息和性能"
+				/>
 			</div>
 
 			{/* Search Form */}

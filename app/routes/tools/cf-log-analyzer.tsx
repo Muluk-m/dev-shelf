@@ -15,6 +15,7 @@ import React, {
 	useState,
 } from "react";
 import { toast } from "sonner";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
 import {
 	Breadcrumb,
@@ -185,17 +186,11 @@ export default function CfLogAnalyzerPage() {
 
 	return (
 		<div className="space-y-6">
-			<Card>
-				<CardHeader className="flex flex-row items-start justify-between gap-4">
-					<div>
-						<CardTitle className="text-2xl font-semibold">
-							Cloudflare 日志分析
-						</CardTitle>
-						<CardDescription>
-							浏览存储在 R2 的 Cloudflare Logpush
-							文件，按条件过滤并快速查看请求详情。
-						</CardDescription>
-					</div>
+			<ToolPageHeader
+				icon={<BarChart3 className="h-5 w-5" />}
+				title="Cloudflare 日志分析"
+				description="浏览存储在 R2 的 Cloudflare Logpush 文件，按条件过滤并快速查看请求详情"
+				actions={
 					<Button
 						onClick={() => void handleListLogs()}
 						disabled={listLoading}
@@ -208,6 +203,18 @@ export default function CfLogAnalyzerPage() {
 						/>
 						刷新列表
 					</Button>
+				}
+			/>
+			<Card>
+				<CardHeader className="flex flex-row items-start justify-between gap-4">
+					<div>
+						<CardTitle className="text-lg font-semibold">
+							配置查询条件
+						</CardTitle>
+						<CardDescription>
+							设置域名、日期和路径前缀来查找日志文件
+						</CardDescription>
+					</div>
 				</CardHeader>
 				<CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<div className="space-y-2">

@@ -19,6 +19,7 @@ import { ChartVisualization } from "~/components/query-analyzer/chart-visualizat
 import { DataTable } from "~/components/query-analyzer/data-table";
 import { QueryFiltersComponent } from "~/components/query-analyzer/query-filters";
 import { QueryHistory } from "~/components/query-analyzer/query-history";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -619,22 +620,21 @@ export default function QueryAnalyzerPage() {
 			<Header />
 			<main className="container mx-auto px-4 py-8">
 				<div className="mb-8">
-					<div className="flex items-center justify-between">
-						<div>
-							<h1 className="text-3xl font-bold mb-2">埋点数据自助查询分析</h1>
-							<p className="text-muted-foreground">
-								支持自然语言查询、预设模板和自定义 SQL，快速洞察数据
-							</p>
-						</div>
-						<Button
-							variant="outline"
-							onClick={() => setShowQueryHistory(true)}
-							className="gap-2"
-						>
-							<History className="w-4 h-4" />
-							查询历史
-						</Button>
-					</div>
+					<ToolPageHeader
+						icon={<Sparkles className="h-5 w-5" />}
+						title="埋点数据自助查询分析"
+						description="支持自然语言查询、预设模板和自定义 SQL，快速洞察数据"
+						actions={
+							<Button
+								variant="outline"
+								onClick={() => setShowQueryHistory(true)}
+								className="gap-2"
+							>
+								<History className="w-4 h-4" />
+								查询历史
+							</Button>
+						}
+					/>
 				</div>
 
 				{/* Query History Sheet */}
