@@ -1,3 +1,4 @@
+import * as LucideIcons from "lucide-react";
 import {
 	ArrowUpRight,
 	Code,
@@ -7,7 +8,6 @@ import {
 	Search,
 	Sparkles,
 } from "lucide-react";
-import * as LucideIcons from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Header } from "~/components/layout/header";
