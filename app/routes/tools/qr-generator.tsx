@@ -1,5 +1,7 @@
+import { QrCode } from "lucide-react";
 import QRCodeStyling, { type Extension, type Options } from "qr-code-styling";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -144,201 +146,213 @@ export default function QRCodeMaker() {
 	}, [options]);
 
 	return (
-		<div className="max-w-4xl mx-auto ">
-			<h1>二维码生成器（可自定义样式）</h1>
-			<p style={{ color: "#666" }}>
-				支持背景色、渐变、方块形状、背景图片、Logo、中间图标等。
-			</p>
+		<div className="container mx-auto px-4 py-4">
+			<div className="max-w-4xl mx-auto">
+				<ToolPageHeader
+					icon={<QrCode className="h-5 w-5" />}
+					title="二维码生成器"
+					description="支持背景色、渐变、方块形状、背景图片、Logo、中间图标等自定义样式"
+				/>
 
-			<div className="flex flex-nowrap justify-between mt-12">
-				<Card>
-					<div className="min-w-96">
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label htmlFor="text" className="min-w-[100px] justify-end mr-4">
-								URL / 文本
-							</Label>
-							<Input
-								id="text"
-								value={text}
-								onChange={(e) => setText(e.target.value)}
-								placeholder="https://..."
-							/>
-						</CardContent>
+				<div className="flex flex-nowrap justify-between mt-12">
+					<Card>
+						<div className="min-w-96">
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label
+									htmlFor="text"
+									className="min-w-[100px] justify-end mr-4"
+								>
+									URL / 文本
+								</Label>
+								<Input
+									id="text"
+									value={text}
+									onChange={(e) => setText(e.target.value)}
+									placeholder="https://..."
+								/>
+							</CardContent>
 
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label htmlFor="size" className="min-w-[100px] justify-end mr-4">
-								尺寸
-							</Label>
-							<Input
-								id="size"
-								type="number"
-								min={160}
-								max={1024}
-								value={size}
-								onChange={(e) =>
-									setSize(
-										Math.max(
-											160,
-											Math.min(1024, Number(e.target.value) || 300),
-										),
-									)
-								}
-							/>
-						</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label
+									htmlFor="size"
+									className="min-w-[100px] justify-end mr-4"
+								>
+									尺寸
+								</Label>
+								<Input
+									id="size"
+									type="number"
+									min={160}
+									max={1024}
+									value={size}
+									onChange={(e) =>
+										setSize(
+											Math.max(
+												160,
+												Math.min(1024, Number(e.target.value) || 300),
+											),
+										)
+									}
+								/>
+							</CardContent>
 
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label
-								htmlFor="margin"
-								className="min-w-[100px] justify-end mr-4"
-							>
-								边距
-							</Label>
-							<Input
-								id="margin"
-								type="number"
-								min={0}
-								max={64}
-								value={margin}
-								onChange={(e) =>
-									setMargin(
-										Math.max(0, Math.min(64, Number(e.target.value) || 0)),
-									)
-								}
-							/>
-						</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label
+									htmlFor="margin"
+									className="min-w-[100px] justify-end mr-4"
+								>
+									边距
+								</Label>
+								<Input
+									id="margin"
+									type="number"
+									min={0}
+									max={64}
+									value={margin}
+									onChange={(e) =>
+										setMargin(
+											Math.max(0, Math.min(64, Number(e.target.value) || 0)),
+										)
+									}
+								/>
+							</CardContent>
 
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label
-								htmlFor="bgColor"
-								className="min-w-[100px] justify-end mr-4"
-							>
-								背景色
-							</Label>
-							<Input
-								className="w-[100px]"
-								id="bgColor"
-								type="color"
-								value={bgColor}
-								onChange={(e) => setBgColor(e.target.value)}
-							/>
-						</CardContent>
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label
-								htmlFor="fgColor"
-								className="min-w-[100px] justify-end mr-4"
-							>
-								前景色
-							</Label>
-							<Input
-								className="w-[100px]"
-								id="fgColor"
-								type="color"
-								value={fgColor}
-								onChange={(e) => setFgColor(e.target.value)}
-							/>
-						</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label
+									htmlFor="bgColor"
+									className="min-w-[100px] justify-end mr-4"
+								>
+									背景色
+								</Label>
+								<Input
+									className="w-[100px]"
+									id="bgColor"
+									type="color"
+									value={bgColor}
+									onChange={(e) => setBgColor(e.target.value)}
+								/>
+							</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label
+									htmlFor="fgColor"
+									className="min-w-[100px] justify-end mr-4"
+								>
+									前景色
+								</Label>
+								<Input
+									className="w-[100px]"
+									id="fgColor"
+									type="color"
+									value={fgColor}
+									onChange={(e) => setFgColor(e.target.value)}
+								/>
+							</CardContent>
 
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label
-								htmlFor="gradient"
-								className="min-w-[100px] justify-end mr-4"
-							>
-								渐变
-							</Label>
-							<Input
-								className="w-[20px] mr-2"
-								id="gradient"
-								type="checkbox"
-								checked={gradient}
-								onChange={(e) => setGradient(e.target.checked)}
-							/>
-							{gradient && (
-								<>
-									<Input
-										className="w-[100px]"
-										type="color"
-										value={gradStart}
-										onChange={(e) => setGradStart(e.target.value)}
-									/>
-									<span>→</span>
-									<Input
-										className="w-[100px]"
-										type="color"
-										value={gradEnd}
-										onChange={(e) => setGradEnd(e.target.value)}
-									/>
-								</>
-							)}
-						</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label
+									htmlFor="gradient"
+									className="min-w-[100px] justify-end mr-4"
+								>
+									渐变
+								</Label>
+								<Input
+									className="w-[20px] mr-2"
+									id="gradient"
+									type="checkbox"
+									checked={gradient}
+									onChange={(e) => setGradient(e.target.checked)}
+								/>
+								{gradient && (
+									<>
+										<Input
+											className="w-[100px]"
+											type="color"
+											value={gradStart}
+											onChange={(e) => setGradStart(e.target.value)}
+										/>
+										<span>→</span>
+										<Input
+											className="w-[100px]"
+											type="color"
+											value={gradEnd}
+											onChange={(e) => setGradEnd(e.target.value)}
+										/>
+									</>
+								)}
+							</CardContent>
 
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label className="min-w-[100px] justify-end mr-4">方块形状</Label>
-							<Select
-								value={dotsShape}
-								onValueChange={(value) => setDotsShape(value as DotsShape)}
-							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="square">square</SelectItem>
-									<SelectItem value="dots">dots</SelectItem>
-									<SelectItem value="rounded">rounded</SelectItem>
-									<SelectItem value="classy">classy</SelectItem>
-									<SelectItem value="classy-rounded">classy-rounded</SelectItem>
-									<SelectItem value="extra-rounded">extra-rounded</SelectItem>
-								</SelectContent>
-							</Select>
-						</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label className="min-w-[100px] justify-end mr-4">
+									方块形状
+								</Label>
+								<Select
+									value={dotsShape}
+									onValueChange={(value) => setDotsShape(value as DotsShape)}
+								>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="square">square</SelectItem>
+										<SelectItem value="dots">dots</SelectItem>
+										<SelectItem value="rounded">rounded</SelectItem>
+										<SelectItem value="classy">classy</SelectItem>
+										<SelectItem value="classy-rounded">
+											classy-rounded
+										</SelectItem>
+										<SelectItem value="extra-rounded">extra-rounded</SelectItem>
+									</SelectContent>
+								</Select>
+							</CardContent>
 
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label className="min-w-[100px] justify-end mr-4">
-								定位角(外)形状
-							</Label>
-							<Select
-								value={cornersSquareShape}
-								onValueChange={(value) =>
-									setCornersSquareShape(value as CornerShape)
-								}
-							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="square">square</SelectItem>
-									<SelectItem value="dot">dot</SelectItem>
-								</SelectContent>
-							</Select>
-						</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label className="min-w-[100px] justify-end mr-4">
+									定位角(外)形状
+								</Label>
+								<Select
+									value={cornersSquareShape}
+									onValueChange={(value) =>
+										setCornersSquareShape(value as CornerShape)
+									}
+								>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="square">square</SelectItem>
+										<SelectItem value="dot">dot</SelectItem>
+									</SelectContent>
+								</Select>
+							</CardContent>
 
-						<CardContent className="flex items-center justify-start mb-4">
-							<Label className="min-w-[100px] justify-end mr-4">
-								定位角(内)形状
-							</Label>
-							<Select
-								value={cornersDotShape}
-								onValueChange={(value) =>
-									setCornersDotShape(value as CornerShape)
-								}
-							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="square">square</SelectItem>
-									<SelectItem value="dot">dot</SelectItem>
-								</SelectContent>
-							</Select>
-						</CardContent>
+							<CardContent className="flex items-center justify-start mb-4">
+								<Label className="min-w-[100px] justify-end mr-4">
+									定位角(内)形状
+								</Label>
+								<Select
+									value={cornersDotShape}
+									onValueChange={(value) =>
+										setCornersDotShape(value as CornerShape)
+									}
+								>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="square">square</SelectItem>
+										<SelectItem value="dot">dot</SelectItem>
+									</SelectContent>
+								</Select>
+							</CardContent>
 
-						{/* <CardContent className="flex items-center justify-start mb-4">
+							{/* <CardContent className="flex items-center justify-start mb-4">
             <Label htmlFor="logo" className="min-w-[100px] justify-end mr-4">
               Logo / 中心图
             </Label>
             <Input type="file" accept="image/*" onChange={handleLogo} />
           </CardContent> */}
 
-						{/* <CardContent className="flex items-center justify-start mb-4">
+							{/* <CardContent className="flex items-center justify-start mb-4">
             <Label
               htmlFor="logoSize"
               className="min-w-[100px] justify-end mr-4"
@@ -368,22 +382,22 @@ export default function QRCodeMaker() {
               移除
             </Button>
           </CardContent> */}
-					</div>
-				</Card>
-				<CardContent>
-					<div
-						ref={containerRef}
-						style={{
-							width: size,
-							height: size,
-							background: "#fff",
-							borderRadius: 12,
-							boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-							display: "grid",
-							placeItems: "center",
-						}}
-					/>
-					{/* <Select
+						</div>
+					</Card>
+					<CardContent>
+						<div
+							ref={containerRef}
+							style={{
+								width: size,
+								height: size,
+								background: "#fff",
+								borderRadius: 12,
+								boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+								display: "grid",
+								placeItems: "center",
+							}}
+						/>
+						{/* <Select
             value={downloadExt}
             onValueChange={(value) => setDownloadExt(value as Extension)}
           >
@@ -395,25 +409,26 @@ export default function QRCodeMaker() {
             </SelectContent>
           </Select> */}
 
-					<div className="flex items-center justify-start mt-4 gap-4">
-						<Label htmlFor="downloadExt">下载格式: </Label>
-						<Select
-							value={downloadExt}
-							onValueChange={(value) => setDownloadExt(value as Extension)}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="选择下载格式" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="png">PNG</SelectItem>
-								<SelectItem value="jpeg">JPEG</SelectItem>
-								<SelectItem value="svg">SVG</SelectItem>
-								<SelectItem value="webp">WEBP</SelectItem>
-							</SelectContent>
-						</Select>
-						<Button onClick={download}>下载</Button>
-					</div>
-				</CardContent>
+						<div className="flex items-center justify-start mt-4 gap-4">
+							<Label htmlFor="downloadExt">下载格式: </Label>
+							<Select
+								value={downloadExt}
+								onValueChange={(value) => setDownloadExt(value as Extension)}
+							>
+								<SelectTrigger>
+									<SelectValue placeholder="选择下载格式" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="png">PNG</SelectItem>
+									<SelectItem value="jpeg">JPEG</SelectItem>
+									<SelectItem value="svg">SVG</SelectItem>
+									<SelectItem value="webp">WEBP</SelectItem>
+								</SelectContent>
+							</Select>
+							<Button onClick={download}>下载</Button>
+						</div>
+					</CardContent>
+				</div>
 			</div>
 		</div>
 	);

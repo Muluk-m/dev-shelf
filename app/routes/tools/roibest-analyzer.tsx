@@ -12,6 +12,7 @@ import {
 	Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -108,13 +109,11 @@ export default function RoiBestAnalyzer() {
 	return (
 		<div className="container mx-auto py-8 px-4">
 			<div className="mb-8">
-				<h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-					<Smartphone className="w-8 h-8" />
-					RoiBest Link Analyzer
-				</h1>
-				<p className="text-muted-foreground">
-					Analyze RoiBest PWA landing pages - ConfigV3 and Pixel Events
-				</p>
+				<ToolPageHeader
+					icon={<Smartphone className="h-5 w-5" />}
+					title="RoiBest Link Analyzer"
+					description="Analyze RoiBest PWA landing pages - ConfigV3 and Pixel Events"
+				/>
 			</div>
 
 			{/* Search Form */}

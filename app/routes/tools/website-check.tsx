@@ -24,6 +24,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -201,13 +202,11 @@ export default function WebsiteCheck() {
 	return (
 		<div className="container mx-auto py-8 px-4">
 			<div className="mb-8">
-				<h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-					<Globe className="w-8 h-8" />
-					Website Performance Analyzer
-				</h1>
-				<p className="text-muted-foreground">
-					Analyze website performance and resource loading
-				</p>
+				<ToolPageHeader
+					icon={<Globe className="h-5 w-5" />}
+					title="Website Performance Analyzer"
+					description="Analyze website performance and resource loading"
+				/>
 			</div>
 
 			{/* Search Form */}

@@ -1,4 +1,15 @@
-import { Activity, Flame, Plus, Search, Settings, Shield } from "lucide-react";
+import {
+	Activity,
+	ExternalLink,
+	Flame,
+	FolderOpen,
+	Layers,
+	Plus,
+	Search,
+	Settings,
+	Shield,
+	Wrench,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { CategoryForm } from "~/components/admin/category-form";
@@ -328,35 +339,65 @@ export default function AdminPage() {
 							</div>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-							<Card>
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+							<Card className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-card border-blue-100 dark:border-blue-900/50">
 								<CardHeader className="pb-2">
-									<CardTitle className="text-2xl">{tools.length}</CardTitle>
-									<CardDescription>总工具数</CardDescription>
+									<div className="flex items-center gap-3">
+										<div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+											<Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+										</div>
+										<div>
+											<CardTitle className="text-2xl font-bold">
+												{tools.length}
+											</CardTitle>
+											<CardDescription>总工具数</CardDescription>
+										</div>
+									</div>
 								</CardHeader>
 							</Card>
-							<Card>
+							<Card className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/30 dark:to-card border-purple-100 dark:border-purple-900/50">
 								<CardHeader className="pb-2">
-									<CardTitle className="text-2xl">
-										{categories.length}
-									</CardTitle>
-									<CardDescription>分类数</CardDescription>
+									<div className="flex items-center gap-3">
+										<div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50">
+											<FolderOpen className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+										</div>
+										<div>
+											<CardTitle className="text-2xl font-bold">
+												{categories.length}
+											</CardTitle>
+											<CardDescription>分类数</CardDescription>
+										</div>
+									</div>
 								</CardHeader>
 							</Card>
-							<Card>
+							<Card className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-card border-emerald-100 dark:border-emerald-900/50">
 								<CardHeader className="pb-2">
-									<CardTitle className="text-2xl">
-										{internalTools.length}
-									</CardTitle>
-									<CardDescription>内部工具</CardDescription>
+									<div className="flex items-center gap-3">
+										<div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
+											<Wrench className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+										</div>
+										<div>
+											<CardTitle className="text-2xl font-bold">
+												{internalTools.length}
+											</CardTitle>
+											<CardDescription>内部工具</CardDescription>
+										</div>
+									</div>
 								</CardHeader>
 							</Card>
-							<Card>
+							<Card className="bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/30 dark:to-card border-amber-100 dark:border-amber-900/50">
 								<CardHeader className="pb-2">
-									<CardTitle className="text-2xl">
-										{externalTools.length}
-									</CardTitle>
-									<CardDescription>外部工具</CardDescription>
+									<div className="flex items-center gap-3">
+										<div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
+											<ExternalLink className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+										</div>
+										<div>
+											<CardTitle className="text-2xl font-bold">
+												{externalTools.length}
+											</CardTitle>
+											<CardDescription>外部工具</CardDescription>
+										</div>
+									</div>
 								</CardHeader>
 							</Card>
 						</div>
@@ -412,19 +453,17 @@ export default function AdminPage() {
 											}
 											size="sm"
 											onClick={() => handleToolViewChange(option.value)}
-											className="gap-2"
+											className="gap-2 transition-all"
 										>
 											{option.label}
 											<Badge
-												variant="secondary"
-												className="ml-1"
-												style={
+												variant={
+													toolView === option.value ? "secondary" : "outline"
+												}
+												className={
 													toolView === option.value
-														? {
-																backgroundColor: "#3a3a3a",
-																color: "white",
-															}
-														: {}
+														? "bg-primary-foreground/20 text-primary-foreground ml-1"
+														: "ml-1"
 												}
 											>
 												{option.count}

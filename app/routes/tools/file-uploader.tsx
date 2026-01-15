@@ -9,6 +9,7 @@ import {
 	Video,
 } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/components/ui/use-toast";
 import { uploadFiles } from "~/lib/api";
@@ -164,9 +165,11 @@ export default function FileUploaderTool() {
 
 	return (
 		<div className="space-y-6">
-			<div className="space-y-2">
-				<h1 className="text-2xl font-semibold">图片资源上传（CDN）</h1>
-			</div>
+			<ToolPageHeader
+				icon={<Upload className="h-5 w-5" />}
+				title="图片资源上传（CDN）"
+				description="上传和管理文件，支持预览和 URL 生成"
+			/>
 
 			<div
 				onDragOver={(e) => {

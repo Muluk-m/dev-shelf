@@ -1,6 +1,7 @@
-import { Check, Copy } from "lucide-react";
+import { Check, Clock, Copy } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -238,12 +239,11 @@ export default function DateTimeConverterPage() {
 		<div className="bg-background flex flex-col">
 			<main className="container mx-auto px-4 py-4 flex-1 flex flex-col">
 				<div className="max-w-3xl mx-auto w-full flex flex-col gap-6">
-					<div className="space-y-1">
-						<h1 className="text-2xl font-bold">日期时间转换器</h1>
-						<p className="text-sm text-muted-foreground">
-							将日期和时间在多种不同格式之间转换
-						</p>
-					</div>
+					<ToolPageHeader
+						icon={<Clock className="h-5 w-5" />}
+						title="日期时间转换器"
+						description="将日期和时间在多种不同格式之间转换"
+					/>
 
 					<Card>
 						<CardContent className="pt-6 space-y-4">

@@ -1,5 +1,6 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Target, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -198,13 +199,16 @@ export default function TikTokPixelTool() {
 
 	return (
 		<div className="max-w-4xl mx-auto p-6 space-y-6">
+			<ToolPageHeader
+				icon={<Target className="h-5 w-5" />}
+				title="TikTok Pixel 激活调试工具"
+				description="手动填写参数并一键触发 TikTok Pixel 事件，用于调试和测试"
+			/>
 			<Card>
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						🎯 TikTok Pixel 激活调试工具
-					</CardTitle>
+					<CardTitle>配置参数</CardTitle>
 					<CardDescription>
-						手动填写参数并一键触发 TikTok Pixel 事件，用于调试和测试
+						填写 TikTok Pixel 相关参数以触发事件
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">

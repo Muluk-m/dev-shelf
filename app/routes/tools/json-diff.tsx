@@ -1,8 +1,9 @@
 import { safeJsonParse } from "@qlj/common-utils/common";
-import { Edit3 } from "lucide-react";
+import { Code, Edit3 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
@@ -182,12 +183,11 @@ export default function JsonDiffTool() {
 		<div className="bg-background flex flex-col">
 			<main className="container mx-auto px-4 py-4 flex-1 flex flex-col">
 				<div className="w-full flex flex-col gap-6">
-					<div className="space-y-1">
-						<h1 className="text-2xl font-bold">JSON diff</h1>
-						<p className="text-sm text-muted-foreground">
-							比较两个 JSON 对象并查看差异
-						</p>
-					</div>
+					<ToolPageHeader
+						icon={<Code className="h-5 w-5" />}
+						title="JSON diff"
+						description="比较两个 JSON 对象并查看差异"
+					/>
 
 					<div className="flex content-start gap-4">
 						<Card className="w-[20vw] flex-shrink-0 flex-grow-0">

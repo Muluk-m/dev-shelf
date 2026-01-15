@@ -1,6 +1,8 @@
+import { Globe } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -94,15 +96,11 @@ export default function RBDomainCheckPage() {
 	return (
 		<div className="bg-background flex flex-col min-h-[calc(100vh-4rem)]">
 			<main className="container mx-auto px-4 py-3 flex-1 flex flex-col space-y-4">
-				<div className="text-center space-y-3">
-					<div>
-						<h1 className="text-xl font-bold">域名状态检测</h1>
-						<p className="text-xs text-muted-foreground">
-							基于内部检测平台自动校验域名解析、证书、CDN
-							等状态，并展示详细检测结果。
-						</p>
-					</div>
-				</div>
+				<ToolPageHeader
+					icon={<Globe className="h-5 w-5" />}
+					title="域名状态检测"
+					description="基于内部检测平台自动校验域名解析、证书、CDN 等状态，并展示详细检测结果"
+				/>
 
 				<Card>
 					<CardContent className="pt-4 space-y-4">

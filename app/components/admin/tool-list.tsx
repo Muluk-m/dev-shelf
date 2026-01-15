@@ -2,6 +2,7 @@ import {
 	Edit,
 	ExternalLink,
 	Globe,
+	Search,
 	Server,
 	Settings,
 	Trash2,
@@ -64,7 +65,7 @@ export function ToolList({
 	searchTerm = "",
 	statusFilter = "all",
 }: ToolListProps) {
-	const [deleteToolId, setDeleteToolId] = useState<string | null>(null);
+	const [_deleteToolId, setDeleteToolId] = useState<string | null>(null);
 
 	const getCategoryName = (categoryId: string) => {
 		if (!categories || categories.length === 0) return categoryId;
@@ -151,7 +152,10 @@ export function ToolList({
 						const statusMeta = statusStyles[tool.status];
 
 						return (
-							<Card key={tool.id} className="transition-all hover:shadow-sm">
+							<Card
+								key={tool.id}
+								className="transition-all duration-200 hover:shadow-md hover:border-primary/20"
+							>
 								<CardHeader className="pb-3">
 									<div className="flex items-start justify-between">
 										<div className="flex items-start gap-3">
@@ -278,12 +282,12 @@ export function ToolList({
 										{tool.environments[0] && (
 											<button
 												type="button"
-												className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+												className="inline-flex items-center gap-1.5 text-xs font-medium text-primary px-2 py-1 rounded-md transition-colors hover:bg-primary/10 cursor-pointer"
 												onClick={() =>
 													window.open(tool.environments[0].url, "_blank")
 												}
 											>
-												<ExternalLink className="h-3 w-3" />
+												<ExternalLink className="h-3.5 w-3.5" />
 												快速访问
 											</button>
 										)}
@@ -295,8 +299,13 @@ export function ToolList({
 
 			{!loading && filteredTools.length === 0 && (
 				<Card className="border-dashed">
-					<CardContent className="py-12 text-center text-sm text-muted-foreground">
-						未找到符合条件的工具，试试调整搜索关键字或状态筛选。
+					<CardContent className="empty-state">
+						<div className="p-3 rounded-full bg-muted mb-4">
+							<Search className="h-6 w-6 text-muted-foreground" />
+						</div>
+						<p className="text-muted-foreground">
+							未找到符合条件的工具，试试调整搜索关键字或状态筛选
+						</p>
 					</CardContent>
 				</Card>
 			)}
