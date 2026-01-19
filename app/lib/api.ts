@@ -406,3 +406,107 @@ export async function analyzeData(
 
 	return response.json();
 }
+
+/**
+ * AI Icon Generation API
+ */
+export interface GenerateIconRequest {
+	toolName: string;
+	description?: string;
+}
+
+export interface GenerateIconResponse {
+	iconUrl: string;
+}
+
+export async function generateToolIcon(
+	request: GenerateIconRequest,
+): Promise<GenerateIconResponse> {
+	const DIFY_API_URL = "https://api-ai.qiliangjia.org/v1";
+	const DIFY_API_KEY = "app-w3ySSC6PLTlrjldSPErTwE6x";
+
+	// 构建明确的提示词，要求返回特定格式
+	const prompt = request.description
+		? `请为"${request.toolName}"工具生成一个图标。工具描述：${request.description}
+
+要求：
+1. 生成 SVG 格式的图标
+2. 图标应简洁、专业，适合在工具列表中展示
+3. 请直接返回 data URI 格式，即：data:image/svg+xml;base64,<base64编码的SVG内容>
+4. 只返回 data URI 字符串，不要有其他说明文字
+
+示例输出格式：
+data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMmM1LjUyIDAgMTAgNC40OCAxMCAxMHMtNC40OCAxMC0xMCAxMFMyIDIyLjUyIDIgMTcgNi40OCAxMiAxMiAxMnptMCA0Yy0zLjMxIDAtNiAyLjY5LTYgNnMyLjY5IDYgNiA2IDYtMi42OSA2LTYtMi42OS02LTYtNnoiLz48L3N2Zz4=`
+		: `请为"${request.toolName}"工具生成一个图标。
+
+要求：
+1. 生成 SVG 格式的图标
+2. 图标应简洁、专业，适合在工具列表中展示
+3. 请直接返回 data URI 格式，即：data:image/svg+xml;base64,<base64编码的SVG内容>
+4. 只返回 data URI 字符串，不要有其他说明文字
+
+示例输出格式：
+data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMmM1LjUyIDAgMTAgNC40OCAxMCAxMHMtNC40OCAxMC0xMCAxMFMyIDIyLjUyIDIgMTcgNi40OCAxMiAxMiAxMnptMCA0Yy0zLjMxIDAtNiAyLjY5LTYgNnMyLjY5IDYgNiA2IDYtMi42OSA2LTYtMi42OS02LTYtNnoiLz48L3N2Zz4=`;
+
+	try {
+		const response = await fetch(`${DIFY_API_URL}/chat-messages`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${DIFY_API_KEY}`,
+			},
+			body: JSON.stringify({
+				inputs: {},
+				query: prompt,
+				response_mode: "blocking",
+				user: "admin",
+			}),
+			signal: AbortSignal.timeout(30000), // 30s timeout
+		});
+
+		if (!response.ok) {
+			if (response.status === 429) {
+				throw new Error("请求过于频繁，请稍后再试");
+			}
+			const errorData: any = await response.json().catch(() => ({}));
+			throw new Error(errorData.message || "AI 图标生成失败");
+		}
+
+		const data: any = await response.json();
+
+		// 从响应中提取图标 URL
+		// Dify API 通常在 answer 字段返回内容
+		let iconUrl = data.answer || data.iconUrl || data.result?.iconUrl || "";
+
+		// 清理响应内容，提取 data URI
+		if (iconUrl) {
+			// 移除可能的 markdown 代码块标记
+			iconUrl = iconUrl.replace(/```[\s\S]*?```/g, "").trim();
+			iconUrl = iconUrl.replace(/`/g, "").trim();
+
+			// 查找 data:image/svg+xml;base64, 格式的内容
+			const dataUriMatch = iconUrl.match(
+				/data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+/,
+			);
+			if (dataUriMatch) {
+				iconUrl = dataUriMatch[0];
+			}
+
+			// 验证是否为有效的 data URI 格式
+			if (!iconUrl.startsWith("data:image/svg+xml;base64,")) {
+				throw new Error("AI 返回的图标格式不正确，请重试");
+			}
+		}
+
+		if (!iconUrl) {
+			throw new Error("未能从响应中获取图标 URL");
+		}
+
+		return { iconUrl };
+	} catch (error) {
+		if (error instanceof Error) {
+			throw error;
+		}
+		throw new Error("网络错误，请检查连接后重试");
+	}
+}
