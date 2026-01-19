@@ -6,7 +6,7 @@
     </linearGradient>
   </defs>
   <!-- Rounded square background -->
-  <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#logoGradient)"/>
+  <rect x="0" y="0" width="40" height="40" rx="10" fill="url(#logoGradient)"/>
   <!-- Code bracket < -->
   <path d="M16 12L8 20L16 28" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Code bracket > -->
