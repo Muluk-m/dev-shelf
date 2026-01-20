@@ -5,6 +5,7 @@ import { authMiddleware } from "./middleware/auth";
 import { auth } from "./routes/auth";
 import { categoriesRouter } from "./routes/categories";
 import { cfLogsRouter } from "./routes/cf-logs";
+import { iconGeneratorRouter } from "./routes/icon-generator";
 import { permissions } from "./routes/permissions";
 import { queryAnalyzerRouter } from "./routes/query-analyzer";
 import { toolsRouter } from "./routes/tools";
@@ -23,6 +24,7 @@ app.route("/api/categories", categoriesRouter);
 app.route("/api/uploads", uploadsRouter);
 app.route("/api/cf-logs", cfLogsRouter);
 app.route("/api/query-analyzer", queryAnalyzerRouter);
+app.route("/api/icon-generator", iconGeneratorRouter);
 app.route("/api/permissions", permissions);
 
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (ctx) =>

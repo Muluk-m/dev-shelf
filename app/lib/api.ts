@@ -1,5 +1,12 @@
 import type { UploadFile } from "workers/routes/uploads";
 import type {
+	LinkConfig,
+	LogQueryParams,
+	LogQueryResponse,
+	PreviewRequest,
+	PreviewResult,
+} from "~/types/ab-router";
+import type {
 	CfLogListRequest,
 	CfLogListResponse,
 	CfLogQueryRequest,
@@ -422,91 +429,181 @@ export interface GenerateIconResponse {
 export async function generateToolIcon(
 	request: GenerateIconRequest,
 ): Promise<GenerateIconResponse> {
-	const DIFY_API_URL = "https://api-ai.qiliangjia.org/v1";
-	const DIFY_API_KEY = "app-w3ySSC6PLTlrjldSPErTwE6x";
+	const response = await fetch("/api/icon-generator/generate", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(request),
+	});
 
-	// 构建明确的提示词，要求返回特定格式
-	const prompt = request.description
-		? `请为"${request.toolName}"工具生成一个图标。工具描述：${request.description}
-
-要求：
-1. 生成 SVG 格式的图标
-2. 图标应简洁、专业，适合在工具列表中展示
-3. 请直接返回 data URI 格式，即：data:image/svg+xml;base64,<base64编码的SVG内容>
-4. 只返回 data URI 字符串，不要有其他说明文字
-
-示例输出格式：
-data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMmM1LjUyIDAgMTAgNC40OCAxMCAxMHMtNC40OCAxMC0xMCAxMFMyIDIyLjUyIDIgMTcgNi40OCAxMiAxMiAxMnptMCA0Yy0zLjMxIDAtNiAyLjY5LTYgNnMyLjY5IDYgNiA2IDYtMi42OSA2LTYtMi42OS02LTYtNnoiLz48L3N2Zz4=`
-		: `请为"${request.toolName}"工具生成一个图标。
-
-要求：
-1. 生成 SVG 格式的图标
-2. 图标应简洁、专业，适合在工具列表中展示
-3. 请直接返回 data URI 格式，即：data:image/svg+xml;base64,<base64编码的SVG内容>
-4. 只返回 data URI 字符串，不要有其他说明文字
-
-示例输出格式：
-data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMmM1LjUyIDAgMTAgNC40OCAxMCAxMHMtNC40OCAxMC0xMCAxMFMyIDIyLjUyIDIgMTcgNi40OCAxMiAxMiAxMnptMCA0Yy0zLjMxIDAtNiAyLjY5LTYgNnMyLjY5IDYgNiA2IDYtMi42OSA2LTYtMi42OS02LTYtNnoiLz48L3N2Zz4=`;
-
-	try {
-		const response = await fetch(`${DIFY_API_URL}/chat-messages`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${DIFY_API_KEY}`,
-			},
-			body: JSON.stringify({
-				inputs: {},
-				query: prompt,
-				response_mode: "blocking",
-				user: "admin",
-			}),
-			signal: AbortSignal.timeout(30000), // 30s timeout
-		});
-
-		if (!response.ok) {
-			if (response.status === 429) {
-				throw new Error("请求过于频繁，请稍后再试");
-			}
-			const errorData: any = await response.json().catch(() => ({}));
-			throw new Error(errorData.message || "AI 图标生成失败");
-		}
-
-		const data: any = await response.json();
-
-		// 从响应中提取图标 URL
-		// Dify API 通常在 answer 字段返回内容
-		let iconUrl = data.answer || data.iconUrl || data.result?.iconUrl || "";
-
-		// 清理响应内容，提取 data URI
-		if (iconUrl) {
-			// 移除可能的 markdown 代码块标记
-			iconUrl = iconUrl.replace(/```[\s\S]*?```/g, "").trim();
-			iconUrl = iconUrl.replace(/`/g, "").trim();
-
-			// 查找 data:image/svg+xml;base64, 格式的内容
-			const dataUriMatch = iconUrl.match(
-				/data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+/,
-			);
-			if (dataUriMatch) {
-				iconUrl = dataUriMatch[0];
-			}
-
-			// 验证是否为有效的 data URI 格式
-			if (!iconUrl.startsWith("data:image/svg+xml;base64,")) {
-				throw new Error("AI 返回的图标格式不正确，请重试");
-			}
-		}
-
-		if (!iconUrl) {
-			throw new Error("未能从响应中获取图标 URL");
-		}
-
-		return { iconUrl };
-	} catch (error) {
-		if (error instanceof Error) {
-			throw error;
-		}
-		throw new Error("网络错误，请检查连接后重试");
+	if (!response.ok) {
+		const errorData: any = await response.json().catch(() => ({}));
+		throw new Error(errorData.error || "AI 图标生成失败");
 	}
+
+	return response.json();
+}
+
+/**
+ * AB Router API
+ * 独立部署的 A/B 链接路由服务
+ */
+
+// AB Router API 基础地址 (可通过环境变量配置)
+export const AB_ROUTER_API_URL = import.meta.env.VITE_AB_ROUTER_API_URL
+	? import.meta.env.VITE_AB_ROUTER_API_URL
+	: import.meta.env.DEV
+		? "http://localhost:8787"
+		: "https://ab-router.qiliangjia.one";
+
+/**
+ * 获取所有链接配置
+ */
+export async function getABRouterLinks(): Promise<LinkConfig[]> {
+	const response = await fetch(`${AB_ROUTER_API_URL}/api/links`);
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "获取链接列表失败" }))) as { error?: string };
+		throw new Error(error.error || "获取链接列表失败");
+	}
+	return response.json();
+}
+
+/**
+ * 获取单个链接配置
+ */
+export async function getABRouterLink(id: string): Promise<LinkConfig | null> {
+	const response = await fetch(`${AB_ROUTER_API_URL}/api/links/${id}`);
+	if (!response.ok) {
+		if (response.status === 404) {
+			return null;
+		}
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "获取链接配置失败" }))) as { error?: string };
+		throw new Error(error.error || "获取链接配置失败");
+	}
+	return response.json();
+}
+
+/**
+ * 创建或更新链接配置
+ */
+export async function saveABRouterLink(
+	id: string,
+	config: Omit<LinkConfig, "id">,
+): Promise<{ message: string }> {
+	const response = await fetch(`${AB_ROUTER_API_URL}/api/links/${id}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(config),
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "保存链接配置失败" }))) as { error?: string };
+		throw new Error(error.error || "保存链接配置失败");
+	}
+
+	return response.json();
+}
+
+/**
+ * 删除链接配置
+ */
+export async function deleteABRouterLink(
+	id: string,
+): Promise<{ message: string }> {
+	const response = await fetch(`${AB_ROUTER_API_URL}/api/links/${id}`, {
+		method: "DELETE",
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "删除链接配置失败" }))) as { error?: string };
+		throw new Error(error.error || "删除链接配置失败");
+	}
+
+	return response.json();
+}
+
+/**
+ * 预览链接决策
+ */
+export async function previewABRouterLink(
+	id: string,
+	params?: PreviewRequest,
+): Promise<PreviewResult> {
+	const response = await fetch(`${AB_ROUTER_API_URL}/api/links/${id}/preview`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(params || {}),
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "预览决策失败" }))) as { error?: string };
+		throw new Error(error.error || "预览决策失败");
+	}
+
+	return response.json();
+}
+
+/**
+ * 查询访问日志
+ */
+export async function queryABRouterLogs(
+	params?: LogQueryParams,
+): Promise<LogQueryResponse> {
+	const searchParams = new URLSearchParams();
+	if (params?.linkId) {
+		searchParams.set("linkId", params.linkId);
+	}
+	if (params?.date) {
+		searchParams.set("date", params.date);
+	}
+	if (params?.country) {
+		searchParams.set("country", params.country);
+	}
+	if (params?.device) {
+		searchParams.set("device", params.device);
+	}
+	if (params?.destination) {
+		searchParams.set("destination", params.destination);
+	}
+	if (params?.limit) {
+		searchParams.set("limit", String(params.limit));
+	}
+	if (params?.cursor) {
+		searchParams.set("cursor", params.cursor);
+	}
+
+	const qs = searchParams.toString();
+	const url = `${AB_ROUTER_API_URL}/api/logs${qs ? `?${qs}` : ""}`;
+
+	const response = await fetch(url);
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "查询日志失败" }))) as { error?: string };
+		throw new Error(error.error || "查询日志失败");
+	}
+
+	return response.json();
+}
+
+/**
+ * 获取跳转链接地址
+ */
+export function getABRouterGoUrl(id: string): string {
+	return `${AB_ROUTER_API_URL}/go/${id}`;
 }
