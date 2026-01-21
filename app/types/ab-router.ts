@@ -19,8 +19,9 @@ export interface LinkRules {
  * - all_open: 所有流量走真实链接
  * - review: 根据规则决定走审核链接还是真实链接
  * - final_link: 所有流量走审核链接
+ * - green: 绿色模式，指定国家走审核链接，其他国家走真实链接
  */
-export type LinkMode = "all_open" | "review" | "final_link";
+export type LinkMode = "all_open" | "review" | "final_link" | "green";
 
 /**
  * 链接统计数据
@@ -599,6 +600,28 @@ export const COMMON_COUNTRIES = [
 	{ code: "VN", name: "越南" },
 	{ code: "MY", name: "马来西亚" },
 	{ code: "PH", name: "菲律宾" },
+	{ code: "IE", name: "爱尔兰" },
+	{ code: "DK", name: "丹麦" },
+	{ code: "SE", name: "瑞典" },
+	{ code: "CH", name: "瑞士" },
+] as const;
+
+/**
+ * 绿色模式默认国家列表
+ * 这些国家访问审核链接，其他国家访问真实链接
+ */
+export const GREEN_MODE_COUNTRIES = [
+	"CN", // 中国
+	"HK", // 香港
+	"SG", // 新加坡
+	"US", // 美国
+	"IE", // 爱尔兰
+	"DK", // 丹麦
+	"SE", // 瑞典
+	"GB", // 英国
+	"CH", // 瑞士
+	"AU", // 澳大利亚
+	"CA", // 加拿大
 ] as const;
 
 /**
@@ -619,6 +642,11 @@ export const LINK_MODE_OPTIONS = [
 		value: "final_link" as LinkMode,
 		label: "全审核",
 		description: "所有流量走审核链接",
+	},
+	{
+		value: "green" as LinkMode,
+		label: "绿色模式",
+		description: "指定国家走审核，其他走真实",
 	},
 ] as const;
 

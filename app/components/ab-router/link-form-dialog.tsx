@@ -2,6 +2,7 @@ import {
 	AlertCircle,
 	Check,
 	Globe2,
+	Leaf,
 	Link2,
 	RefreshCcw,
 	Shield,
@@ -30,6 +31,7 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import {
 	COMMON_COUNTRIES,
+	GREEN_MODE_COUNTRIES,
 	LINK_MODE_OPTIONS,
 	type LinkConfig,
 	type LinkMode,
@@ -56,6 +58,7 @@ const modeIcons = {
 	all_open: Zap,
 	review: Shield,
 	final_link: ShieldAlert,
+	green: Leaf,
 };
 
 export function LinkFormDialog({
@@ -269,12 +272,25 @@ export function LinkFormDialog({
 												name="mode"
 												value={option.value}
 												checked={isSelected}
-												onChange={(e) =>
-													setFormData({
+												onChange={(e) => {
+													const newMode = e.target.value as LinkMode;
+													const newFormData = {
 														...formData,
-														mode: e.target.value as LinkMode,
-													})
-												}
+														mode: newMode,
+													};
+													// 切换到绿色模式时自动填充默认国家列表
+													if (
+														newMode === "green" &&
+														(!formData.rules.countries ||
+															formData.rules.countries.length === 0)
+													) {
+														newFormData.rules = {
+															...formData.rules,
+															countries: [...GREEN_MODE_COUNTRIES],
+														};
+													}
+													setFormData(newFormData);
+												}}
 												className="sr-only"
 											/>
 											<Icon
@@ -299,8 +315,8 @@ export function LinkFormDialog({
 							</div>
 						</section>
 
-						{/* 规则配置 - 仅在 review 模式显示 */}
-						{formData.mode === "review" && (
+						{/* 规则配置 - 在 review 和 green 模式显示 */}
+						{(formData.mode === "review" || formData.mode === "green") && (
 							<section>
 								<SectionHeader title="规则配置" color="violet" />
 								<div className="space-y-4 mt-3">
@@ -308,8 +324,14 @@ export function LinkFormDialog({
 									<div className="space-y-2">
 										<Label className="text-sm font-medium flex items-center gap-2">
 											<Globe2 className="h-4 w-4 text-muted-foreground" />
-											投放国家
+											{formData.mode === "green" ? "审核链接国家" : "投放国家"}
 										</Label>
+										{/* 模式说明 */}
+										<p className="text-xs text-muted-foreground pb-1">
+											{formData.mode === "green"
+												? "以下国家访问审核链接，其他国家访问真实链接"
+												: "以下国家访问真实链接，其他国家访问审核链接"}
+										</p>
 										<Select
 											value=""
 											onValueChange={(value) => {
