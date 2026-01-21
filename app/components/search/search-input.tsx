@@ -1,4 +1,4 @@
-import { Clock, Search, Sparkles, TrendingUp, X } from "lucide-react";
+import { Clock, Search, Sparkles, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";

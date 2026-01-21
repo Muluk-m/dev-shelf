@@ -1,5 +1,5 @@
 import * as LucideIcons from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { cn } from "~/lib/utils";
 import type { ToolCategory } from "~/types/tool";
 

@@ -262,7 +262,7 @@ const QueryParamsSection = ({
 					</div>
 				</div>
 				<div className="space-y-1">
-					{editedParams.map((param, index) => (
+					{editedParams.map((_param, index) => (
 						<QueryParamRow
 							key={index}
 							index={index}

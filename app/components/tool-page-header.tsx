@@ -1,4 +1,4 @@
-import { ArrowLeft, Home } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -16,14 +16,14 @@ export function ToolPageHeader({
 	title,
 	description,
 	actions,
-	showBackButton = true,
+	showBackButton = false,
 }: ToolPageHeaderProps) {
 	return (
 		<div className="relative">
 			{/* Background gradient effect */}
 			<div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-transparent to-transparent rounded-3xl" />
 
-			<div className="py-6 px-4">
+			<div className="py-6 py-4">
 				{/* Back navigation */}
 				{showBackButton && (
 					<div className="flex items-center gap-2 mb-4">

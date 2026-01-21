@@ -76,7 +76,7 @@ export default function ToolsLayout() {
 				</div>
 			</div>
 
-			<main className="container mx-auto px-4 py-8">
+			<main className="container mx-auto px-4 py-2">
 				<Outlet />
 			</main>
 		</div>

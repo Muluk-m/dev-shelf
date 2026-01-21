@@ -143,7 +143,7 @@ function renderDiffNode(
 				);
 				if (idx !== entries.length - 1) nodes.push(",\n");
 			});
-			nodes.push("\n" + pad(level) + "}");
+			nodes.push(`\n${pad(level)}}`);
 			return <>{nodes}</>;
 		}
 		case "array": {
@@ -159,7 +159,7 @@ function renderDiffNode(
 				);
 				if (i !== items.length - 1) nodes.push(",\n");
 			});
-			nodes.push("\n" + pad(level) + "]");
+			nodes.push(`\n${pad(level)}]`);
 			return <>{nodes}</>;
 		}
 	}
@@ -555,13 +555,13 @@ export default function JsonFormatterPage() {
 
 		try {
 			a = JSON.parse(leftJson) as JsonValue;
-		} catch (e) {
+		} catch (_e) {
 			errL = "JSON A 解析失败";
 		}
 
 		try {
 			b = JSON.parse(rightJson) as JsonValue;
-		} catch (e) {
+		} catch (_e) {
 			errR = "JSON B 解析失败";
 		}
 

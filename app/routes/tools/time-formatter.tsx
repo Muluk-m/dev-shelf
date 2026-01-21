@@ -64,7 +64,7 @@ function formatISO9075(date: Date) {
 	return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
 }
 
-function formatUTC(date: Date) {
+function _formatUTC(date: Date) {
 	const y = date.getUTCFullYear();
 	const m = pad2(date.getUTCMonth() + 1);
 	const d = pad2(date.getUTCDate());
@@ -93,23 +93,23 @@ function parseISO9075(value: string): Date | null {
 		Number(mi),
 		Number(s),
 	);
-	return isNaN(date.getTime()) ? null : date;
+	return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function parseObjectId(value: string): Date | null {
 	if (!/^[0-9a-fA-F]{24}$/.test(value)) return null;
 	const seconds = parseInt(value.slice(0, 8), 16);
 	const d = new Date(seconds * 1000);
-	return isNaN(d.getTime()) ? null : d;
+	return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function parseExcelSerial(value: string): Date | null {
 	const num = Number(value);
-	if (!isFinite(num)) return null;
+	if (!Number.isFinite(num)) return null;
 	// Excel (1900 date system) serial to JS time
 	const ms = (num - 25569) * 86400000; // days to ms, 25569 = 1970-01-01
 	const d = new Date(ms);
-	return isNaN(d.getTime()) ? null : d;
+	return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function parseByFormat(value: string, format: InputFormat): Date | null {
@@ -119,16 +119,16 @@ function parseByFormat(value: string, format: InputFormat): Date | null {
 		switch (format) {
 			case "timestamp": {
 				const n = Number(trimmed);
-				if (!isFinite(n)) return null;
+				if (!Number.isFinite(n)) return null;
 				const ms = n < 1e12 ? n * 1000 : n;
 				const d = new Date(ms);
-				return isNaN(d.getTime()) ? null : d;
+				return Number.isNaN(d.getTime()) ? null : d;
 			}
 			case "unix": {
 				const n = Number(trimmed);
-				if (!isFinite(n)) return null;
+				if (!Number.isFinite(n)) return null;
 				const d = new Date(n * 1000);
-				return isNaN(d.getTime()) ? null : d;
+				return Number.isNaN(d.getTime()) ? null : d;
 			}
 			case "iso9075":
 				return parseISO9075(trimmed);
@@ -142,7 +142,7 @@ function parseByFormat(value: string, format: InputFormat): Date | null {
 			case "utc":
 			case "js": {
 				const d = new Date(trimmed);
-				return isNaN(d.getTime()) ? null : d;
+				return Number.isNaN(d.getTime()) ? null : d;
 			}
 			default:
 				return null;

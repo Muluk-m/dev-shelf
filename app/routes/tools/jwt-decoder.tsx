@@ -2,7 +2,6 @@ import { BadgeCheck, Clipboard, KeyRound, ShieldAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Label } from "~/components/ui/label";
 import {
 	Table,
 	TableBody,
@@ -46,7 +45,7 @@ function base64UrlDecode(input: string): string {
 			Array.prototype.map
 				.call(
 					atob(b64),
-					(c: string) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`,
+					(c: string) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`,
 				)
 				.join(""),
 		);
@@ -73,7 +72,7 @@ function parseJwt(token: string): {
 		const payload = JSON.parse(base64UrlDecode(parts[1]));
 		const signature = parts[2];
 		return { data: { header, payload, signature }, error: null };
-	} catch (e) {
+	} catch (_e) {
 		return { data: null, error: "无效的 JWT：解析失败或 Base64URL 非法" };
 	}
 }

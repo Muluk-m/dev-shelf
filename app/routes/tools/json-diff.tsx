@@ -122,7 +122,7 @@ function renderNode(n: DiffNode, onlyDiff: boolean, level: number): ReactNode {
 				);
 				if (idx !== entries.length - 1) nodes.push(",\n");
 			});
-			nodes.push("\n" + pad(level) + "}");
+			nodes.push(`\n${pad(level)}}`);
 			return <>{nodes}</>;
 		}
 		case "array": {
@@ -136,7 +136,7 @@ function renderNode(n: DiffNode, onlyDiff: boolean, level: number): ReactNode {
 				);
 				if (i !== items.length - 1) nodes.push(",\n");
 			});
-			nodes.push("\n" + pad(level) + "]");
+			nodes.push(`\n${pad(level)}]`);
 			return <>{nodes}</>;
 		}
 	}
@@ -156,12 +156,12 @@ export default function JsonDiffTool() {
 		let errR = "";
 		try {
 			a = left.trim() ? (JSON.parse(left) as JsonValue) : null;
-		} catch (e) {
+		} catch (_e) {
 			errL = "左侧 JSON 解析失败";
 		}
 		try {
 			b = right.trim() ? (JSON.parse(right) as JsonValue) : null;
-		} catch (e) {
+		} catch (_e) {
 			errR = "右侧 JSON 解析失败";
 		}
 

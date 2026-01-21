@@ -2,7 +2,6 @@ import {
 	Clock,
 	Download,
 	Edit2,
-	Heart,
 	History,
 	Search,
 	Star,
@@ -38,7 +37,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "~/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
 	clearNonFavoriteHistory,
 	deleteQueryFromHistory,
@@ -161,7 +160,7 @@ export function QueryHistory({
 						loadHistory();
 						alert("导入成功!");
 					} catch (error) {
-						alert("导入失败: " + (error as Error).message);
+						alert(`导入失败: ${(error as Error).message}`);
 					}
 				};
 				reader.readAsText(file);

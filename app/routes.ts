@@ -26,6 +26,7 @@ export default [
 		route("rb-domain-check", "routes/tools/rb-domain-check.tsx"),
 		route("pwa-link-health", "routes/tools/pwa-link-health.tsx"),
 		route("quick-login", "routes/tools/quick-login.tsx"),
+		route("ab-router", "routes/tools/ab-router.tsx"),
 	]),
 
 	// 外部工具路由 - 展示详情页

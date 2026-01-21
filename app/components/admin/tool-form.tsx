@@ -531,7 +531,9 @@ export function ToolForm({
 												{isGeneratingIcon ? (
 													<div className="flex flex-col items-center gap-2">
 														<div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
-														<span className="text-xs text-slate-500">生成中</span>
+														<span className="text-xs text-slate-500">
+															生成中
+														</span>
 													</div>
 												) : formData.icon ? (
 													<img
@@ -549,7 +551,9 @@ export function ToolForm({
 												) : (
 													<div className="flex flex-col items-center gap-1">
 														<Image className="h-8 w-8 text-slate-300 dark:text-slate-600" />
-														<span className="text-xs text-slate-400">暂无图标</span>
+														<span className="text-xs text-slate-400">
+															暂无图标
+														</span>
 													</div>
 												)}
 											</div>
