@@ -10,7 +10,13 @@ export interface CommandAction {
 	icon?: string;
 	iconUrl?: string;
 	shortcut?: string[];
-	category: "navigation" | "tools" | "actions" | "settings";
+	category:
+		| "navigation"
+		| "tools"
+		| "tools-prod"
+		| "tools-test"
+		| "actions"
+		| "settings";
 	action: () => void;
 }
 
@@ -23,22 +29,60 @@ export function useCommandPanel(tools: Tool[]) {
 	// 基础命令
 	const baseCommands: CommandAction[] = useMemo(() => [], [navigate]);
 
-	// 工具命令
+	// 工具命令 - 为每个环境生成独立的命令
 	const toolCommands: CommandAction[] = useMemo(
 		() =>
-			tools.map((tool) => ({
-				id: `tool-${tool.id}`,
-				title: `打开 ${tool.name}`,
-				description: tool.description,
-				iconUrl: tool.icon,
-				category: "tools" as const,
-				action: () => {
-					void recordToolUsage(tool.id);
-					setIsOpen(false);
-					const environment = tool.environments?.[0];
-					window.open(environment.url, "_blank");
-				},
-			})),
+			tools.flatMap((tool) => {
+				// 单环境工具：生成一个命令
+				if (tool.environments.length === 1) {
+					const env = tool.environments[0];
+					return [
+						{
+							id: `tool-${tool.id}`,
+							title: `打开 ${tool.name}`,
+							description: tool.description,
+							iconUrl: tool.icon,
+							category: "tools" as const,
+							action: () => {
+								void recordToolUsage(tool.id);
+								setIsOpen(false);
+								if (env.isExternal) {
+									window.open(env.url, "_blank");
+								} else if (tool.isInternal) {
+									navigate(env.url);
+								} else {
+									window.location.href = env.url;
+								}
+							},
+						},
+					];
+				}
+
+				// 多环境工具：为每个环境生成独立命令
+				return tool.environments.map((env) => ({
+					id: `tool-${tool.id}-${env.name}`,
+					title: `打开 ${tool.name}`,
+					description: `${env.label} · ${tool.description}`,
+					iconUrl: tool.icon,
+					category:
+						env.name === "production"
+							? ("tools-prod" as const)
+							: env.name === "test" || env.name === "staging"
+								? ("tools-test" as const)
+								: ("tools" as const),
+					action: () => {
+						void recordToolUsage(tool.id);
+						setIsOpen(false);
+						if (env.isExternal) {
+							window.open(env.url, "_blank");
+						} else if (tool.isInternal) {
+							navigate(env.url);
+						} else {
+							window.location.href = env.url;
+						}
+					},
+				}));
+			}),
 		[tools, navigate],
 	);
 
