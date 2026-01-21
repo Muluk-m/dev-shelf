@@ -3,6 +3,7 @@ import {
 	Copy,
 	ExternalLink,
 	Globe2,
+	Leaf,
 	MoreHorizontal,
 	Pencil,
 	Play,
@@ -61,6 +62,12 @@ const modeConfig: Record<
 			"bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400",
 		icon: ShieldAlert,
 	},
+	green: {
+		label: "绿色",
+		className:
+			"bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400",
+		icon: Leaf,
+	},
 };
 
 interface LinkTableProps {
@@ -100,7 +107,7 @@ export function LinkTable({
 								<TableHead className="w-[100px] font-semibold text-foreground/80">
 									模式
 								</TableHead>
-								<TableHead className="w-[120px] font-semibold text-foreground/80">
+								<TableHead className="w-[180px] font-semibold text-foreground/80">
 									统计
 								</TableHead>
 								<TableHead className="w-[100px] text-right font-semibold text-foreground/80">
@@ -154,10 +161,10 @@ function LinkTableRow({
 	const hasCountries = countries.length > 0;
 
 	// 统计数据
-	const totalCount =
-		(link.stats?.reviewCount ?? 0) + (link.stats?.realCount ?? 0);
-	const todayCount =
-		(link.stats?.todayReviewCount ?? 0) + (link.stats?.todayRealCount ?? 0);
+	const reviewCount = link.stats?.reviewCount ?? 0;
+	const realCount = link.stats?.realCount ?? 0;
+	const todayReviewCount = link.stats?.todayReviewCount ?? 0;
+	const todayRealCount = link.stats?.todayRealCount ?? 0;
 
 	return (
 		<TooltipProvider delayDuration={200}>
@@ -212,12 +219,26 @@ function LinkTableRow({
 					</Badge>
 				</TableCell>
 
-				{/* 统计 - 简化为关键数据 */}
+				{/* 统计 - 分别显示审核和真实访问次数 */}
 				<TableCell className="py-3">
-					<div className="text-sm">
-						<div className="font-medium text-foreground">{totalCount}</div>
-						<div className="text-xs text-muted-foreground">
-							今日 +{todayCount}
+					<div className="space-y-1">
+						<div className="flex items-center gap-2 text-xs">
+							<span className="inline-flex items-center gap-1">
+								<span className="w-2 h-2 rounded-full bg-amber-500" />
+								<span className="text-muted-foreground">审核</span>
+								<span className="font-medium text-foreground">
+									{reviewCount}
+								</span>
+							</span>
+							<span className="text-muted-foreground/50">|</span>
+							<span className="inline-flex items-center gap-1">
+								<span className="w-2 h-2 rounded-full bg-emerald-500" />
+								<span className="text-muted-foreground">真实</span>
+								<span className="font-medium text-foreground">{realCount}</span>
+							</span>
+						</div>
+						<div className="text-[11px] text-muted-foreground">
+							今日: 审核 +{todayReviewCount} / 真实 +{todayRealCount}
 						</div>
 					</div>
 				</TableCell>
