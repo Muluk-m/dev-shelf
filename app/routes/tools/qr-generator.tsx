@@ -47,9 +47,9 @@ export default function QRCodeMaker() {
 	const [gradient, setGradient] = useState<boolean>(false);
 	const [gradStart, setGradStart] = useState<string>("#000000");
 	const [gradEnd, setGradEnd] = useState<string>("#1abc9c");
-	const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+	const [backgroundImage, _setBackgroundImage] = useState<string | null>(null);
 	const [logo, setLogo] = useState<string | null>(null);
-	const [logoSize, setLogoSize] = useState<number>(0.25);
+	const [logoSize, _setLogoSize] = useState<number>(0.25);
 	const [downloadExt, setDownloadExt] = useState<
 		"png" | "jpeg" | "svg" | "webp"
 	>("png");
@@ -118,7 +118,7 @@ export default function QRCodeMaker() {
 		text,
 	]);
 
-	const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const _handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const f = e.target.files?.[0];
 		if (!f) return;
 		const reader = new FileReader();

@@ -1,6 +1,5 @@
 import * as LucideIcons from "lucide-react";
 import { Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
 import {
 	AlertDialog,
 	AlertDialogAction,

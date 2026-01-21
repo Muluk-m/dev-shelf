@@ -1,5 +1,5 @@
 import { LogOut, Settings, User } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useUserInfoStore } from "~/stores/user-info-store";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {

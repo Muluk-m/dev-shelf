@@ -130,7 +130,7 @@ function renderChart(chartType: "line" | "bar" | "pie" | "area", data: any[]) {
 						outerRadius={120}
 						label
 					>
-						{data.map((entry, index) => (
+						{data.map((_entry, index) => (
 							<Cell
 								key={`cell-${index}`}
 								fill={COLORS[index % COLORS.length]}

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -37,7 +38,7 @@ import {
 } from "~/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
-import { getToolCategories } from "~/lib/api";
+import { generateToolIcon, getToolCategories } from "~/lib/api";
 import { cn } from "~/lib/utils";
 import type { Tool, ToolCategory, ToolEnvironment } from "~/types/tool";
 
@@ -113,6 +114,7 @@ export function ToolForm({
 		[],
 	);
 	const [activeTab, setActiveTab] = useState("basic");
+	const [isGeneratingIcon, setIsGeneratingIcon] = useState(false);
 	const isInternalTool = formData.isInternal;
 
 	// Load tool categories and permissions
@@ -193,6 +195,36 @@ export function ToolForm({
 			...prev,
 			tags: prev.tags.filter((tag) => tag !== tagToRemove),
 		}));
+	};
+
+	const handleGenerateIcon = async () => {
+		// 检查工具名称是否已填写
+		if (!formData.name.trim()) {
+			toast.error("请先填写工具名称");
+			return;
+		}
+
+		setIsGeneratingIcon(true);
+		try {
+			const result = await generateToolIcon({
+				toolName: formData.name,
+				description: formData.description,
+			});
+
+			setFormData((prev) => ({
+				...prev,
+				icon: result.iconUrl,
+			}));
+
+			toast.success("图标生成成功");
+		} catch (error) {
+			console.error("Failed to generate icon:", error);
+			const errorMessage =
+				error instanceof Error ? error.message : "图标生成失败，请重试";
+			toast.error(errorMessage);
+		} finally {
+			setIsGeneratingIcon(false);
+		}
 	};
 
 	const updateProductionEnvironment = (
@@ -432,75 +464,137 @@ export function ToolForm({
 									/>
 								</div>
 
-								{/* 图标和状态 */}
-								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<Label
-											htmlFor="icon"
-											className="flex items-center gap-2 text-sm font-medium"
-										>
-											<Image className="h-4 w-4 text-primary" />
-											图标 URL
-										</Label>
-										<div className="flex gap-2">
-											<Input
-												id="icon"
-												value={formData.icon}
-												onChange={(e) =>
-													setFormData((prev) => ({
-														...prev,
-														icon: e.target.value,
-													}))
-												}
-												placeholder="https://example.com/icon.png"
-												className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-											/>
-											{formData.icon && (
-												<div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex-shrink-0">
+								{/* 图标配置 */}
+								<div className="space-y-3">
+									<Label className="flex items-center gap-2 text-sm font-medium">
+										<Image className="h-4 w-4 text-primary" />
+										工具图标
+									</Label>
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+										{/* 左侧：输入和操作 */}
+										<div className="md:col-span-2 space-y-3">
+											<div className="flex gap-2">
+												<Input
+													id="icon"
+													value={formData.icon}
+													onChange={(e) =>
+														setFormData((prev) => ({
+															...prev,
+															icon: e.target.value,
+														}))
+													}
+													placeholder="https://example.com/icon.png 或 data:image/svg+xml;base64,..."
+													className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+												/>
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={handleGenerateIcon}
+													disabled={isGeneratingIcon || !formData.name.trim()}
+													className="flex-shrink-0 gap-2 px-3"
+													title={
+														!formData.name.trim()
+															? "请先填写工具名称"
+															: "使用 AI 生成图标"
+													}
+												>
+													{isGeneratingIcon ? (
+														<>
+															<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+															<span className="hidden sm:inline">生成中</span>
+														</>
+													) : (
+														<>
+															<Sparkles className="h-4 w-4" />
+															<span className="hidden sm:inline">AI 生成</span>
+														</>
+													)}
+												</Button>
+											</div>
+											<p className="text-xs text-slate-500">
+												支持图片 URL 或 Base64 格式的 SVG 图标
+											</p>
+										</div>
+
+										{/* 右侧：图标预览 */}
+										<div className="flex flex-col items-center justify-center">
+											<div
+												className={cn(
+													"relative flex h-24 w-24 items-center justify-center rounded-xl border-2 transition-all",
+													formData.icon
+														? "border-primary bg-primary/5"
+														: "border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50",
+													isGeneratingIcon && "animate-pulse",
+												)}
+											>
+												{isGeneratingIcon ? (
+													<div className="flex flex-col items-center gap-2">
+														<div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+														<span className="text-xs text-slate-500">
+															生成中
+														</span>
+													</div>
+												) : formData.icon ? (
 													<img
 														src={formData.icon}
-														alt="预览"
-														className="h-5 w-5 object-contain"
+														alt="图标预览"
+														className="h-16 w-16 object-contain"
 														onError={(e) => {
 															(e.target as HTMLImageElement).style.display =
 																"none";
+															(
+																e.target as HTMLImageElement
+															).parentElement?.classList.add("border-rose-300");
 														}}
 													/>
-												</div>
-											)}
+												) : (
+													<div className="flex flex-col items-center gap-1">
+														<Image className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+														<span className="text-xs text-slate-400">
+															暂无图标
+														</span>
+													</div>
+												)}
+											</div>
+											<p className="mt-2 text-xs text-center text-slate-500">
+												预览
+											</p>
 										</div>
 									</div>
-									<div className="space-y-2">
-										<Label className="flex items-center gap-2 text-sm font-medium">
-											<AlertCircle className="h-4 w-4 text-primary" />
-											运行状态
-										</Label>
-										<Select
-											value={formData.status}
-											onValueChange={(
-												value: "active" | "maintenance" | "deprecated",
-											) => setFormData((prev) => ({ ...prev, status: value }))}
-										>
-											<SelectTrigger className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												{statusOptions.map((option) => (
-													<SelectItem key={option.value} value={option.value}>
-														<div className="flex items-center gap-2">
-															<div
-																className={cn(
-																	"h-2 w-2 rounded-full",
-																	option.color,
-																)}
-															/>
-															{option.label}
-														</div>
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									</div>
+								</div>
+
+								{/* 状态 */}
+								<div className="space-y-2">
+									<Label className="flex items-center gap-2 text-sm font-medium">
+										<AlertCircle className="h-4 w-4 text-primary" />
+										运行状态
+									</Label>
+									<Select
+										value={formData.status}
+										onValueChange={(
+											value: "active" | "maintenance" | "deprecated",
+										) => setFormData((prev) => ({ ...prev, status: value }))}
+									>
+										<SelectTrigger className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{statusOptions.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													<div className="flex items-center gap-2">
+														<div
+															className={cn(
+																"h-2 w-2 rounded-full",
+																option.color,
+															)}
+														/>
+														{option.label}
+													</div>
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</div>
 							</TabsContent>
 

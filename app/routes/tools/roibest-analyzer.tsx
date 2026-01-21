@@ -4,7 +4,6 @@ import {
 	Clock,
 	Code,
 	FileText,
-	Globe,
 	Link as LinkIcon,
 	Smartphone,
 	TrendingUp,
@@ -18,7 +17,6 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import type {
-	ConfigV3Data,
 	PixelEvent,
 	RoiBestAnalysisResult,
 } from "~/types/roibest-analyzer";

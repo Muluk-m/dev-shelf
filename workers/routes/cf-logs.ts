@@ -261,7 +261,7 @@ function matchesFilters(
 		if (searchText) {
 			return raw.toLowerCase().includes(searchText);
 		}
-		return Boolean(filters.statusCodes && filters.statusCodes.length);
+		return Boolean(filters.statusCodes?.length);
 	}
 
 	if (searchText) {

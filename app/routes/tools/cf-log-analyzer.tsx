@@ -7,7 +7,7 @@ import {
 	Folder,
 	RefreshCw,
 } from "lucide-react";
-import React, {
+import {
 	type ReactNode,
 	useCallback,
 	useEffect,
