@@ -356,7 +356,7 @@ export function LinkFormDialog({
 											}}
 										>
 											<SelectTrigger className="h-10">
-												<SelectValue placeholder="点击添加国家" />
+												<SelectValue placeholder="选择预设国家" />
 											</SelectTrigger>
 											<SelectContent>
 												{COMMON_COUNTRIES.filter(
@@ -372,6 +372,37 @@ export function LinkFormDialog({
 												))}
 											</SelectContent>
 										</Select>
+
+										{/* 自定义国家代码输入 */}
+										<Input
+											placeholder="或输入自定义国家代码（按 Enter 添加，如 NZ、MX）"
+											className="h-10"
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													const value = e.currentTarget.value
+														.trim()
+														.toUpperCase();
+													if (
+														value &&
+														value.length >= 2 &&
+														value.length <= 3 &&
+														!formData.rules.countries?.includes(value)
+													) {
+														setFormData({
+															...formData,
+															rules: {
+																...formData.rules,
+																countries: [
+																	...(formData.rules.countries || []),
+																	value,
+																],
+															},
+														});
+														e.currentTarget.value = "";
+													}
+												}
+											}}
+										/>
 										{formData.rules.countries &&
 											formData.rules.countries.length > 0 && (
 												<div className="flex flex-wrap gap-1.5">
