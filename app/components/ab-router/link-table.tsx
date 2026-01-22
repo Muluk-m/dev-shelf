@@ -4,6 +4,7 @@ import {
 	ExternalLink,
 	Globe2,
 	Leaf,
+	List,
 	MoreHorizontal,
 	Pencil,
 	Play,
@@ -77,6 +78,7 @@ interface LinkTableProps {
 	onEdit: (link: LinkConfig) => void;
 	onPreview?: (link: LinkConfig) => void;
 	onDelete: (link: LinkConfig) => void;
+	onViewLogs?: (linkId: string) => void;
 }
 
 export function LinkTable({
@@ -86,6 +88,7 @@ export function LinkTable({
 	onEdit,
 	onPreview,
 	onDelete,
+	onViewLogs,
 }: LinkTableProps) {
 	if (links.length === 0) {
 		return null;
@@ -125,6 +128,7 @@ export function LinkTable({
 									onEdit={onEdit}
 									onPreview={onPreview}
 									onDelete={onDelete}
+									onViewLogs={onViewLogs}
 								/>
 							))}
 						</TableBody>
@@ -142,6 +146,7 @@ interface LinkTableRowProps {
 	onEdit: (link: LinkConfig) => void;
 	onPreview?: (link: LinkConfig) => void;
 	onDelete: (link: LinkConfig) => void;
+	onViewLogs?: (linkId: string) => void;
 }
 
 function LinkTableRow({
@@ -151,14 +156,15 @@ function LinkTableRow({
 	onEdit,
 	onPreview,
 	onDelete,
+	onViewLogs,
 }: LinkTableRowProps) {
 	const goUrl = getABRouterGoUrl(link.id);
 	const mode = modeConfig[link.mode] || modeConfig.review;
 	const ModeIcon = mode.icon;
 
-	// 投放地区显示
+	// 投放地区显示 - 绿色模式下不显示（因为绿色模式下countries表示审核区域，逻辑相反）
 	const countries = link.rules.countries || [];
-	const hasCountries = countries.length > 0;
+	const hasCountries = countries.length > 0 && link.mode !== "green";
 
 	// 统计数据
 	const reviewCount = link.stats?.reviewCount ?? 0;
@@ -277,6 +283,15 @@ function LinkTableRow({
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-36">
+								{onViewLogs && (
+									<DropdownMenuItem
+										onClick={() => onViewLogs(link.id)}
+										className="cursor-pointer gap-2"
+									>
+										<List className="h-4 w-4" />
+										查看日志
+									</DropdownMenuItem>
+								)}
 								{onPreview && (
 									<DropdownMenuItem
 										onClick={() => onPreview(link)}
