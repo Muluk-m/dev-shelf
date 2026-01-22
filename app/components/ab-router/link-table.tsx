@@ -38,7 +38,11 @@ import {
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { getABRouterGoUrl } from "~/lib/api";
-import type { LinkConfig, LinkMode } from "~/types/ab-router";
+import {
+	COMMON_COUNTRIES,
+	type LinkConfig,
+	type LinkMode,
+} from "~/types/ab-router";
 
 // 模式配置
 const modeConfig: Record<
@@ -166,6 +170,19 @@ function LinkTableRow({
 	const countries = link.rules.countries || [];
 	const hasCountries = countries.length > 0 && link.mode !== "green";
 
+	// 格式化国家显示：中文名 + 代码
+	const formatCountry = (code: string) => {
+		const country = COMMON_COUNTRIES.find((c) => c.code === code);
+		return country ? `${country.name}(${code})` : code;
+	};
+
+	const countriesDisplay =
+		countries.length > 2
+			? `${countries.slice(0, 2).map(formatCountry).join(", ")}...`
+			: countries.map(formatCountry).join(", ");
+
+	const countriesFullDisplay = countries.map(formatCountry).join(", ");
+
 	// 统计数据
 	const reviewCount = link.stats?.reviewCount ?? 0;
 	const realCount = link.stats?.realCount ?? 0;
@@ -190,14 +207,12 @@ function LinkTableRow({
 									<TooltipTrigger asChild>
 										<span className="inline-flex items-center gap-1 text-xs text-muted-foreground cursor-help">
 											<Globe2 className="h-3 w-3" />
-											{countries.length > 2
-												? `${countries.slice(0, 2).join(", ")}...`
-												: countries.join(", ")}
+											{countriesDisplay}
 										</span>
 									</TooltipTrigger>
 									<TooltipContent>
 										<div className="text-xs">
-											投放地区: {countries.join(", ")}
+											投放地区: {countriesFullDisplay}
 										</div>
 									</TooltipContent>
 								</Tooltip>
