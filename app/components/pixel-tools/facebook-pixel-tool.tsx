@@ -21,18 +21,6 @@ import {
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
-import type { Route } from "./+types/facebook-pixel-tool";
-
-export function meta({}: Route.MetaArgs) {
-	return [
-		{ title: "Facebook Pixel Tool | DevTools Platform" },
-		{
-			name: "description",
-			content:
-				"Simple tool to activate Facebook Pixel events with Conversions API",
-		},
-	];
-}
 
 const FACEBOOK_EVENTS = [
 	"PageView",
@@ -81,7 +69,13 @@ declare global {
 	}
 }
 
-export default function FacebookPixelTool() {
+interface FacebookPixelToolProps {
+	embedded?: boolean;
+}
+
+export default function FacebookPixelTool({
+	embedded = false,
+}: FacebookPixelToolProps = {}) {
 	const [formData, setFormData] = useState({
 		reportType: "api",
 		accessToken: "",
@@ -306,13 +300,8 @@ export default function FacebookPixelTool() {
 		}
 	};
 
-	return (
-		<div className="max-w-4xl mx-auto p-6 space-y-6">
-			<ToolPageHeader
-				icon={<Target className="h-5 w-5" />}
-				title="Facebook Pixel 激活上报工具"
-				description="简单快速地激活 Facebook Pixel 事件，并上报到 Facebook"
-			/>
+	const content = (
+		<>
 			<Card>
 				<CardHeader>
 					<CardTitle>配置参数</CardTitle>
@@ -776,7 +765,7 @@ export default function FacebookPixelTool() {
 			</Card>
 
 			{/* 使用提示 */}
-			<Card>
+			<Card className="mt-4">
 				<CardHeader>
 					<CardTitle className="text-sm">使用提示</CardTitle>
 				</CardHeader>
@@ -850,6 +839,21 @@ export default function FacebookPixelTool() {
 					</p>
 				</CardContent>
 			</Card>
+		</>
+	);
+
+	if (embedded) {
+		return content;
+	}
+
+	return (
+		<div className="max-w-4xl mx-auto p-6 space-y-6">
+			<ToolPageHeader
+				icon={<Target className="h-5 w-5" />}
+				title="Facebook Pixel 激活上报工具"
+				description="简单快速地激活 Facebook Pixel 事件，并上报到 Facebook"
+			/>
+			{content}
 		</div>
 	);
 }
