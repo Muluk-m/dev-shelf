@@ -141,7 +141,13 @@ export default function ABRouterPage() {
 			setLoading(true);
 			setError(null);
 			const data = await getABRouterLinks();
-			setLinks(data);
+			// 按创建时间倒序排列
+			const sortedData = data.sort((a, b) => {
+				const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+				const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+				return timeB - timeA;
+			});
+			setLinks(sortedData);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "加载失败");
 		} finally {
