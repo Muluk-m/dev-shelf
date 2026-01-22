@@ -24,12 +24,15 @@ import { Label } from "~/components/ui/label";
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
+	SelectLabel,
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import {
+	COMMON_BLOCK_ISPS,
 	COMMON_COUNTRIES,
 	GREEN_MODE_COUNTRIES,
 	LINK_MODE_OPTIONS,
@@ -490,35 +493,145 @@ export function LinkFormDialog({
 									</div>
 
 									{/* ISP 黑名单 */}
-									<div className="space-y-1.5">
-										<Label
-											htmlFor="block-isp-list"
-											className="text-sm font-medium flex items-center gap-2"
-										>
+									<div className="space-y-2">
+										<Label className="text-sm font-medium flex items-center gap-2">
 											<ShieldAlert className="h-4 w-4 text-muted-foreground" />
 											ISP 黑名单
 										</Label>
-										<Textarea
-											id="block-isp-list"
-											value={formData.rules.blockIspList?.join("\n") || ""}
-											onChange={(e) =>
-												setFormData({
-													...formData,
-													rules: {
-														...formData.rules,
-														blockIspList: e.target.value
-															.split("\n")
-															.filter(Boolean),
-													},
-												})
-											}
-											placeholder="China Telecom&#10;China Unicom&#10;China Mobile"
-											rows={2}
-											className="font-mono text-sm resize-none"
-										/>
-										<p className="text-xs text-muted-foreground">
-											每行一个 ISP 名称，匹配的将被屏蔽（支持部分匹配）
+										<p className="text-xs text-muted-foreground pb-1">
+											屏蔽指定平台的爬虫和预览服务（支持部分匹配）
 										</p>
+
+										{/* 预设选择器 */}
+										<Select
+											value=""
+											onValueChange={(value) => {
+												if (
+													value &&
+													!formData.rules.blockIspList?.includes(value)
+												) {
+													setFormData({
+														...formData,
+														rules: {
+															...formData.rules,
+															blockIspList: [
+																...(formData.rules.blockIspList || []),
+																value,
+															],
+														},
+													});
+												}
+											}}
+										>
+											<SelectTrigger className="h-10">
+												<SelectValue placeholder="选择预设 ISP" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectGroup>
+													<SelectLabel>Meta/Facebook</SelectLabel>
+													{COMMON_BLOCK_ISPS.filter(
+														(isp) => isp.category === "Meta",
+													).map((isp) => (
+														<SelectItem
+															key={isp.id}
+															value={isp.name}
+															className="cursor-pointer"
+														>
+															{isp.name}
+														</SelectItem>
+													))}
+												</SelectGroup>
+												<SelectGroup>
+													<SelectLabel>TikTok/ByteDance</SelectLabel>
+													{COMMON_BLOCK_ISPS.filter(
+														(isp) => isp.category === "TikTok",
+													).map((isp) => (
+														<SelectItem
+															key={isp.id}
+															value={isp.name}
+															className="cursor-pointer"
+														>
+															{isp.name}
+														</SelectItem>
+													))}
+												</SelectGroup>
+												<SelectGroup>
+													<SelectLabel>Google</SelectLabel>
+													{COMMON_BLOCK_ISPS.filter(
+														(isp) => isp.category === "Google",
+													).map((isp) => (
+														<SelectItem
+															key={isp.id}
+															value={isp.name}
+															className="cursor-pointer"
+														>
+															{isp.name}
+														</SelectItem>
+													))}
+												</SelectGroup>
+											</SelectContent>
+										</Select>
+
+										{/* 自定义输入 */}
+										<Input
+											placeholder="或输入自定义 ISP 名称（按 Enter 添加）"
+											className="h-10"
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													const value = e.currentTarget.value.trim();
+													if (
+														value &&
+														!formData.rules.blockIspList?.includes(value)
+													) {
+														setFormData({
+															...formData,
+															rules: {
+																...formData.rules,
+																blockIspList: [
+																	...(formData.rules.blockIspList || []),
+																	value,
+																],
+															},
+														});
+														e.currentTarget.value = "";
+													}
+												}
+											}}
+										/>
+
+										{/* 已选择的 ISP 徽章 */}
+										{formData.rules.blockIspList &&
+											formData.rules.blockIspList.length > 0 && (
+												<div className="flex flex-wrap gap-1.5">
+													{formData.rules.blockIspList.map((isp) => (
+														<Badge
+															key={isp}
+															variant="secondary"
+															className="h-7 gap-1.5 pl-2.5 pr-1.5 text-xs"
+														>
+															{isp}
+															<button
+																type="button"
+																className="w-4 h-4 rounded-full hover:bg-destructive/20 hover:text-destructive flex items-center justify-center transition-colors"
+																onClick={() =>
+																	setFormData({
+																		...formData,
+																		rules: {
+																			...formData.rules,
+																			blockIspList:
+																				formData.rules.blockIspList?.filter(
+																					(i) => i !== isp,
+																				) || [],
+																		},
+																	})
+																}
+															>
+																<X className="h-3 w-3" />
+															</button>
+														</Badge>
+													))}
+												</div>
+											)}
 									</div>
 								</div>
 							</section>
