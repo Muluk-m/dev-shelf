@@ -86,6 +86,7 @@ const emptyConfig: Omit<LinkConfig, "id"> = {
 		blockPC: false,
 		blockProxy: false,
 		spiderWhitelist: [],
+		blockIspList: [],
 	},
 };
 
@@ -218,6 +219,7 @@ export default function ABRouterPage() {
 				blockPC: link.rules.blockPC || false,
 				blockProxy: link.rules.blockProxy || false,
 				spiderWhitelist: link.rules.spiderWhitelist || [],
+				blockIspList: link.rules.blockIspList || [],
 			},
 		});
 		setFormError(null);

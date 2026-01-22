@@ -12,6 +12,8 @@ export interface LinkRules {
 	blockProxy?: boolean;
 	/** 蜘蛛白名单 (User-Agent 关键词) */
 	spiderWhitelist?: string[];
+	/** ISP 黑名单 (屏蔽指定 ISP 的访问) */
+	blockIspList?: string[];
 }
 
 /**
@@ -725,3 +727,58 @@ export const REVIEW_LINK_TEMPLATES: ReviewLinkTemplate[] = [
 		url: "",
 	},
 ];
+
+/**
+ * 常用企业 ISP 黑名单
+ * 主要用于屏蔽各大平台的爬虫、预览服务和内容审查系统
+ */
+export const COMMON_BLOCK_ISPS = [
+	// Meta/Facebook
+	{
+		id: "meta_ireland",
+		name: "Meta Platforms Ireland Limited",
+		category: "Meta",
+	},
+	{
+		id: "facebook_inc",
+		name: "Facebook Inc",
+		category: "Meta",
+	},
+	{
+		id: "meta_platforms",
+		name: "Meta Platforms",
+		category: "Meta",
+	},
+	// TikTok/ByteDance
+	{
+		id: "tiktok_sg",
+		name: "TikTok SG",
+		category: "TikTok",
+	},
+	{
+		id: "tiktok_pte",
+		name: "TikTok Pte Ltd",
+		category: "TikTok",
+	},
+	{
+		id: "bytedance",
+		name: "ByteDance",
+		category: "TikTok",
+	},
+	// Google
+	{
+		id: "google_llc",
+		name: "Google LLC",
+		category: "Google",
+	},
+	{
+		id: "google_cloud",
+		name: "Google Cloud",
+		category: "Google",
+	},
+	{
+		id: "google_inc",
+		name: "Google Inc",
+		category: "Google",
+	},
+] as const;
