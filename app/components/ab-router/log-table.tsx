@@ -58,7 +58,7 @@ interface LogTableFilterProps {
 }
 
 export function LogTableFilter({
-	links,
+	links: _links,
 	filter,
 	onFilterChange,
 	onSearch,
@@ -104,6 +104,14 @@ export function LogTableFilter({
 		}
 	};
 
+	const handleLinkIdChange = (value: string) => {
+		onFilterChange({
+			...filter,
+			linkId: value.trim() || undefined,
+			page: 1,
+		});
+	};
+
 	return (
 		<Card className="border-border/60 shadow-sm">
 			<CardContent className="p-4">
@@ -122,29 +130,16 @@ export function LogTableFilter({
 						)}
 					</div>
 
-					{/* 链路选择 */}
-					<Select
-						value={filter.linkId || "all"}
-						onValueChange={(value) =>
-							onFilterChange({
-								...filter,
-								linkId: value === "all" ? undefined : value,
-								page: 1,
-							})
-						}
-					>
-						<SelectTrigger className="w-[140px] h-9 bg-background border-border/60">
-							<SelectValue placeholder="全部链路" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">全部链路</SelectItem>
-							{links.map((link) => (
-								<SelectItem key={link.id} value={link.id}>
-									{link.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					{/* 链路 ID 输入 */}
+					<div className="relative">
+						<Input
+							value={filter.linkId || ""}
+							onChange={(e) => handleLinkIdChange(e.target.value)}
+							onKeyDown={handleKeyDown}
+							placeholder="链路 ID"
+							className="w-[140px] h-9 bg-background border-border/60"
+						/>
+					</div>
 
 					{/* 日期范围 */}
 					<DatePicker

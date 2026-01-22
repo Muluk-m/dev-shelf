@@ -95,6 +95,7 @@ export default function ABRouterPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [activeTab, setActiveTab] = useState("links");
 
 	// 对话框状态
 	const [isFormOpen, setIsFormOpen] = useState(false);
@@ -177,6 +178,13 @@ export default function ABRouterPage() {
 			loadLogs();
 		}
 	}, [logFilter.page, loadLogs]);
+
+	// 当切换到日志 tab 且有 linkId 筛选条件时自动加载
+	useEffect(() => {
+		if (activeTab === "logs" && logFilter.linkId && logs.length === 0) {
+			loadLogs();
+		}
+	}, [activeTab, logFilter.linkId, logs.length, loadLogs]);
 
 	// 搜索过滤
 	const filteredLinks = links.filter(
@@ -304,6 +312,14 @@ export default function ABRouterPage() {
 		}
 	};
 
+	// 查看日志
+	const handleViewLogs = useCallback((linkId: string) => {
+		// 设置日志筛选条件
+		setLogFilter({ page: 1, limit: 20, linkId });
+		// 切换到日志 tab
+		setActiveTab("logs");
+	}, []);
+
 	return (
 		<div className="min-h-screen bg-background">
 			<main className="container mx-auto px-4 max-w-7xl">
@@ -316,7 +332,7 @@ export default function ABRouterPage() {
 				/>
 
 				{/* 主要内容 */}
-				<Tabs defaultValue="links" className="mt-6">
+				<Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
 					<div className="flex items-center justify-between gap-4 mb-6">
 						<TabsList className="bg-muted/60 p-1">
 							<TabsTrigger value="links" className="gap-2 px-4">
@@ -409,6 +425,7 @@ export default function ABRouterPage() {
 									setDeletingLink(link);
 									setIsDeleteOpen(true);
 								}}
+								onViewLogs={handleViewLogs}
 							/>
 						)}
 					</TabsContent>
