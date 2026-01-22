@@ -14,6 +14,7 @@ export default [
 		route("qr-generator", "routes/tools/qr-generator.tsx"),
 		route("time-formatter", "routes/tools/time-formatter.tsx"),
 		route("tiktok-pixel-tool", "routes/tools/tiktok-pixel-tool.tsx"),
+		route("facebook-pixel-tool", "routes/tools/facebook-pixel-tool.tsx"),
 		route("file-uploader", "routes/tools/file-uploader.tsx"),
 		route("json-diff", "routes/tools/json-diff.tsx"),
 		route("cf-log-analyzer", "routes/tools/cf-log-analyzer.tsx"),
