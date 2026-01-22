@@ -12,6 +12,8 @@ export interface LinkRules {
 	blockProxy?: boolean;
 	/** 蜘蛛白名单 (User-Agent 关键词) */
 	spiderWhitelist?: string[];
+	/** ISP 黑名单 (屏蔽指定 ISP 的访问) */
+	blockIspList?: string[];
 }
 
 /**

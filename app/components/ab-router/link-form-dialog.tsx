@@ -488,6 +488,38 @@ export function LinkFormDialog({
 											每行一个爬虫标识，匹配的将直接放行
 										</p>
 									</div>
+
+									{/* ISP 黑名单 */}
+									<div className="space-y-1.5">
+										<Label
+											htmlFor="block-isp-list"
+											className="text-sm font-medium flex items-center gap-2"
+										>
+											<ShieldAlert className="h-4 w-4 text-muted-foreground" />
+											ISP 黑名单
+										</Label>
+										<Textarea
+											id="block-isp-list"
+											value={formData.rules.blockIspList?.join("\n") || ""}
+											onChange={(e) =>
+												setFormData({
+													...formData,
+													rules: {
+														...formData.rules,
+														blockIspList: e.target.value
+															.split("\n")
+															.filter(Boolean),
+													},
+												})
+											}
+											placeholder="China Telecom&#10;China Unicom&#10;China Mobile"
+											rows={2}
+											className="font-mono text-sm resize-none"
+										/>
+										<p className="text-xs text-muted-foreground">
+											每行一个 ISP 名称，匹配的将被屏蔽（支持部分匹配）
+										</p>
+									</div>
 								</div>
 							</section>
 						)}
