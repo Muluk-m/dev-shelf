@@ -13,7 +13,7 @@ export default [
 		route("url-encoder", "routes/tools/url-encoder.tsx"),
 		route("qr-generator", "routes/tools/qr-generator.tsx"),
 		route("time-formatter", "routes/tools/time-formatter.tsx"),
-		route("tiktok-pixel-tool", "routes/tools/tiktok-pixel-tool.tsx"),
+		route("pixel-activation-tool", "routes/tools/pixel-activation-tool.tsx"),
 		route("file-uploader", "routes/tools/file-uploader.tsx"),
 		route("json-diff", "routes/tools/json-diff.tsx"),
 		route("cf-log-analyzer", "routes/tools/cf-log-analyzer.tsx"),
