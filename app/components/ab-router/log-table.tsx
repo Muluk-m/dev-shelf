@@ -552,7 +552,7 @@ function LogTableRow({ log }: LogTableRowProps) {
 									<div className="pt-1.5 border-t border-border/50">
 										<div className="font-medium mb-1">决策原因:</div>
 										{log.directionInfo.reasons.map((reason, i) => (
-											<div key={i} className="text-muted-foreground">
+											<div key={i} className="text-foreground/80">
 												• {reason}
 											</div>
 										))}

@@ -727,9 +727,9 @@ export default function ABRouterPage() {
 											{previewResult.reasons.map((reason, i) => (
 												<div
 													key={i}
-													className="flex items-start gap-2 text-sm text-muted-foreground"
+													className="flex items-start gap-2 text-sm text-foreground/80"
 												>
-													<ChevronRight className="h-4 w-4 shrink-0 mt-0.5" />
+													<ChevronRight className="h-4 w-4 shrink-0 mt-0.5 text-foreground/60" />
 													{reason}
 												</div>
 											))}
