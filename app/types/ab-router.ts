@@ -721,6 +721,12 @@ export const REVIEW_LINK_TEMPLATES: ReviewLinkTemplate[] = [
 		url: "https://discord.com/",
 	},
 	{
+		id: 10,
+		name: "CF BLOCK",
+		nameEnglish: "cf block",
+		url: "https://block.downloads.my/",
+	},
+	{
 		id: 99,
 		name: "自定义",
 		nameEnglish: "customize",

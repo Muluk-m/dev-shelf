@@ -1,5 +1,6 @@
 import {
 	Check,
+	Clock,
 	Copy,
 	ExternalLink,
 	Globe2,
@@ -117,6 +118,9 @@ export function LinkTable({
 								<TableHead className="w-[180px] font-semibold text-foreground/80">
 									统计
 								</TableHead>
+								<TableHead className="w-[140px] font-semibold text-foreground/80">
+									时间
+								</TableHead>
 								<TableHead className="w-[100px] text-right font-semibold text-foreground/80">
 									操作
 								</TableHead>
@@ -188,6 +192,23 @@ function LinkTableRow({
 	const realCount = link.stats?.realCount ?? 0;
 	const todayReviewCount = link.stats?.todayReviewCount ?? 0;
 	const todayRealCount = link.stats?.todayRealCount ?? 0;
+
+	// 格式化时间
+	const formatTime = (dateStr?: string) => {
+		if (!dateStr) return "-";
+		try {
+			const date = new Date(dateStr);
+			if (Number.isNaN(date.getTime())) return "-";
+			return date.toLocaleString("zh-CN", {
+				month: "2-digit",
+				day: "2-digit",
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+		} catch {
+			return "-";
+		}
+	};
 
 	return (
 		<TooltipProvider delayDuration={200}>
@@ -261,6 +282,37 @@ function LinkTableRow({
 						<div className="text-[11px] text-muted-foreground">
 							今日: 审核 +{todayReviewCount} / 真实 +{todayRealCount}
 						</div>
+					</div>
+				</TableCell>
+
+				{/* 时间 */}
+				<TableCell className="py-3">
+					<div className="space-y-1">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
+									<Clock className="h-3 w-3" />
+									<span>{formatTime(link.createdAt)}</span>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<div className="text-xs">创建时间: {link.createdAt || "-"}</div>
+							</TooltipContent>
+						</Tooltip>
+						{link.updatedAt && link.updatedAt !== link.createdAt && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="text-[11px] text-muted-foreground/70 cursor-help">
+										更新: {formatTime(link.updatedAt)}
+									</div>
+								</TooltipTrigger>
+								<TooltipContent>
+									<div className="text-xs">
+										更新时间: {link.updatedAt || "-"}
+									</div>
+								</TooltipContent>
+							</Tooltip>
+						)}
 					</div>
 				</TableCell>
 
