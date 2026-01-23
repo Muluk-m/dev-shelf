@@ -83,7 +83,7 @@
 		"deploy": "npm run build && wrangler deploy",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
-		"dev": "pnpm db:sync && react-router dev",
+		"dev": "react-router dev",
 		"preview": "npm run build && vite preview",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
 		"db:pull": "wrangler d1 export devhub-database --output db/database.sql",
