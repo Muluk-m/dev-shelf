@@ -83,10 +83,13 @@
 		"deploy": "npm run build && wrangler deploy",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
-		"dev": "react-router dev",
+		"dev": "pnpm db:sync && react-router dev",
 		"preview": "npm run build && vite preview",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
-		"db:setup": "wrangler d1 execute devhub-database --local --file=db/database.sql"
+		"db:pull": "wrangler d1 export devhub-database --output db/database.sql",
+		"db:reset": "rm -rf .wrangler/state/v3/d1",
+		"db:apply": "wrangler d1 execute devhub-database --local --file=db/database.sql",
+		"db:sync": "pnpm db:pull && pnpm db:reset && pnpm db:apply"
 	},
 	"packageManager": "pnpm@10.12.2+sha512.a32540185b964ee30bb4e979e405adc6af59226b438ee4cc19f9e8773667a66d302f5bfee60a39d3cac69e35e4b96e708a71dd002b7e9359c4112a1722ac323f"
 }
