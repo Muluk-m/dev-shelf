@@ -575,9 +575,7 @@ function ToolCardCompact({ tool, onEnvClick, index }: ToolCardCompactProps) {
 									: "bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20",
 						)}
 					>
-						{env.isExternal && (
-							<ExternalLink className="h-3 w-3" />
-						)}
+						{env.isExternal && <ExternalLink className="h-3 w-3" />}
 						{env.label}
 					</button>
 				))}
