@@ -6,7 +6,7 @@ const identityRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 identityRouter.get("/", async (c) => {
 	try {
 		const result = await c.env.DB.prepare(
-			"SELECT * FROM github_feishu_identity ORDER BY created_at DESC",
+			"SELECT * FROM github_feishu_identity ORDER BY updated_at DESC",
 		).all();
 
 		return c.json(result.results);
