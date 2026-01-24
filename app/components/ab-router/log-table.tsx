@@ -2,6 +2,8 @@ import {
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
+	ChevronsLeft,
+	ChevronsRight,
 	Clock,
 	Filter,
 	Globe2,
@@ -11,7 +13,7 @@ import {
 	Smartphone,
 	X,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
@@ -597,32 +599,167 @@ function Pagination({ page, total, pageSize, onPageChange }: PaginationProps) {
 	const totalPages = Math.ceil(total / pageSize);
 	const canGoPrev = page > 1;
 	const canGoNext = page < totalPages;
+	const [jumpValue, setJumpValue] = useState("");
+
+	const handleJump = useCallback(() => {
+		const targetPage = Number.parseInt(jumpValue, 10);
+		if (targetPage >= 1 && targetPage <= totalPages && targetPage !== page) {
+			onPageChange(targetPage);
+			setJumpValue("");
+		}
+	}, [jumpValue, totalPages, page, onPageChange]);
+
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent) => {
+			if (e.key === "Enter") {
+				handleJump();
+			}
+		},
+		[handleJump],
+	);
 
 	if (totalPages <= 1) return null;
 
+	// 生成页码按钮列表
+	const getPageNumbers = () => {
+		const pages: (number | "ellipsis")[] = [];
+		const showEllipsis = totalPages > 7;
+
+		if (!showEllipsis) {
+			// 总页数少于等于7，显示所有页码
+			for (let i = 1; i <= totalPages; i++) {
+				pages.push(i);
+			}
+		} else {
+			// 总是显示第一页
+			pages.push(1);
+
+			if (page <= 4) {
+				// 当前页靠近开头
+				for (let i = 2; i <= 5; i++) {
+					pages.push(i);
+				}
+				pages.push("ellipsis");
+			} else if (page >= totalPages - 3) {
+				// 当前页靠近末尾
+				pages.push("ellipsis");
+				for (let i = totalPages - 4; i < totalPages; i++) {
+					pages.push(i);
+				}
+			} else {
+				// 当前页在中间
+				pages.push("ellipsis");
+				for (let i = page - 1; i <= page + 1; i++) {
+					pages.push(i);
+				}
+				pages.push("ellipsis");
+			}
+
+			// 总是显示最后一页
+			pages.push(totalPages);
+		}
+
+		return pages;
+	};
+
+	const pageNumbers = getPageNumbers();
+
 	return (
-		<div className="flex items-center gap-2">
+		<div className="flex items-center gap-1.5">
+			{/* 首页 */}
+			<Button
+				variant="outline"
+				size="icon"
+				className="h-8 w-8"
+				disabled={!canGoPrev}
+				onClick={() => onPageChange(1)}
+				title="首页"
+			>
+				<ChevronsLeft className="h-4 w-4" />
+			</Button>
+
+			{/* 上一页 */}
 			<Button
 				variant="outline"
 				size="icon"
 				className="h-8 w-8"
 				disabled={!canGoPrev}
 				onClick={() => onPageChange(page - 1)}
+				title="上一页"
 			>
 				<ChevronLeft className="h-4 w-4" />
 			</Button>
-			<span className="text-sm text-muted-foreground min-w-[80px] text-center">
-				{page} / {totalPages}
-			</span>
+
+			{/* 页码按钮 */}
+			<div className="flex items-center gap-1">
+				{pageNumbers.map((pageNum, index) =>
+					pageNum === "ellipsis" ? (
+						<span
+							key={`ellipsis-${index}`}
+							className="w-8 text-center text-muted-foreground"
+						>
+							...
+						</span>
+					) : (
+						<Button
+							key={pageNum}
+							variant={pageNum === page ? "default" : "outline"}
+							size="icon"
+							className="h-8 w-8 text-xs"
+							onClick={() => onPageChange(pageNum)}
+						>
+							{pageNum}
+						</Button>
+					),
+				)}
+			</div>
+
+			{/* 下一页 */}
 			<Button
 				variant="outline"
 				size="icon"
 				className="h-8 w-8"
 				disabled={!canGoNext}
 				onClick={() => onPageChange(page + 1)}
+				title="下一页"
 			>
 				<ChevronRight className="h-4 w-4" />
 			</Button>
+
+			{/* 末页 */}
+			<Button
+				variant="outline"
+				size="icon"
+				className="h-8 w-8"
+				disabled={!canGoNext}
+				onClick={() => onPageChange(totalPages)}
+				title="末页"
+			>
+				<ChevronsRight className="h-4 w-4" />
+			</Button>
+
+			{/* 跳转输入框 - 仅在页数较多时显示 */}
+			{totalPages > 5 && (
+				<div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-border/50">
+					<span className="text-xs text-muted-foreground whitespace-nowrap">
+						跳至
+					</span>
+					<Input
+						type="number"
+						min={1}
+						max={totalPages}
+						value={jumpValue}
+						onChange={(e) => setJumpValue(e.target.value)}
+						onKeyDown={handleKeyDown}
+						onBlur={handleJump}
+						placeholder={String(page)}
+						className="w-14 h-8 text-center text-xs px-1.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+					/>
+					<span className="text-xs text-muted-foreground whitespace-nowrap">
+						页
+					</span>
+				</div>
+			)}
 		</div>
 	);
 }
