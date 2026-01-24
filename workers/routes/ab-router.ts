@@ -79,14 +79,12 @@ abRouterProxy.get("/links/:id", async (c) => {
 });
 
 /**
- * POST /api/ab-router/links/:id - 创建或更新链接配置
+ * POST /api/ab-router/links - 创建新链接配置
  */
-abRouterProxy.post("/links/:id", async (c) => {
-	const id = c.req.param("id");
-
+abRouterProxy.post("/links", async (c) => {
 	try {
 		const body = await c.req.json();
-		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links/${id}`, {
+		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -102,8 +100,37 @@ abRouterProxy.post("/links/:id", async (c) => {
 
 		return c.json(data as object);
 	} catch (error) {
-		console.error("Proxy AB Router save link error:", error);
-		return c.json({ error: "保存链接配置失败" }, 500);
+		console.error("Proxy AB Router create link error:", error);
+		return c.json({ error: "创建链接配置失败" }, 500);
+	}
+});
+
+/**
+ * PUT /api/ab-router/links/:id - 更新链接配置
+ */
+abRouterProxy.put("/links/:id", async (c) => {
+	const id = c.req.param("id");
+
+	try {
+		const body = await c.req.json();
+		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links/${id}`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body),
+		});
+
+		const data: unknown = await response.json();
+
+		if (!response.ok) {
+			return c.json(data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(data as object);
+	} catch (error) {
+		console.error("Proxy AB Router update link error:", error);
+		return c.json({ error: "更新链接配置失败" }, 500);
 	}
 });
 

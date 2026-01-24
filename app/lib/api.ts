@@ -488,13 +488,12 @@ export async function getABRouterLink(id: string): Promise<LinkConfig | null> {
 }
 
 /**
- * 创建或更新链接配置
+ * 创建新链接配置
  */
-export async function saveABRouterLink(
-	id: string,
-	config: Omit<LinkConfig, "id">,
+export async function createABRouterLink(
+	config: LinkConfig,
 ): Promise<{ message: string }> {
-	const response = await fetch(`/api/ab-router/links/${id}`, {
+	const response = await fetch("/api/ab-router/links", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -505,8 +504,33 @@ export async function saveABRouterLink(
 	if (!response.ok) {
 		const error = (await response
 			.json()
-			.catch(() => ({ error: "保存链接配置失败" }))) as { error?: string };
-		throw new Error(error.error || "保存链接配置失败");
+			.catch(() => ({ error: "创建链接配置失败" }))) as { error?: string };
+		throw new Error(error.error || "创建链接配置失败");
+	}
+
+	return response.json();
+}
+
+/**
+ * 更新链接配置
+ */
+export async function updateABRouterLink(
+	id: string,
+	config: Omit<LinkConfig, "id">,
+): Promise<{ message: string }> {
+	const response = await fetch(`/api/ab-router/links/${id}`, {
+		method: "PUT",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(config),
+	});
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "更新链接配置失败" }))) as { error?: string };
+		throw new Error(error.error || "更新链接配置失败");
 	}
 
 	return response.json();

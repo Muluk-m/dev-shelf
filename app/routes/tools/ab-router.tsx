@@ -48,11 +48,12 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
 	AB_ROUTER_UPSTREAM_URL,
+	createABRouterLink,
 	deleteABRouterLink,
 	getABRouterLinks,
 	previewABRouterLink,
 	queryABRouterLogs,
-	saveABRouterLink,
+	updateABRouterLink,
 } from "~/lib/api";
 import type {
 	AccessLog,
@@ -89,6 +90,16 @@ const emptyConfig: Omit<LinkConfig, "id"> = {
 		blockIspList: [],
 	},
 };
+
+// 生成随机 ID（8位字母数字）
+function generateRandomId(): string {
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+	let result = "";
+	for (let i = 0; i < 8; i++) {
+		result += chars.charAt(Math.floor(Math.random() * chars.length));
+	}
+	return result;
+}
 
 export default function ABRouterPage() {
 	// 状态管理
@@ -203,7 +214,7 @@ export default function ABRouterPage() {
 	// 打开创建对话框
 	const handleCreate = () => {
 		setEditingLink(null);
-		setFormData({ id: "", ...emptyConfig });
+		setFormData({ id: generateRandomId(), ...emptyConfig });
 		setFormError(null);
 		setIsFormOpen(true);
 	};
@@ -270,7 +281,15 @@ export default function ABRouterPage() {
 			setSaving(true);
 			setFormError(null);
 			const { id, ...config } = formData;
-			await saveABRouterLink(id, config);
+
+			if (editingLink) {
+				// 编辑现有链接 - 使用 PUT
+				await updateABRouterLink(id, config);
+			} else {
+				// 创建新链接 - 使用 POST
+				await createABRouterLink({ id, ...config });
+			}
+
 			await loadLinks();
 			setIsFormOpen(false);
 		} catch (err) {
@@ -629,6 +648,9 @@ export default function ABRouterPage() {
 				formError={formError}
 				saving={saving}
 				onSave={handleSave}
+				onRegenerateId={() =>
+					setFormData({ ...formData, id: generateRandomId() })
+				}
 			/>
 
 			{/* 删除确认对话框 */}

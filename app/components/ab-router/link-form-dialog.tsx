@@ -54,6 +54,7 @@ interface LinkFormDialogProps {
 	formError: string | null;
 	saving: boolean;
 	onSave: () => void;
+	onRegenerateId?: () => void;
 }
 
 // 模式图标映射
@@ -73,6 +74,7 @@ export function LinkFormDialog({
 	formError,
 	saving,
 	onSave,
+	onRegenerateId,
 }: LinkFormDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,18 +114,34 @@ export function LinkFormDialog({
 									<Label htmlFor="link-id" className="text-sm font-medium">
 										链路 ID <span className="text-destructive">*</span>
 									</Label>
-									<Input
-										id="link-id"
-										value={formData.id}
-										onChange={(e) =>
-											setFormData({ ...formData, id: e.target.value })
-										}
-										placeholder="如: link001"
-										disabled={!!editingLink}
-										className="h-10"
-									/>
+									<div className="flex items-center gap-2">
+										<Input
+											id="link-id"
+											value={formData.id}
+											onChange={(e) =>
+												setFormData({ ...formData, id: e.target.value })
+											}
+											placeholder="如: link001"
+											disabled={!!editingLink}
+											className="h-10 flex-1"
+										/>
+										{!editingLink && onRegenerateId && (
+											<Button
+												type="button"
+												variant="outline"
+												size="icon"
+												onClick={onRegenerateId}
+												className="h-10 w-10 shrink-0"
+												title="重新生成随机 ID"
+											>
+												<RefreshCcw className="h-4 w-4" />
+											</Button>
+										)}
+									</div>
 									<p className="text-xs text-muted-foreground">
-										用于生成跳转链接的唯一标识
+										{editingLink
+											? "链路 ID 创建后不可修改"
+											: "自动生成随机 ID，也可自定义"}
 									</p>
 								</div>
 								<div className="space-y-1.5">
