@@ -8,6 +8,7 @@ export default defineConfig({
 	plugins: [
 		cloudflare({
 			viteEnvironment: { name: "ssr" },
+			inspectorPort: false,
 			experimental: {
 				remoteBindings: true,
 			},
