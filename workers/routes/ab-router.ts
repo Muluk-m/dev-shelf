@@ -15,6 +15,51 @@ function mapStatusCode(status: number): ContentfulStatusCode {
 }
 
 /**
+ * Parse response safely with error handling
+ */
+async function parseJsonResponse(
+	response: Response,
+	errorContext: string,
+): Promise<
+	| { success: true; data: unknown }
+	| { success: false; error: string; status: ContentfulStatusCode }
+> {
+	const contentType = response.headers.get("content-type") || "";
+
+	if (!contentType.includes("application/json")) {
+		const text = await response.text();
+		console.error(
+			`${errorContext}: Non-JSON response`,
+			contentType,
+			text.substring(0, 200),
+		);
+		return {
+			success: false,
+			error: `上游服务返回非 JSON 响应: ${response.status}`,
+			status: 500,
+		};
+	}
+
+	const text = await response.text();
+	try {
+		const data = JSON.parse(text);
+		return { success: true, data };
+	} catch (parseError) {
+		console.error(
+			`${errorContext}: JSON parse failed`,
+			parseError,
+			"Response:",
+			text.substring(0, 200),
+		);
+		return {
+			success: false,
+			error: "上游服务返回无效 JSON",
+			status: 500,
+		};
+	}
+}
+
+/**
  * Extract array from various response formats
  */
 function extractArray(data: unknown): unknown[] {
@@ -42,14 +87,21 @@ function extractArray(data: unknown): unknown[] {
 abRouterProxy.get("/links", async (c) => {
 	try {
 		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links`);
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router links error",
+		);
+
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
+		}
 
 		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
 		}
 
 		// 确保返回数组
-		const links = extractArray(data);
+		const links = extractArray(parseResult.data);
 		return c.json(links);
 	} catch (error) {
 		console.error("Proxy AB Router links error:", error);
@@ -65,13 +117,20 @@ abRouterProxy.get("/links/:id", async (c) => {
 
 	try {
 		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links/${id}`);
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router link error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router link error:", error);
 		return c.json({ error: "获取链接配置失败" }, 500);
@@ -80,11 +139,19 @@ abRouterProxy.get("/links/:id", async (c) => {
 
 /**
  * POST /api/ab-router/links - 创建新链接配置
+ * 注意：上游 API 使用 POST /:id 格式，ID 在路径中
  */
 abRouterProxy.post("/links", async (c) => {
 	try {
 		const body = await c.req.json();
-		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links`, {
+		const id = body.id;
+
+		if (!id) {
+			return c.json({ error: "缺少链路 ID" }, 400);
+		}
+
+		// 上游 API 端点格式: POST /:id
+		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links/${id}`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -92,13 +159,20 @@ abRouterProxy.post("/links", async (c) => {
 			body: JSON.stringify(body),
 		});
 
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router create link error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router create link error:", error);
 		return c.json({ error: "创建链接配置失败" }, 500);
@@ -121,13 +195,20 @@ abRouterProxy.put("/links/:id", async (c) => {
 			body: JSON.stringify(body),
 		});
 
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router update link error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router update link error:", error);
 		return c.json({ error: "更新链接配置失败" }, 500);
@@ -145,13 +226,20 @@ abRouterProxy.delete("/links/:id", async (c) => {
 			method: "DELETE",
 		});
 
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router delete link error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router delete link error:", error);
 		return c.json({ error: "删除链接配置失败" }, 500);
@@ -177,13 +265,20 @@ abRouterProxy.post("/links/:id/preview", async (c) => {
 			},
 		);
 
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router preview error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router preview error:", error);
 		return c.json({ error: "预览决策失败" }, 500);
@@ -200,13 +295,20 @@ abRouterProxy.get("/logs", async (c) => {
 		const upstreamUrl = `${AB_ROUTER_UPSTREAM}/api/logs${queryString}`;
 
 		const response = await fetch(upstreamUrl);
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router logs error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router logs error:", error);
 		return c.json({ error: "查询日志失败" }, 500);
@@ -223,13 +325,20 @@ abRouterProxy.delete("/logs", async (c) => {
 		const upstreamUrl = `${AB_ROUTER_UPSTREAM}/api/logs${queryString}`;
 
 		const response = await fetch(upstreamUrl, { method: "DELETE" });
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router delete logs error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router delete logs error:", error);
 		return c.json({ error: "删除日志失败" }, 500);
@@ -248,13 +357,20 @@ abRouterProxy.get("/links/:id/logs", async (c) => {
 		const upstreamUrl = `${AB_ROUTER_UPSTREAM}/api/links/${id}/logs${queryString}`;
 
 		const response = await fetch(upstreamUrl);
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router link logs error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router link logs error:", error);
 		return c.json({ error: "查询日志失败" }, 500);
@@ -271,13 +387,20 @@ abRouterProxy.delete("/links/:id/logs", async (c) => {
 		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links/${id}/logs`, {
 			method: "DELETE",
 		});
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router delete link logs error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router delete link logs error:", error);
 		return c.json({ error: "删除日志失败" }, 500);
@@ -296,13 +419,20 @@ abRouterProxy.get("/links/:id/stats", async (c) => {
 		const upstreamUrl = `${AB_ROUTER_UPSTREAM}/api/links/${id}/stats${queryString}`;
 
 		const response = await fetch(upstreamUrl);
-		const data: unknown = await response.json();
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router link stats error",
+		);
 
-		if (!response.ok) {
-			return c.json(data as object, mapStatusCode(response.status));
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
 		}
 
-		return c.json(data as object);
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router link stats error:", error);
 		return c.json({ error: "获取统计信息失败" }, 500);
