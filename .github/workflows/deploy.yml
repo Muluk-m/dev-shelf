@@ -1,0 +1,28 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROJECT_NAME: qlj-devhub-homepage
+
+jobs:
+  deploy:
+    uses: qiliangjia/qlj-action-tools/.github/workflows/cloudflare-deploy.yml@main
+    with:
+      # 核心参数
+      project_name: ${{ env.PROJECT_NAME }}
+      mode: workers
+
+      # 审批配置
+      require_approval: true
+      approval_environment: production
+      approval_message: "Deploy ${{ env.PROJECT_NAME }} to production"
+
+      # 通知配置（使用 Webhook 模式）
+      enable_notifications: true
+      webhook_url: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      notification_env: production
+    secrets: inherit
