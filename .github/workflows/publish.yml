@@ -1,0 +1,48 @@
+name: Publish to Cloudflare Workers
+
+on:
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      artifact_name:
+        description: 'Artifact name to deploy'
+        required: false
+        default: 'build-output'
+      workflow_run_id:
+        description: 'Workflow run ID to download artifact from'
+        required: false
+      env:
+        description: 'Environment name'
+        required: false
+        default: 'production'
+
+  # 审批通过后自动触发 (由 fe-toolkit-server 调用)
+  repository_dispatch:
+    types: [cloudflare-deploy-approved]
+
+jobs:
+  publish:
+    uses: qiliangjia/qlj-action-tools/.github/workflows/cloudflare-publish.yml@main
+    with:
+      # 核心参数
+      project_name: qlj-devhub-homepage
+      mode: workers
+
+      # Artifact 参数
+      artifact_name: ${{ github.event.inputs.artifact_name || github.event.client_payload.artifact_name || 'build-output' }}
+      build_dir: build
+
+      # 通知参数
+      enable_notifications: true
+      webhook_url: ${{ vars.FEISHU_WEBHOOK_URL }}
+      app_name: devhub-deploy
+      chat_id: ${{ vars.FEISHU_CHAT_ID }}
+
+      # 部署信息参数
+      env: ${{ github.event.inputs.env || github.event.client_payload.env || 'production' }}
+      version: ${{ github.sha }}
+      repository: ${{ github.repository }}
+      triggered_by: ${{ github.actor }}
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

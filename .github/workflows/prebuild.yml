@@ -1,0 +1,32 @@
+name: Prebuild and Request Approval
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  prebuild:
+    uses: qiliangjia/qlj-action-tools/.github/workflows/prebuild-approval.yml@main
+    with:
+      # 核心参数
+      project_name: qlj-devhub-homepage
+      mode: workers
+
+      # 构建参数
+      build_command: pnpm install && pnpm run build
+      build_dir: build
+
+      # 审批参数
+      require_approval: true
+      app_name: ticket
+      chat_id: ${{ vars.FEISHU_CHAT_ID }} # 飞书群聊 ID (需要在仓库变量中配置)
+
+      # 通知参数
+      enable_notifications: true
+      webhook_url: ${{ vars.FEISHU_WEBHOOK_URL }}
+
+      # 部署信息参数
+      version: ${{ github.sha }}
+      repository: ${{ github.repository }}
+      triggered_by: ${{ github.actor }}
