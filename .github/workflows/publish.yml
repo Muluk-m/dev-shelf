@@ -18,6 +18,9 @@ on:
 
 jobs:
   publish:
+    permissions:
+      actions: read  # Required for cross-workflow artifact download
+      contents: read
     uses: qiliangjia/qlj-action-tools/.github/workflows/cloudflare-publish.yml@main
     with:
       # 核心参数
@@ -39,6 +42,4 @@ jobs:
       version: ${{ github.sha }}
       repository: ${{ github.repository }}
       triggered_by: ${{ github.actor }}
-    secrets:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    secrets: inherit
