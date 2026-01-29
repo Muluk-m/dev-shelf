@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
     inputs:
       artifact_run_id:
-        description: 'Run ID of the workflow that uploaded the artifact'
+        description: "Run ID of the workflow that uploaded the artifact"
         required: false
       env:
-        description: 'Environment name'
+        description: "Environment name"
         required: false
-        default: 'production'
+        default: "production"
 
   # 审批通过后自动触发 (由 fe-toolkit-server 调用)
   repository_dispatch:
@@ -30,7 +30,6 @@ jobs:
 
       # 通知参数
       enable_notifications: true
-      webhook_url: ${{ vars.FEISHU_WEBHOOK_URL }}
       app_name: devhub-deploy
       chat_id: ${{ vars.FEISHU_CHAT_ID }}
 
