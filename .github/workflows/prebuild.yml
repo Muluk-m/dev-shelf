@@ -23,7 +23,6 @@ jobs:
 
       # 通知参数
       enable_notifications: true
-      webhook_url: ${{ vars.FEISHU_WEBHOOK_URL }}
 
       # 部署信息参数
       version: ${{ github.sha }}

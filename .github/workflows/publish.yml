@@ -4,12 +4,8 @@ on:
   # 手动触发
   workflow_dispatch:
     inputs:
-      artifact_name:
-        description: 'Artifact name to deploy'
-        required: false
-        default: 'build-output'
-      workflow_run_id:
-        description: 'Workflow run ID to download artifact from'
+      artifact_run_id:
+        description: 'Run ID of the workflow that uploaded the artifact'
         required: false
       env:
         description: 'Environment name'
@@ -29,7 +25,7 @@ jobs:
       mode: workers
 
       # Artifact 参数
-      artifact_name: ${{ github.event.inputs.artifact_name || github.event.client_payload.artifact_name || 'build-output' }}
+      artifact_run_id: ${{ github.event.inputs.artifact_run_id || github.event.client_payload.artifact_run_id || '' }}
       build_dir: build
 
       # 通知参数
