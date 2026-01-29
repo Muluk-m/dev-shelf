@@ -24,7 +24,8 @@ jobs:
       project_name: qlj-devhub-homepage
       mode: workers
 
-      # Artifact 参数
+      # Artifact 参数 (跨 workflow 下载)
+      artifact_name: build-output
       artifact_run_id: ${{ github.event.inputs.artifact_run_id || github.event.client_payload.artifact_run_id || '' }}
       build_dir: build
 
