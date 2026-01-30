@@ -19,7 +19,7 @@ on:
 jobs:
   publish:
     permissions:
-      actions: read  # Required for cross-workflow artifact download
+      actions: read # Required for cross-workflow artifact download
       contents: read
     uses: qiliangjia/qlj-action-tools/.github/workflows/cloudflare-publish.yml@main
     with:
@@ -30,7 +30,7 @@ jobs:
       # Artifact 参数 (跨 workflow 下载)
       artifact_name: build-output
       artifact_run_id: ${{ github.event.inputs.artifact_run_id || github.event.client_payload.artifact_run_id || '' }}
-      build_dir: build
+      build_dir: build-output
 
       # 通知参数
       enable_notifications: true
