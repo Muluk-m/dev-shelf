@@ -48,6 +48,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
 	AB_ROUTER_UPSTREAM_URL,
+	batchGetABRouterStats,
 	createABRouterLink,
 	deleteABRouterLink,
 	getABRouterLinks,
@@ -58,6 +59,7 @@ import {
 import type {
 	AccessLog,
 	LinkConfig,
+	LinkStats,
 	LogQueryParams,
 	PreviewResult,
 } from "~/types/ab-router";
@@ -104,10 +106,21 @@ function generateRandomId(): string {
 export default function ABRouterPage() {
 	// 状态管理
 	const [links, setLinks] = useState<LinkConfig[]>([]);
+	const [stats, setStats] = useState<Map<string, LinkStats>>(new Map());
 	const [loading, setLoading] = useState(true);
+	const [statsLoading, setStatsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [activeTab, setActiveTab] = useState("links");
+
+	// 分页状态
+	const [linkPagination, setLinkPagination] = useState({
+		page: 1,
+		limit: 20,
+		total: 0,
+		totalPages: 0,
+		hasMore: false,
+	});
 
 	// 对话框状态
 	const [isFormOpen, setIsFormOpen] = useState(false);
@@ -146,29 +159,67 @@ export default function ABRouterPage() {
 	});
 	const [logsTotal, setLogsTotal] = useState(0);
 
-	// 加载链接列表
-	const loadLinks = useCallback(async () => {
+	// 加载链接列表（不含统计，快速）
+	const loadLinks = useCallback(
+		async (page = 1) => {
+			try {
+				setLoading(true);
+				setError(null);
+				const response = await getABRouterLinks({
+					page,
+					limit: linkPagination.limit,
+					includeStats: false,
+				});
+
+				// 按创建时间倒序排列
+				const sortedData = response.data.sort((a, b) => {
+					const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+					const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+					return timeB - timeA;
+				});
+
+				setLinks(sortedData);
+				setLinkPagination({
+					page: response.pagination.page,
+					limit: response.pagination.limit,
+					total: response.total,
+					totalPages: response.pagination.totalPages,
+					hasMore: response.pagination.hasMore,
+				});
+
+				// 清空旧的统计数据，显示加载状态
+				setStats(new Map());
+
+				// 立即加载统计数据（非阻塞）
+				loadStats(sortedData.map((l) => l.id));
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "加载失败");
+			} finally {
+				setLoading(false);
+			}
+		},
+		[linkPagination.limit],
+	);
+
+	// 加载统计数据（延迟加载，不阻塞配置列表）
+	const loadStats = useCallback(async (linkIds: string[]) => {
+		if (linkIds.length === 0) return;
+
 		try {
-			setLoading(true);
-			setError(null);
-			const data = await getABRouterLinks();
-			// 按创建时间倒序排列
-			const sortedData = data.sort((a, b) => {
-				const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-				const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-				return timeB - timeA;
-			});
-			setLinks(sortedData);
+			setStatsLoading(true);
+			const statsMap = await batchGetABRouterStats(linkIds);
+			setStats(statsMap);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "加载失败");
+			console.error("加载统计失败:", err);
+			// 统计加载失败不影响配置列表展示
 		} finally {
-			setLoading(false);
+			setStatsLoading(false);
 		}
 	}, []);
 
 	useEffect(() => {
-		loadLinks();
-	}, [loadLinks]);
+		loadLinks(1);
+	}, []);
 
 	// 加载日志列表
 	const loadLogs = useCallback(async () => {
@@ -185,10 +236,18 @@ export default function ABRouterPage() {
 		}
 	}, [logFilter]);
 
-	// 处理分页变化
-	const handlePageChange = useCallback((newPage: number) => {
+	// 处理日志分页变化
+	const handleLogPageChange = useCallback((newPage: number) => {
 		setLogFilter((prev) => ({ ...prev, page: newPage }));
 	}, []);
+
+	// 处理链接列表分页变化
+	const handleLinkPageChange = useCallback(
+		(newPage: number) => {
+			loadLinks(newPage);
+		},
+		[loadLinks],
+	);
 
 	// 当筛选条件变化时自动加载（分页变化时）
 	useEffect(() => {
@@ -210,6 +269,12 @@ export default function ABRouterPage() {
 			link.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			link.name.toLowerCase().includes(searchQuery.toLowerCase()),
 	);
+
+	// 合并统计数据到配置对象
+	const linksWithStats = filteredLinks.map((link) => ({
+		...link,
+		stats: stats.get(link.id),
+	}));
 
 	// 打开创建对话框
 	const handleCreate = () => {
@@ -290,7 +355,7 @@ export default function ABRouterPage() {
 				await createABRouterLink({ id, ...config });
 			}
 
-			await loadLinks();
+			await loadLinks(linkPagination.page);
 			setIsFormOpen(false);
 		} catch (err) {
 			setFormError(err instanceof Error ? err.message : "保存失败");
@@ -304,7 +369,7 @@ export default function ABRouterPage() {
 		if (!deletingLink) return;
 		try {
 			await deleteABRouterLink(deletingLink.id);
-			await loadLinks();
+			await loadLinks(linkPagination.page);
 			setIsDeleteOpen(false);
 			setDeletingLink(null);
 		} catch (err) {
@@ -398,7 +463,7 @@ export default function ABRouterPage() {
 							<Button
 								variant="outline"
 								size="icon"
-								onClick={loadLinks}
+								onClick={() => loadLinks(linkPagination.page)}
 								disabled={loading}
 								className="h-9 w-9 shrink-0"
 							>
@@ -443,7 +508,7 @@ export default function ABRouterPage() {
 							/>
 						) : (
 							<LinkTable
-								links={filteredLinks}
+								links={linksWithStats}
 								copiedId={copiedId}
 								onCopy={handleCopy}
 								onEdit={handleEdit}
@@ -453,6 +518,9 @@ export default function ABRouterPage() {
 									setIsDeleteOpen(true);
 								}}
 								onViewLogs={handleViewLogs}
+								pagination={linkPagination}
+								onPageChange={handleLinkPageChange}
+								statsLoading={statsLoading}
 							/>
 						)}
 					</TabsContent>
@@ -480,7 +548,7 @@ export default function ABRouterPage() {
 									limit: logFilter.limit || 20,
 									hasMore: logs.length === (logFilter.limit || 20),
 								}}
-								onPageChange={handlePageChange}
+								onPageChange={handleLogPageChange}
 								onRefresh={loadLogs}
 								onDismissError={() => setLogsError(null)}
 							/>

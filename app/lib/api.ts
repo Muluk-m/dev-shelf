@@ -1,7 +1,10 @@
 import type { UploadFile } from "workers/routes/uploads";
 import {
 	type LinkConfig,
+	type LinkListParams,
+	type LinkListResponse,
 	type LinkStats,
+	type LinkStatsDetail,
 	type LogQueryParams,
 	type LogQueryResponse,
 	type LogQueryResponseRaw,
@@ -457,17 +460,98 @@ export async function generateToolIcon(
 export const AB_ROUTER_UPSTREAM_URL = "https://app.downloads.my";
 
 /**
- * 获取所有链接配置
+ * 获取所有链接配置（支持分页和统计）
  */
-export async function getABRouterLinks(): Promise<LinkConfig[]> {
-	const response = await fetch("/api/ab-router/links");
+export async function getABRouterLinks(
+	params?: LinkListParams,
+): Promise<LinkListResponse> {
+	const searchParams = new URLSearchParams();
+
+	if (params?.includeStats !== undefined) {
+		searchParams.set("includeStats", String(params.includeStats));
+	}
+	if (params?.page !== undefined) {
+		searchParams.set("page", String(params.page));
+	}
+	if (params?.limit !== undefined) {
+		searchParams.set("limit", String(params.limit));
+	}
+
+	const qs = searchParams.toString();
+	const url = `/api/ab-router/links${qs ? `?${qs}` : ""}`;
+
+	const response = await fetch(url);
 	if (!response.ok) {
 		const error = (await response
 			.json()
 			.catch(() => ({ error: "获取链接列表失败" }))) as { error?: string };
 		throw new Error(error.error || "获取链接列表失败");
 	}
-	return response.json();
+
+	const result = await response.json();
+
+	// 适配新的响应格式 { total, data, pagination } 或向后兼容数组格式
+	if (result && typeof result === "object" && "data" in result) {
+		const data = result.data as LinkConfig[];
+		const total = result.total ?? data.length;
+		const page = params?.page ?? 1;
+		const limit = params?.limit ?? 20;
+		const totalPages = Math.ceil(total / limit);
+
+		return {
+			total,
+			data,
+			pagination: {
+				page,
+				limit,
+				totalPages,
+				hasMore: page < totalPages,
+			},
+		};
+	}
+
+	// 向后兼容：直接返回数组，包装成分页响应
+	const data = result as LinkConfig[];
+	return {
+		total: data.length,
+		data,
+		pagination: {
+			page: 1,
+			limit: data.length,
+			totalPages: 1,
+			hasMore: false,
+		},
+	};
+}
+
+/**
+ * 批量获取链接统计
+ */
+export async function batchGetABRouterStats(
+	linkIds: string[],
+): Promise<Map<string, LinkStats>> {
+	if (linkIds.length === 0) {
+		return new Map();
+	}
+
+	const idsParam = linkIds.join(",");
+	const response = await fetch(`/api/ab-router/links/stats/batch?ids=${idsParam}`);
+
+	if (!response.ok) {
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "批量获取统计失败" }))) as { error?: string };
+		throw new Error(error.error || "批量获取统计失败");
+	}
+
+	const result: { total: number; data: LinkStats[] } = await response.json();
+	const statsMap = new Map<string, LinkStats>();
+
+	for (const stats of result.data) {
+		statsMap.set(stats.linkId, stats);
+	}
+
+	return statsMap;
 }
 
 /**
@@ -679,12 +763,12 @@ export async function getABRouterLinkLogs(
 }
 
 /**
- * 获取指定链路的统计信息
+ * 获取指定链路的详细统计信息（聚合数据）
  */
 export async function getABRouterLinkStats(
 	linkId: string,
 	days = 7,
-): Promise<LinkStats> {
+): Promise<LinkStatsDetail> {
 	const url = `/api/ab-router/links/${linkId}/stats?days=${days}`;
 
 	const response = await fetch(url);

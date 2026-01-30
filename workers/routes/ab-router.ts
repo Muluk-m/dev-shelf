@@ -83,10 +83,19 @@ function extractArray(data: unknown): unknown[] {
 
 /**
  * GET /api/ab-router/links - 获取所有链接配置
+ *
+ * Query params:
+ * - includeStats: 是否包含统计（默认 false）
+ * - page, limit: 分页参数
  */
 abRouterProxy.get("/links", async (c) => {
 	try {
-		const response = await fetch(`${AB_ROUTER_UPSTREAM}/api/links`);
+		// 透传查询参数
+		const url = new URL(c.req.url);
+		const queryString = url.search;
+		const upstreamUrl = `${AB_ROUTER_UPSTREAM}/api/links${queryString}`;
+
+		const response = await fetch(upstreamUrl);
 		const parseResult = await parseJsonResponse(
 			response,
 			"Proxy AB Router links error",
@@ -100,12 +109,41 @@ abRouterProxy.get("/links", async (c) => {
 			return c.json(parseResult.data as object, mapStatusCode(response.status));
 		}
 
-		// 确保返回数组
-		const links = extractArray(parseResult.data);
-		return c.json(links);
+		// 直接返回上游响应（格式: { total, data } 或向后兼容的数组）
+		return c.json(parseResult.data as object);
 	} catch (error) {
 		console.error("Proxy AB Router links error:", error);
 		return c.json({ error: "获取链接列表失败" }, 500);
+	}
+});
+
+/**
+ * GET /api/ab-router/links/stats/batch - 批量获取统计
+ */
+abRouterProxy.get("/links/stats/batch", async (c) => {
+	try {
+		const url = new URL(c.req.url);
+		const queryString = url.search;
+		const upstreamUrl = `${AB_ROUTER_UPSTREAM}/api/links/stats/batch${queryString}`;
+
+		const response = await fetch(upstreamUrl);
+		const parseResult = await parseJsonResponse(
+			response,
+			"Proxy AB Router batch stats error",
+		);
+
+		if (!parseResult.success) {
+			return c.json({ error: parseResult.error }, parseResult.status);
+		}
+
+		if (!response.ok) {
+			return c.json(parseResult.data as object, mapStatusCode(response.status));
+		}
+
+		return c.json(parseResult.data as object);
+	} catch (error) {
+		console.error("Proxy AB Router batch stats error:", error);
+		return c.json({ error: "批量获取统计失败" }, 500);
 	}
 });
 

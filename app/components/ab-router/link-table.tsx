@@ -1,11 +1,14 @@
 import {
 	Check,
+	ChevronLeft,
+	ChevronRight,
 	Clock,
 	Copy,
 	ExternalLink,
 	Globe2,
 	Leaf,
 	List,
+	Loader2,
 	MoreHorizontal,
 	Pencil,
 	Play,
@@ -84,6 +87,15 @@ interface LinkTableProps {
 	onPreview?: (link: LinkConfig) => void;
 	onDelete: (link: LinkConfig) => void;
 	onViewLogs?: (linkId: string) => void;
+	pagination?: {
+		page: number;
+		limit: number;
+		total: number;
+		totalPages: number;
+		hasMore: boolean;
+	};
+	onPageChange?: (page: number) => void;
+	statsLoading?: boolean;
 }
 
 export function LinkTable({
@@ -94,6 +106,9 @@ export function LinkTable({
 	onPreview,
 	onDelete,
 	onViewLogs,
+	pagination,
+	onPageChange,
+	statsLoading = false,
 }: LinkTableProps) {
 	if (links.length === 0) {
 		return null;
@@ -137,14 +152,117 @@ export function LinkTable({
 									onPreview={onPreview}
 									onDelete={onDelete}
 									onViewLogs={onViewLogs}
+									statsLoading={statsLoading}
 								/>
 							))}
 						</TableBody>
 					</Table>
 				</div>
+
+				{/* 分页控件 */}
+				{pagination && onPageChange && pagination.totalPages > 1 && (
+					<div className="flex items-center justify-between px-6 py-4 border-t border-border/60">
+						<div className="text-sm text-muted-foreground">
+							共 {pagination.total} 条记录，第 {pagination.page} /{" "}
+							{pagination.totalPages} 页
+						</div>
+						<div className="flex items-center gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => onPageChange(pagination.page - 1)}
+								disabled={pagination.page === 1}
+								className="gap-1"
+							>
+								<ChevronLeft className="h-4 w-4" />
+								上一页
+							</Button>
+							<div className="flex items-center gap-1">
+								{generatePageNumbers(
+									pagination.page,
+									pagination.totalPages,
+								).map((pageNum, idx) =>
+									pageNum === "..." ? (
+										<span
+											key={`ellipsis-${idx}`}
+											className="px-2 text-muted-foreground"
+										>
+											...
+										</span>
+									) : (
+										<Button
+											key={pageNum}
+											variant={
+												pageNum === pagination.page ? "default" : "outline"
+											}
+											size="sm"
+											onClick={() => onPageChange(pageNum as number)}
+											className="min-w-[36px]"
+										>
+											{pageNum}
+										</Button>
+									),
+								)}
+							</div>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => onPageChange(pagination.page + 1)}
+								disabled={!pagination.hasMore}
+								className="gap-1"
+							>
+								下一页
+								<ChevronRight className="h-4 w-4" />
+							</Button>
+						</div>
+					</div>
+				)}
 			</CardContent>
 		</Card>
 	);
+}
+
+// 生成页码数组，带省略号
+function generatePageNumbers(
+	currentPage: number,
+	totalPages: number,
+): (number | string)[] {
+	const pages: (number | string)[] = [];
+
+	if (totalPages <= 7) {
+		// 总页数小于等于7，全部显示
+		for (let i = 1; i <= totalPages; i++) {
+			pages.push(i);
+		}
+	} else {
+		// 总页数大于7，使用省略号
+		if (currentPage <= 4) {
+			// 当前页靠前
+			for (let i = 1; i <= 5; i++) {
+				pages.push(i);
+			}
+			pages.push("...");
+			pages.push(totalPages);
+		} else if (currentPage >= totalPages - 3) {
+			// 当前页靠后
+			pages.push(1);
+			pages.push("...");
+			for (let i = totalPages - 4; i <= totalPages; i++) {
+				pages.push(i);
+			}
+		} else {
+			// 当前页在中间
+			pages.push(1);
+			pages.push("...");
+			for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+				pages.push(i);
+			}
+			pages.push("...");
+			pages.push(totalPages);
+		}
+	}
+
+	return pages;
 }
 
 interface LinkTableRowProps {
@@ -155,6 +273,7 @@ interface LinkTableRowProps {
 	onPreview?: (link: LinkConfig) => void;
 	onDelete: (link: LinkConfig) => void;
 	onViewLogs?: (linkId: string) => void;
+	statsLoading?: boolean;
 }
 
 function LinkTableRow({
@@ -165,6 +284,7 @@ function LinkTableRow({
 	onPreview,
 	onDelete,
 	onViewLogs,
+	statsLoading = false,
 }: LinkTableRowProps) {
 	const goUrl = getABRouterGoUrl(link.id);
 	const mode = modeConfig[link.mode] || modeConfig.review;
@@ -263,26 +383,33 @@ function LinkTableRow({
 
 				{/* 统计 - 分别显示审核和真实访问次数 */}
 				<TableCell className="py-3">
-					<div className="space-y-1">
-						<div className="flex items-center gap-2 text-xs">
-							<span className="inline-flex items-center gap-1">
-								<span className="w-2 h-2 rounded-full bg-amber-500" />
-								<span className="text-muted-foreground">审核</span>
-								<span className="font-medium text-foreground">
-									{reviewCount}
+					{statsLoading ? (
+						<div className="flex items-center gap-2 text-xs text-muted-foreground">
+							<Loader2 className="h-3 w-3 animate-spin" />
+							<span>加载中...</span>
+						</div>
+					) : (
+						<div className="space-y-1">
+							<div className="flex items-center gap-2 text-xs">
+								<span className="inline-flex items-center gap-1">
+									<span className="w-2 h-2 rounded-full bg-amber-500" />
+									<span className="text-muted-foreground">审核</span>
+									<span className="font-medium text-foreground">
+										{reviewCount}
+									</span>
 								</span>
-							</span>
-							<span className="text-muted-foreground/50">|</span>
-							<span className="inline-flex items-center gap-1">
-								<span className="w-2 h-2 rounded-full bg-emerald-500" />
-								<span className="text-muted-foreground">真实</span>
-								<span className="font-medium text-foreground">{realCount}</span>
-							</span>
+								<span className="text-muted-foreground/50">|</span>
+								<span className="inline-flex items-center gap-1">
+									<span className="w-2 h-2 rounded-full bg-emerald-500" />
+									<span className="text-muted-foreground">真实</span>
+									<span className="font-medium text-foreground">{realCount}</span>
+								</span>
+							</div>
+							<div className="text-[11px] text-muted-foreground">
+								今日: 审核 +{todayReviewCount} / 真实 +{todayRealCount}
+							</div>
 						</div>
-						<div className="text-[11px] text-muted-foreground">
-							今日: 审核 +{todayReviewCount} / 真实 +{todayRealCount}
-						</div>
-					</div>
+					)}
 				</TableCell>
 
 				{/* 时间 */}

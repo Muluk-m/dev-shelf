@@ -26,9 +26,11 @@ export interface LinkRules {
 export type LinkMode = "all_open" | "review" | "final_link" | "green";
 
 /**
- * 链接统计数据
+ * 链接统计数据（简单计数）
  */
 export interface LinkStats {
+	/** 链路ID */
+	linkId: string;
 	/** 审核链接总次数 */
 	reviewCount: number;
 	/** 真实链接总次数 */
@@ -37,6 +39,10 @@ export interface LinkStats {
 	todayReviewCount: number;
 	/** 今日真实链接次数 */
 	todayRealCount: number;
+	/** 统计日期（用于判断今日） */
+	statsDate: string;
+	/** 最后更新时间 */
+	updatedAt: string;
 }
 
 /**
@@ -65,6 +71,35 @@ export interface LinkConfig {
 	createdAt?: string;
 	/** 更新时间 */
 	updatedAt?: string;
+}
+
+/**
+ * 链接配置列表查询参数
+ */
+export interface LinkListParams {
+	/** 是否包含统计数据 */
+	includeStats?: boolean;
+	/** 页码（从1开始） */
+	page?: number;
+	/** 每页数量（默认20） */
+	limit?: number;
+}
+
+/**
+ * 链接配置列表响应
+ */
+export interface LinkListResponse {
+	/** 总数 */
+	total: number;
+	/** 链接列表 */
+	data: LinkConfig[];
+	/** 分页信息 */
+	pagination: {
+		page: number;
+		limit: number;
+		totalPages: number;
+		hasMore: boolean;
+	};
 }
 
 /**
@@ -555,9 +590,9 @@ export function normalizeLogResponse(
 }
 
 /**
- * 链路统计信息
+ * 链路详细统计信息（聚合数据）
  */
-export interface LinkStats {
+export interface LinkStatsDetail {
 	/** 总访问数 */
 	total: number;
 	/** 按路由方向统计 */
