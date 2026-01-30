@@ -159,9 +159,9 @@ export default function ABRouterPage() {
 	});
 	const [logsTotal, setLogsTotal] = useState(0);
 
-	// 加载链接列表（不含统计，快速）
+	// 加载链接列表（不含统计，快速，支持搜索）
 	const loadLinks = useCallback(
-		async (page = 1) => {
+		async (page = 1, search = searchQuery) => {
 			try {
 				setLoading(true);
 				setError(null);
@@ -169,6 +169,7 @@ export default function ABRouterPage() {
 					page,
 					limit: linkPagination.limit,
 					includeStats: false,
+					search: search || undefined, // 空字符串转为 undefined
 				});
 
 				// 按创建时间倒序排列
@@ -198,7 +199,7 @@ export default function ABRouterPage() {
 				setLoading(false);
 			}
 		},
-		[linkPagination.limit],
+		[linkPagination.limit, searchQuery],
 	);
 
 	// 加载统计数据（延迟加载，不阻塞配置列表）
@@ -244,10 +245,16 @@ export default function ABRouterPage() {
 	// 处理链接列表分页变化
 	const handleLinkPageChange = useCallback(
 		(newPage: number) => {
-			loadLinks(newPage);
+			loadLinks(newPage, searchQuery);
 		},
-		[loadLinks],
+		[loadLinks, searchQuery],
 	);
+
+	// 处理搜索
+	const handleSearch = useCallback(() => {
+		// 搜索时重置到第一页
+		loadLinks(1, searchQuery);
+	}, [loadLinks, searchQuery]);
 
 	// 当筛选条件变化时自动加载（分页变化时）
 	useEffect(() => {
@@ -263,15 +270,8 @@ export default function ABRouterPage() {
 		}
 	}, [activeTab, logFilter.linkId, logs.length, loadLogs]);
 
-	// 搜索过滤
-	const filteredLinks = links.filter(
-		(link) =>
-			link.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			link.name.toLowerCase().includes(searchQuery.toLowerCase()),
-	);
-
-	// 合并统计数据到配置对象
-	const linksWithStats = filteredLinks.map((link) => ({
+	// 合并统计数据到配置对象（搜索在后端完成）
+	const linksWithStats = links.map((link) => ({
 		...link,
 		stats: stats.get(link.id),
 	}));
@@ -454,22 +454,45 @@ export default function ABRouterPage() {
 							<div className="relative">
 								<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 								<Input
-									placeholder="搜索链路..."
+									placeholder="搜索链路 ID 或名称..."
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											handleSearch();
+										}
+									}}
 									className="pl-9 w-60 h-9 bg-muted/50 border-0 focus-visible:ring-1"
 								/>
 							</div>
+							{searchQuery && (
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => {
+										setSearchQuery("");
+										loadLinks(1, "");
+									}}
+									className="h-9 px-3 text-muted-foreground hover:text-foreground"
+								>
+									清除
+								</Button>
+							)}
 							<Button
 								variant="outline"
 								size="icon"
-								onClick={() => loadLinks(linkPagination.page)}
+								onClick={handleSearch}
 								disabled={loading}
 								className="h-9 w-9 shrink-0"
+								title={searchQuery ? "搜索" : "刷新"}
 							>
-								<RefreshCcw
-									className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-								/>
+								{searchQuery ? (
+									<Search className="h-4 w-4" />
+								) : (
+									<RefreshCcw
+										className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+									/>
+								)}
 							</Button>
 							<Button onClick={handleCreate} className="gap-2 h-9 shrink-0">
 								<Plus className="h-4 w-4" />
@@ -501,7 +524,7 @@ export default function ABRouterPage() {
 									</div>
 								</CardContent>
 							</Card>
-						) : filteredLinks.length === 0 ? (
+						) : links.length === 0 ? (
 							<EmptyState
 								searchQuery={searchQuery}
 								onCreateClick={handleCreate}

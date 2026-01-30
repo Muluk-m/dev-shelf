@@ -83,6 +83,8 @@ export interface LinkListParams {
 	page?: number;
 	/** 每页数量（默认20） */
 	limit?: number;
+	/** 搜索关键词（搜索 id 和 name 字段） */
+	search?: string;
 }
 
 /**

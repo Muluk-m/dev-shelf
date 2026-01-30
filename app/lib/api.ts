@@ -460,7 +460,7 @@ export async function generateToolIcon(
 export const AB_ROUTER_UPSTREAM_URL = "https://app.downloads.my";
 
 /**
- * 获取所有链接配置（支持分页和统计）
+ * 获取所有链接配置（支持分页、搜索和统计）
  */
 export async function getABRouterLinks(
 	params?: LinkListParams,
@@ -475,6 +475,9 @@ export async function getABRouterLinks(
 	}
 	if (params?.limit !== undefined) {
 		searchParams.set("limit", String(params.limit));
+	}
+	if (params?.search) {
+		searchParams.set("search", params.search);
 	}
 
 	const qs = searchParams.toString();
@@ -493,7 +496,7 @@ export async function getABRouterLinks(
 	// 适配新的响应格式 { total, data, pagination } 或向后兼容数组格式
 	if (result && typeof result === "object" && "data" in result) {
 		const data = result.data as LinkConfig[];
-		const total = result.total ?? data.length;
+		const total = (result as { total?: number }).total ?? data.length;
 		const page = params?.page ?? 1;
 		const limit = params?.limit ?? 20;
 		const totalPages = Math.ceil(total / limit);
