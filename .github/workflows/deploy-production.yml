@@ -21,7 +21,7 @@ jobs:
       # Approval parameters
       approver_user_ids: ${{ vars.APPROVER_USER_IDS }}
       chat_id: ${{ vars.FEISHU_CHAT_ID }}
-      app_name: ticket
+      app_name: dev
 
       # Git parameters
       branch: ${{ github.ref_name }}
