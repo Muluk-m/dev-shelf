@@ -1,0 +1,158 @@
+# Deployment Workflows
+
+本项目使用 [qlj-action-tools](https://github.com/qiliangjia/qlj-action-tools) 提供的可重用工作流进行部署。
+
+## 工作流说明
+
+### 🚀 deploy-production.yml
+
+**用途：** 生产环境部署（需要审批）
+
+**触发条件：**
+- 推送到 `main` 分支
+- 手动触发
+
+**流程：**
+1. 发送审批请求到飞书群聊
+2. 等待审批人批准
+3. 审批通过后自动构建和部署
+4. 发送部署结果通知
+
+**配置项：**
+- `project_name`: qlj-devhub-homepage
+- `mode`: workers（Cloudflare Workers 模式）
+- `environment`: production
+- `build_command`: pnpm install && pnpm run build
+- `build_dir`: build
+
+### 🧪 deploy-test.yml
+
+**用途：** 测试/预览环境部署（无需审批）
+
+**触发条件：**
+- 推送到 `test/*` 或 `test-*` 分支
+- 手动触发
+
+**流程：**
+1. 自动构建
+2. 自动部署到预览环境
+3. 发送部署结果通知
+
+**配置项：**
+- `project_name`: qlj-devhub-homepage
+- `mode`: workers
+- `environment`: preview（或手动选择 staging）
+- `build_command`: pnpm install && pnpm run build
+- `build_dir`: build
+
+## 必需配置
+
+### Repository Variables
+
+在 GitHub 仓库的 `Settings > Secrets and variables > Actions > Variables` 中配置：
+
+| 变量名 | 说明 | 示例 |
+|--------|------|------|
+| `APPROVER_USER_IDS` | 审批人飞书 open_id 列表（JSON 数组） | `'["ou_abc123", "ou_def456"]'` |
+| `FEISHU_CHAT_ID` | 飞书群聊 ID（接收审批和通知） | `"oc_xyz789"` |
+
+### Repository Secrets
+
+在 GitHub 仓库的 `Settings > Secrets and variables > Actions > Secrets` 中配置：
+
+| Secret 名 | 说明 |
+|-----------|------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID |
+
+## 快速开始
+
+### 1. 配置变量和密钥
+
+按照上述要求在 GitHub 仓库中配置所需的 Variables 和 Secrets。
+
+### 2. 测试部署流程
+
+#### 测试环境部署（推荐先测试）
+
+```bash
+# 创建测试分支
+git checkout -b test/my-feature
+
+# 推送触发部署
+git push origin test/my-feature
+```
+
+部署将自动开始，无需审批。
+
+#### 生产环境部署
+
+```bash
+# 推送到 main 分支
+git push origin main
+```
+
+1. 检查飞书群聊，应该收到审批请求
+2. 点击"通过"按钮
+3. 部署自动开始
+4. 完成后收到部署结果通知
+
+## 通知示例
+
+### 构建开始通知
+
+```
+📦 开始构建
+项目：qlj-devhub-homepage
+环境：production
+分支：main
+触发者：@username
+查看日志：[点击查看]
+```
+
+### 部署成功通知
+
+```
+✅ 部署成功
+项目：qlj-devhub-homepage
+环境：production
+部署地址：https://qlj-devhub-homepage.workers.dev
+耗时：2m 15s
+```
+
+### 部署失败通知
+
+```
+❌ 部署失败
+项目：qlj-devhub-homepage
+环境：production
+错误信息：Build failed
+查看日志：[点击查看]
+```
+
+## 故障排查
+
+### 审批请求未收到
+
+1. 检查 `FEISHU_CHAT_ID` 是否正确配置
+2. 检查飞书 app (ticket) 是否已添加到该群聊
+3. 查看 workflow 运行日志
+
+### 审批后未自动部署
+
+1. 检查审批人是否在 `APPROVER_USER_IDS` 列表中
+2. 查看 fe-toolkit-server 日志
+3. 检查 GitHub webhook 是否正常
+
+### 部署失败
+
+1. 查看 workflow 运行日志
+2. 检查 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID` 是否正确
+3. 验证构建命令和构建目录配置
+
+## 更多文档
+
+- [完整文档](https://github.com/qiliangjia/qlj-action-tools/tree/main/docs/workflows)
+- [迁移指南](./MIGRATION.md)
+- [request-approval 详细说明](https://github.com/qiliangjia/qlj-action-tools/blob/main/docs/workflows/request-approval.md)
+- [deploy 详细说明](https://github.com/qiliangjia/qlj-action-tools/blob/main/docs/workflows/deploy.md)
