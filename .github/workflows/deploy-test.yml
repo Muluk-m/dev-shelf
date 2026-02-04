@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment name'
+        description: "Environment name"
         required: false
-        default: 'preview'
+        default: "preview"
         type: choice
         options:
           - preview
@@ -31,7 +31,7 @@ jobs:
 
       # Notification parameters
       chat_id: ${{ vars.FEISHU_CHAT_ID }}
-      app_name: devhub-deploy
+      app_name: dev
 
       # Git parameters
       branch: ${{ github.ref_name }}
