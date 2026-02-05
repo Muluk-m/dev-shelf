@@ -142,6 +142,7 @@ auth.get("/callback", async (c) => {
 	setCookie(c, "auth_token", result.access_token, {
 		sameSite: "none",
 		secure: true,
+		maxAge: 60 * 60 * 24 * 30, // 30 days
 	});
 
 	return c.redirect(redirectTo);
