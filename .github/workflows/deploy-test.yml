@@ -20,21 +20,13 @@ jobs:
   deploy:
     uses: qiliangjia/qlj-action-tools/.github/workflows/deploy.yml@main
     with:
-      # Core parameters
       project_name: qlj-devhub-homepage
       mode: workers
-      environment: ${{ github.event.inputs.environment || 'preview' }}
-
-      # Build parameters
+      environment: ${{ inputs.environment || 'preview' }}
       build_command: pnpm install && pnpm run build
       build_dir: build
-
-      # Notification parameters
       chat_id: ${{ vars.FEISHU_CHAT_ID }}
       app_name: dev
-
-      # Git parameters
-      branch: ${{ github.ref_name }}
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

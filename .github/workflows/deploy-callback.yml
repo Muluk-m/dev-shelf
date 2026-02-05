@@ -1,6 +1,6 @@
 name: Deploy (Approval Callback)
 
-# This workflow is triggered by the backend service after approval
+# Triggered by backend service after approval
 on:
   repository_dispatch:
     types: [cloudflare-deploy-approved]
@@ -9,21 +9,21 @@ jobs:
   deploy:
     uses: qiliangjia/qlj-action-tools/.github/workflows/deploy.yml@main
     with:
-      # Core parameters from callback payload
+      # Core parameters
       project_name: ${{ github.event.client_payload.project_name }}
       mode: ${{ github.event.client_payload.mode }}
       environment: ${{ github.event.client_payload.environment }}
 
-      # Build parameters from callback payload
+      # Build parameters
       build_command: ${{ github.event.client_payload.build_command }}
       build_dir: ${{ github.event.client_payload.build_dir }}
+      branch: ${{ github.event.client_payload.branch }}
+      version: ${{ github.event.client_payload.version }}
 
-      # Notification parameters from callback payload
+      # Notification parameters
       chat_id: ${{ github.event.client_payload.chat_id }}
-      app_name: ${{ github.event.client_payload.app_name || 'devhub-deploy' }}
-
-      # Git parameters from callback payload
-      branch: ${{ github.event.client_payload.branch || github.ref_name }}
+      app_name: ${{ github.event.client_payload.app_name }}
+      webhook_url: ${{ github.event.client_payload.webhook_url }}
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
