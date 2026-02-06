@@ -77,8 +77,7 @@
 5. 发送部署结果通知
 
 **配置项：**
-- `project_name`: qlj-devhub-homepage
-- `mode`: workers（Cloudflare Workers 模式）
+- `deploy_config`: `{"project_name":"qlj-devhub-homepage","mode":"workers"}`
 - `environment`: production
 - `build_command`: pnpm install && pnpm run build
 - `build_dir`: build

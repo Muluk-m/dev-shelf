@@ -10,9 +10,8 @@ jobs:
     uses: qiliangjia/qlj-action-tools/.github/workflows/request-approval.yml@main
     with:
       platform: cloudflare
-      project_name: qlj-devhub-homepage
-      mode: workers
       environment: production
+      deploy_config: '{"project_name":"qlj-devhub-homepage","mode":"workers"}'
       build_command: pnpm install && pnpm run build
       build_dir: build
       approver_user_ids: ${{ vars.APPROVER_USER_IDS }}
