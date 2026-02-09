@@ -6,7 +6,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Step 1: 推送到 main 分支                                        │
+│  Step 1: 在 Actions 页面手动触发生产发布                         │
 └────────────────────────┬────────────────────────────────────────┘
                          │
                          ▼
@@ -66,19 +66,20 @@
 **用途：** 生产环境部署（需要审批）- 第一步：请求审批
 
 **触发条件：**
-- 推送到 `main` 分支
-- 手动触发
+- 手动触发（`workflow_dispatch`）
 
 **流程：**
-1. 发送审批请求到飞书群聊（包含 callback URL）
-2. 等待审批人批准
-3. 审批通过后，后端服务自动触发 `deploy-callback.yml`
-4. 执行完整的构建和部署流程
-5. 发送部署结果通知
+1. 在手动触发表单填写 `deploy_title`（本次部署一句话说明）
+2. 可选择 `skip_approval=true` 直接部署，或保持默认走审批
+3. 走审批时：发送审批请求到飞书群聊（包含 callback URL）
+4. 审批通过后，后端服务自动触发 `deploy-callback.yml`
+5. 执行完整的构建和部署流程并发送结果通知
 
 **配置项：**
 - `deploy_config`: `{"project_name":"qlj-devhub-homepage","mode":"workers"}`
 - `environment`: production
+- `deploy_title`: 手动触发时必填
+- `skip_approval`: 是否跳过审批直接部署（默认 `false`）
 - `build_command`: pnpm install && pnpm run build
 - `build_dir`: build
 
@@ -163,15 +164,11 @@ git push origin test/my-feature
 
 #### 生产环境部署
 
-```bash
-# 推送到 main 分支
-git push origin main
-```
-
-1. 检查飞书群聊，应该收到审批请求
-2. 点击"通过"按钮
-3. 部署自动开始
-4. 完成后收到部署结果通知
+1. 进入 Actions → `Deploy to Production (with Approval)` → Run workflow
+2. 填写 `deploy_title`
+3. 选择是否 `skip_approval`
+4. 若不跳过审批：检查飞书群聊并审批
+5. 部署完成后接收结果通知
 
 ## 通知示例
 
