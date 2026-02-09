@@ -25,7 +25,6 @@ jobs:
       environment: ${{ inputs.environment || 'preview' }}
       build_command: pnpm install && pnpm run build
       build_dir: build
-      triggered_by_actor_id: ${{ github.actor_id }}
       chat_id: ${{ vars.FEISHU_CHAT_ID }}
       app_name: dev
     secrets:

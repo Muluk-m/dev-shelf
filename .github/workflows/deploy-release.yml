@@ -40,7 +40,6 @@ jobs:
       build_command: pnpm install && pnpm run build
       build_dir: build
       deploy_title: ${{ inputs.deploy_title }}
-      triggered_by_actor_id: ${{ github.actor_id }}
       chat_id: ${{ vars.FEISHU_CHAT_ID }}
       app_name: dev
     secrets:
@@ -59,7 +58,6 @@ jobs:
       branch: ${{ github.event.client_payload.branch }}
       version: ${{ github.event.client_payload.version }}
       deploy_title: ${{ github.event.client_payload.deploy_title }}
-      triggered_by_actor_id: ${{ github.event.client_payload.triggered_by_actor_id }}
       chat_id: ${{ github.event.client_payload.chat_id }}
       app_name: ${{ github.event.client_payload.app_name }}
       webhook_url: ${{ github.event.client_payload.webhook_url }}
