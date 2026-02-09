@@ -1,0 +1,68 @@
+name: Deploy Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_title:
+        description: "本次部署内容（一句话）"
+        required: true
+        type: string
+      skip_approval:
+        description: "是否跳过审批直接部署"
+        required: false
+        type: boolean
+        default: false
+  repository_dispatch:
+    types: [cloudflare-deploy-approved]
+
+jobs:
+  request-approval:
+    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_approval }}
+    uses: qiliangjia/qlj-action-tools/.github/workflows/request-approval.yml@main
+    with:
+      platform: cloudflare
+      environment: production
+      deploy_title: ${{ inputs.deploy_title }}
+      deploy_config: '{"project_name":"qlj-devhub-homepage","mode":"workers"}'
+      build_command: pnpm install && pnpm run build
+      build_dir: build
+      approver_user_ids: ${{ vars.APPROVER_USER_IDS }}
+      chat_id: ${{ vars.FEISHU_CHAT_ID }}
+      app_name: dev
+
+  deploy-direct:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_approval }}
+    uses: qiliangjia/qlj-action-tools/.github/workflows/deploy.yml@main
+    with:
+      project_name: qlj-devhub-homepage
+      mode: workers
+      environment: production
+      build_command: pnpm install && pnpm run build
+      build_dir: build
+      deploy_title: ${{ inputs.deploy_title }}
+      triggered_by_actor_id: ${{ github.actor_id }}
+      chat_id: ${{ vars.FEISHU_CHAT_ID }}
+      app_name: dev
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  deploy-approved:
+    if: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'cloudflare-deploy-approved' }}
+    uses: qiliangjia/qlj-action-tools/.github/workflows/deploy.yml@main
+    with:
+      project_name: ${{ github.event.client_payload.project_name }}
+      mode: ${{ github.event.client_payload.mode }}
+      environment: ${{ github.event.client_payload.environment }}
+      build_command: ${{ github.event.client_payload.build_command }}
+      build_dir: ${{ github.event.client_payload.build_dir }}
+      branch: ${{ github.event.client_payload.branch }}
+      version: ${{ github.event.client_payload.version }}
+      deploy_title: ${{ github.event.client_payload.deploy_title }}
+      triggered_by_actor_id: ${{ github.event.client_payload.triggered_by_actor_id }}
+      chat_id: ${{ github.event.client_payload.chat_id }}
+      app_name: ${{ github.event.client_payload.app_name }}
+      webhook_url: ${{ github.event.client_payload.webhook_url }}
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
