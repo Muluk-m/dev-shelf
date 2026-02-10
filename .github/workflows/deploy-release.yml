@@ -51,6 +51,7 @@ jobs:
     if: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'cloudflare-deploy-approved' }}
     uses: qiliangjia/qlj-action-tools/.github/workflows/deploy.yml@main
     with:
+      context_base64: ${{ github.event.client_payload.context }}
       project_name: ${{ github.event.client_payload.project_name }}
       mode: ${{ github.event.client_payload.mode }}
       environment: ${{ github.event.client_payload.environment }}
