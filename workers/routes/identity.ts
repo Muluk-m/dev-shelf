@@ -163,7 +163,10 @@ identityRouter.post("/", async (c) => {
 			.bind(githubActorId, feishuUserId)
 			.first();
 
-		return c.json({ message: "Identity created successfully", data: created }, 201);
+		return c.json(
+			{ message: "Identity created successfully", data: created },
+			201,
+		);
 	} catch (error) {
 		console.error("Error upserting identity:", error);
 		return c.json({ error: "Internal server error" }, 500);

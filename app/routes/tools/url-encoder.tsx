@@ -1,5 +1,5 @@
 import { Check, Copy, Link, RefreshCw, Repeat } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -20,26 +20,6 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
-const encodeURL = (value: string, encodeComponent: boolean) => {
-	if (encodeComponent) {
-		return encodeURIComponent(value);
-	}
-	return encodeURI(value);
-};
-
-const decodeURL = (value: string) => {
-	try {
-		// 先尝试 decodeURIComponent，如果失败再尝试 decodeURI
-		return decodeURIComponent(value);
-	} catch {
-		try {
-			return decodeURI(value);
-		} catch {
-			throw new Error("无效的 URL 编码格式");
-		}
-	}
-};
-
 export default function URLEncoderPage() {
 	const [mode, setMode] = useState<"encode" | "decode">("encode");
 	const [input, setInput] = useState("");
@@ -48,25 +28,32 @@ export default function URLEncoderPage() {
 	const [encodeComponent, setEncodeComponent] = useState(true);
 	const [copied, setCopied] = useState(false);
 
-	const handleConvert = () => {
-		try {
-			if (!input.trim()) {
-				setOutput("");
-				setError("输入内容不能为空");
-				return;
-			}
+	useEffect(() => {
+		if (!input.trim()) {
+			setOutput("");
+			setError("");
+			return;
+		}
 
+		try {
 			if (mode === "encode") {
-				setOutput(encodeURL(input, encodeComponent));
+				const result = encodeComponent
+					? encodeURIComponent(input)
+					: encodeURI(input);
+				setOutput(result);
 			} else {
-				setOutput(decodeURL(input));
+				try {
+					setOutput(decodeURIComponent(input));
+				} catch {
+					setOutput(decodeURI(input));
+				}
 			}
 			setError("");
 		} catch (err) {
 			setError(`转换失败：${(err as Error).message}`);
 			setOutput("");
 		}
-	};
+	}, [input, mode, encodeComponent]);
 
 	const handleSwap = () => {
 		setInput(output);
@@ -217,12 +204,6 @@ export default function URLEncoderPage() {
 									{error}
 								</div>
 							)}
-
-							<div className="flex justify-end">
-								<Button onClick={handleConvert} className="gap-2">
-									{mode === "encode" ? "执行编码" : "执行解码"}
-								</Button>
-							</div>
 						</CardContent>
 					</Card>
 

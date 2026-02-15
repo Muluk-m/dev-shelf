@@ -1,4 +1,4 @@
-import { Check, Clock, Copy } from "lucide-react";
+import { Check, Clock, Copy, RefreshCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ToolPageHeader } from "~/components/tool-page-header";
@@ -16,10 +16,10 @@ import type { Route } from "./+types/time-formatter";
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "Time Formatter | DevTools Platform" },
+		{ title: "日期时间转换器 | DevTools Platform" },
 		{
 			name: "description",
-			content: "Convert and format timestamps between different formats",
+			content: "将日期和时间在多种不同格式之间转换",
 		},
 	];
 }
@@ -64,16 +64,6 @@ function formatISO9075(date: Date) {
 	return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
 }
 
-function _formatUTC(date: Date) {
-	const y = date.getUTCFullYear();
-	const m = pad2(date.getUTCMonth() + 1);
-	const d = pad2(date.getUTCDate());
-	const hh = pad2(date.getUTCHours());
-	const mm = pad2(date.getUTCMinutes());
-	const ss = pad2(date.getUTCSeconds());
-	return `${y}-${m}-${d} ${hh}:${mm}:${ss} GMT`;
-}
-
 function objectIdFromDate(date: Date) {
 	const seconds = Math.floor(date.getTime() / 1000);
 	const tsHex = seconds.toString(16).padStart(8, "0");
@@ -81,7 +71,6 @@ function objectIdFromDate(date: Date) {
 }
 
 function parseISO9075(value: string): Date | null {
-	// YYYY-MM-DD HH:mm:ss
 	const m = value.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/);
 	if (!m) return null;
 	const [_, y, mo, d, h, mi, s] = m;
@@ -106,8 +95,7 @@ function parseObjectId(value: string): Date | null {
 function parseExcelSerial(value: string): Date | null {
 	const num = Number(value);
 	if (!Number.isFinite(num)) return null;
-	// Excel (1900 date system) serial to JS time
-	const ms = (num - 25569) * 86400000; // days to ms, 25569 = 1970-01-01
+	const ms = (num - 25569) * 86400000;
 	const d = new Date(ms);
 	return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -153,7 +141,7 @@ function parseByFormat(value: string, format: InputFormat): Date | null {
 }
 
 export default function DateTimeConverterPage() {
-	const [input, setInput] = useState("1758688404399");
+	const [input, setInput] = useState("");
 	const [format, setFormat] = useState<InputFormat>("timestamp");
 	const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
 
@@ -188,12 +176,20 @@ export default function DateTimeConverterPage() {
 		};
 	}, [date]);
 
+	const setNow = () => {
+		setInput(Date.now().toString());
+		setFormat("timestamp");
+	};
+
+	const clear = () => {
+		setInput("");
+	};
+
 	const copy = async (text?: string, label?: string) => {
 		if (!text) return;
 		try {
 			await navigator.clipboard.writeText(text);
 			toast.success(`${label} 已复制到剪贴板`);
-			// 添加到已复制列表，1秒后移除
 			const key = `${label}-${text}`;
 			setCopiedItems((prev) => new Set(prev).add(key));
 			setTimeout(() => {
@@ -213,21 +209,26 @@ export default function DateTimeConverterPage() {
 		const isCopied = copiedItems.has(copyKey);
 
 		return (
-			<div className="grid grid-cols-1 md:grid-cols-[220px_1fr_40px] gap-2 items-center">
+			<div className="grid grid-cols-1 md:grid-cols-[200px_1fr_40px] gap-2 items-center">
 				<div className="text-sm text-muted-foreground">{label}</div>
-				<Input readOnly value={value ?? ""} placeholder={placeholder} />
+				<Input
+					readOnly
+					value={value ?? ""}
+					placeholder={placeholder}
+					className="font-mono text-sm"
+				/>
 				<div className="flex justify-end">
 					<Button
 						size="icon"
-						variant="outline"
+						variant="ghost"
 						className="cursor-pointer"
 						disabled={!value}
 						onClick={() => copy(value, label)}
 					>
 						{isCopied ? (
-							<Check className="h-3 w-3" />
+							<Check className="h-4 w-4 text-green-600" />
 						) : (
-							<Copy className="h-3 w-3" />
+							<Copy className="h-4 w-4" />
 						)}
 					</Button>
 				</div>
@@ -243,36 +244,53 @@ export default function DateTimeConverterPage() {
 						icon={<Clock className="h-5 w-5" />}
 						title="日期时间转换器"
 						description="将日期和时间在多种不同格式之间转换"
+						actions={
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={setNow}
+								className="gap-2"
+							>
+								<RefreshCcw className="h-4 w-4" />
+								当前时间
+							</Button>
+						}
 					/>
 
 					<Card>
 						<CardContent className="pt-6 space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-[1fr_220px] gap-3">
+							<div className="flex gap-3">
 								<Input
 									value={input}
 									onChange={(e) => setInput(e.target.value)}
-									className={error ? "border-destructive" : undefined}
+									placeholder="输入时间戳、日期字符串..."
+									className={`flex-1 font-mono ${error ? "border-destructive" : undefined}`}
 								/>
 								<Select
 									value={format}
 									onValueChange={(v) => setFormat(v as InputFormat)}
 								>
-									<SelectTrigger>
-										<SelectValue placeholder="选择输入格式" />
+									<SelectTrigger className="w-[180px]">
+										<SelectValue placeholder="选择格式" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="js">JS locale date string</SelectItem>
+										<SelectItem value="timestamp">Timestamp (ms)</SelectItem>
+										<SelectItem value="unix">Unix (s)</SelectItem>
 										<SelectItem value="iso8601">ISO 8601</SelectItem>
 										<SelectItem value="iso9075">ISO 9075</SelectItem>
 										<SelectItem value="rfc3339">RFC 3339</SelectItem>
 										<SelectItem value="rfc7231">RFC 7231</SelectItem>
-										<SelectItem value="unix">Unix timestamp</SelectItem>
-										<SelectItem value="timestamp">Timestamp</SelectItem>
-										<SelectItem value="utc">UTC format</SelectItem>
+										<SelectItem value="utc">UTC</SelectItem>
 										<SelectItem value="objectid">Mongo ObjectID</SelectItem>
-										<SelectItem value="excel">Excel date/time</SelectItem>
+										<SelectItem value="excel">Excel</SelectItem>
+										<SelectItem value="js">JS Locale</SelectItem>
 									</SelectContent>
 								</Select>
+								{input && (
+									<Button variant="ghost" size="icon" onClick={clear}>
+										<span className="text-muted-foreground text-sm">✕</span>
+									</Button>
+								)}
 							</div>
 
 							{error && (
@@ -281,29 +299,17 @@ export default function DateTimeConverterPage() {
 								</div>
 							)}
 
-							<div className="space-y-3">
-								{renderRow(
-									"JS locale date string",
-									results?.jsLocale,
-									"Invalid date...",
-								)}
-								{renderRow("ISO 8601", results?.iso8601, "Invalid date...")}
-								{renderRow("ISO 9075", results?.iso9075, "Invalid date...")}
-								{renderRow("RFC 3339", results?.rfc3339, "Invalid date...")}
-								{renderRow("RFC 7231", results?.rfc7231, "Invalid date...")}
-								{renderRow("Unix timestamp", results?.unix, "Invalid date...")}
-								{renderRow("Timestamp", results?.timestamp, "Invalid date...")}
-								{renderRow("UTC format", results?.utc, "Invalid date...")}
-								{renderRow(
-									"Mongo ObjectID",
-									results?.objectId,
-									"Invalid date...",
-								)}
-								{renderRow(
-									"Excel date/time",
-									results?.excel,
-									"Invalid date...",
-								)}
+							<div className="space-y-2">
+								{renderRow("Timestamp (ms)", results?.timestamp)}
+								{renderRow("Unix (s)", results?.unix)}
+								{renderRow("ISO 8601", results?.iso8601)}
+								{renderRow("ISO 9075", results?.iso9075)}
+								{renderRow("RFC 3339", results?.rfc3339)}
+								{renderRow("RFC 7231", results?.rfc7231)}
+								{renderRow("UTC", results?.utc)}
+								{renderRow("Mongo ObjectID", results?.objectId)}
+								{renderRow("Excel", results?.excel)}
+								{renderRow("JS Locale", results?.jsLocale)}
 							</div>
 						</CardContent>
 					</Card>

@@ -1,8 +1,10 @@
-import { Fingerprint } from "lucide-react";
+import { Copy, Fingerprint } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { UAParser } from "ua-parser-js";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
 
@@ -64,6 +66,16 @@ export default function UAParserPage() {
 
 	const info = useMemo(() => parseUserAgent(ua), [ua]);
 
+	const copyAsJson = async () => {
+		if (!ua.trim()) return;
+		try {
+			await navigator.clipboard.writeText(JSON.stringify(info, null, 2));
+			toast.success("已复制为 JSON");
+		} catch {
+			// ignore
+		}
+	};
+
 	const Item = ({
 		title,
 		name,
@@ -106,6 +118,18 @@ export default function UAParserPage() {
 							icon={<Fingerprint className="h-5 w-5" />}
 							title="User-Agent Parser"
 							description="Detect and parse Browser, Engine, OS, CPU, and Device type/model from a user-agent string"
+							actions={
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={copyAsJson}
+									disabled={!ua.trim()}
+									className="gap-2"
+								>
+									<Copy className="h-4 w-4" />
+									复制 JSON
+								</Button>
+							}
 						/>
 
 						<Card className="mb-4">

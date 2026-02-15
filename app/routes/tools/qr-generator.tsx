@@ -1,9 +1,9 @@
-import { QrCode } from "lucide-react";
+import { Download, QrCode } from "lucide-react";
 import QRCodeStyling, { type Extension, type Options } from "qr-code-styling";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -13,14 +13,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
+import { Switch } from "~/components/ui/switch";
 import type { Route } from "./+types/qr-generator";
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "QR Code Generator | DevTools Platform" },
+		{ title: "二维码生成器 | DevTools Platform" },
 		{
 			name: "description",
-			content: "Generate customizable QR codes with various styles and options",
+			content: "生成可自定义样式的二维码，支持多种形状、渐变色和下载格式",
 		},
 	];
 }
@@ -47,9 +48,6 @@ export default function QRCodeMaker() {
 	const [gradient, setGradient] = useState<boolean>(false);
 	const [gradStart, setGradStart] = useState<string>("#000000");
 	const [gradEnd, setGradEnd] = useState<string>("#1abc9c");
-	const [backgroundImage, _setBackgroundImage] = useState<string | null>(null);
-	const [logo, setLogo] = useState<string | null>(null);
-	const [logoSize, _setLogoSize] = useState<number>(0.25);
 	const [downloadExt, setDownloadExt] = useState<
 		"png" | "jpeg" | "svg" | "webp"
 	>("png");
@@ -75,7 +73,6 @@ export default function QRCodeMaker() {
 
 		const backgroundOptions: Options["backgroundOptions"] = {
 			color: bgColor,
-			image: backgroundImage ?? undefined,
 		};
 
 		return {
@@ -90,20 +87,12 @@ export default function QRCodeMaker() {
 				mode: "Byte",
 			},
 			backgroundOptions,
-			image: logo ?? undefined,
-			imageOptions: {
-				imageSize: logo ? logoSize : 0,
-				crossOrigin: "anonymous",
-				margin: 4,
-				hideBackgroundDots: true,
-			},
 			dotsOptions,
 			cornersSquareOptions: { type: cornersSquareShape, color: fgColor },
 			cornersDotOptions: { type: cornersDotShape, color: fgColor },
 		};
 	}, [
 		bgColor,
-		backgroundImage,
 		cornersDotShape,
 		cornersSquareShape,
 		dotsShape,
@@ -111,22 +100,16 @@ export default function QRCodeMaker() {
 		gradEnd,
 		gradStart,
 		gradient,
-		logo,
-		logoSize,
 		margin,
 		size,
 		text,
 	]);
 
-	const _handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const f = e.target.files?.[0];
-		if (!f) return;
-		const reader = new FileReader();
-		reader.onload = () => setLogo(String(reader.result));
-		reader.readAsDataURL(f);
+	const download = async () => {
+		await qrRef.current?.download({ name: "qrcode", extension: downloadExt });
 	};
 
-	const handleGenerate = () => {
+	useEffect(() => {
 		if (!qrRef.current) {
 			qrRef.current = new QRCodeStyling(options);
 			if (containerRef.current) {
@@ -135,299 +118,260 @@ export default function QRCodeMaker() {
 		} else {
 			qrRef.current.update(options);
 		}
-	};
-
-	const download = async () => {
-		await qrRef.current?.download({ name: "qrcode", extension: downloadExt });
-	};
-
-	useEffect(() => {
-		handleGenerate();
 	}, [options]);
 
 	return (
-		<div className="container mx-auto px-4 py-4">
-			<div className="max-w-4xl mx-auto">
-				<ToolPageHeader
-					icon={<QrCode className="h-5 w-5" />}
-					title="二维码生成器"
-					description="支持背景色、渐变、方块形状、背景图片、Logo、中间图标等自定义样式"
-				/>
+		<div className="bg-background flex flex-col min-h-[calc(100vh-4rem)]">
+			<div className="container mx-auto px-4 py-4 flex-1 flex flex-col">
+				<div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
+					<ToolPageHeader
+						icon={<QrCode className="h-5 w-5" />}
+						title="二维码生成器"
+						description="生成可自定义样式的二维码，支持多种形状、渐变色和下载格式"
+					/>
 
-				<div className="flex flex-nowrap justify-between mt-12">
-					<Card>
-						<div className="min-w-96">
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label
-									htmlFor="text"
-									className="min-w-[100px] justify-end mr-4"
-								>
-									URL / 文本
-								</Label>
-								<Input
-									id="text"
-									value={text}
-									onChange={(e) => setText(e.target.value)}
-									placeholder="https://..."
-								/>
-							</CardContent>
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+						<Card className="flex flex-col">
+							<CardHeader className="pb-4">
+								<CardTitle className="text-base">配置选项</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-6 flex-1">
+								<div className="space-y-2">
+									<Label htmlFor="text">内容 / URL</Label>
+									<Input
+										id="text"
+										value={text}
+										onChange={(e) => setText(e.target.value)}
+										placeholder="https://..."
+									/>
+								</div>
 
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label
-									htmlFor="size"
-									className="min-w-[100px] justify-end mr-4"
-								>
-									尺寸
-								</Label>
-								<Input
-									id="size"
-									type="number"
-									min={160}
-									max={1024}
-									value={size}
-									onChange={(e) =>
-										setSize(
-											Math.max(
-												160,
-												Math.min(1024, Number(e.target.value) || 300),
-											),
-										)
-									}
-								/>
-							</CardContent>
-
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label
-									htmlFor="margin"
-									className="min-w-[100px] justify-end mr-4"
-								>
-									边距
-								</Label>
-								<Input
-									id="margin"
-									type="number"
-									min={0}
-									max={64}
-									value={margin}
-									onChange={(e) =>
-										setMargin(
-											Math.max(0, Math.min(64, Number(e.target.value) || 0)),
-										)
-									}
-								/>
-							</CardContent>
-
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label
-									htmlFor="bgColor"
-									className="min-w-[100px] justify-end mr-4"
-								>
-									背景色
-								</Label>
-								<Input
-									className="w-[100px]"
-									id="bgColor"
-									type="color"
-									value={bgColor}
-									onChange={(e) => setBgColor(e.target.value)}
-								/>
-							</CardContent>
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label
-									htmlFor="fgColor"
-									className="min-w-[100px] justify-end mr-4"
-								>
-									前景色
-								</Label>
-								<Input
-									className="w-[100px]"
-									id="fgColor"
-									type="color"
-									value={fgColor}
-									onChange={(e) => setFgColor(e.target.value)}
-								/>
-							</CardContent>
-
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label
-									htmlFor="gradient"
-									className="min-w-[100px] justify-end mr-4"
-								>
-									渐变
-								</Label>
-								<Input
-									className="w-[20px] mr-2"
-									id="gradient"
-									type="checkbox"
-									checked={gradient}
-									onChange={(e) => setGradient(e.target.checked)}
-								/>
-								{gradient && (
-									<>
+								<div className="grid grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="size">尺寸 (px)</Label>
 										<Input
-											className="w-[100px]"
-											type="color"
-											value={gradStart}
-											onChange={(e) => setGradStart(e.target.value)}
+											id="size"
+											type="number"
+											min={160}
+											max={1024}
+											value={size}
+											onChange={(e) =>
+												setSize(
+													Math.max(
+														160,
+														Math.min(1024, Number(e.target.value) || 300),
+													),
+												)
+											}
 										/>
-										<span>→</span>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="margin">边距</Label>
 										<Input
-											className="w-[100px]"
-											type="color"
-											value={gradEnd}
-											onChange={(e) => setGradEnd(e.target.value)}
+											id="margin"
+											type="number"
+											min={0}
+											max={64}
+											value={margin}
+											onChange={(e) =>
+												setMargin(
+													Math.max(
+														0,
+														Math.min(64, Number(e.target.value) || 0),
+													),
+												)
+											}
 										/>
-									</>
-								)}
+									</div>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="bgColor">背景色</Label>
+										<div className="flex gap-2">
+											<Input
+												id="bgColor"
+												type="color"
+												value={bgColor}
+												onChange={(e) => setBgColor(e.target.value)}
+												className="w-12 h-9 p-1 cursor-pointer"
+											/>
+											<Input
+												value={bgColor}
+												onChange={(e) => setBgColor(e.target.value)}
+												className="font-mono text-sm"
+											/>
+										</div>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="fgColor">前景色</Label>
+										<div className="flex gap-2">
+											<Input
+												id="fgColor"
+												type="color"
+												value={fgColor}
+												onChange={(e) => setFgColor(e.target.value)}
+												className="w-12 h-9 p-1 cursor-pointer"
+											/>
+											<Input
+												value={fgColor}
+												onChange={(e) => setFgColor(e.target.value)}
+												className="font-mono text-sm"
+											/>
+										</div>
+									</div>
+								</div>
+
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<Label htmlFor="gradient">渐变色</Label>
+										<Switch
+											id="gradient"
+											checked={gradient}
+											onCheckedChange={setGradient}
+										/>
+									</div>
+									{gradient && (
+										<div className="grid grid-cols-2 gap-4 pl-4 border-l-2 border-primary/20">
+											<div className="space-y-2">
+												<Label className="text-xs text-muted-foreground">
+													起始色
+												</Label>
+												<div className="flex gap-2">
+													<Input
+														type="color"
+														value={gradStart}
+														onChange={(e) => setGradStart(e.target.value)}
+														className="w-10 h-8 p-1 cursor-pointer"
+													/>
+													<Input
+														value={gradStart}
+														onChange={(e) => setGradStart(e.target.value)}
+														className="font-mono text-xs"
+													/>
+												</div>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-xs text-muted-foreground">
+													结束色
+												</Label>
+												<div className="flex gap-2">
+													<Input
+														type="color"
+														value={gradEnd}
+														onChange={(e) => setGradEnd(e.target.value)}
+														className="w-10 h-8 p-1 cursor-pointer"
+													/>
+													<Input
+														value={gradEnd}
+														onChange={(e) => setGradEnd(e.target.value)}
+														className="font-mono text-xs"
+													/>
+												</div>
+											</div>
+										</div>
+									)}
+								</div>
+
+								<div className="space-y-2">
+									<Label>方块形状</Label>
+									<Select
+										value={dotsShape}
+										onValueChange={(value) => setDotsShape(value as DotsShape)}
+									>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="square">Square - 方形</SelectItem>
+											<SelectItem value="dots">Dots - 圆点</SelectItem>
+											<SelectItem value="rounded">Rounded - 圆角</SelectItem>
+											<SelectItem value="classy">Classy - 优雅</SelectItem>
+											<SelectItem value="classy-rounded">
+												Classy Rounded - 圆角优雅
+											</SelectItem>
+											<SelectItem value="extra-rounded">
+												Extra Rounded - 超圆
+											</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label>定位角 (外)</Label>
+										<Select
+											value={cornersSquareShape}
+											onValueChange={(value) =>
+												setCornersSquareShape(value as CornerShape)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="square">Square</SelectItem>
+												<SelectItem value="dot">Dot</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+									<div className="space-y-2">
+										<Label>定位角 (内)</Label>
+										<Select
+											value={cornersDotShape}
+											onValueChange={(value) =>
+												setCornersDotShape(value as CornerShape)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="square">Square</SelectItem>
+												<SelectItem value="dot">Dot</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
 							</CardContent>
+						</Card>
 
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label className="min-w-[100px] justify-end mr-4">
-									方块形状
-								</Label>
-								<Select
-									value={dotsShape}
-									onValueChange={(value) => setDotsShape(value as DotsShape)}
-								>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="square">square</SelectItem>
-										<SelectItem value="dots">dots</SelectItem>
-										<SelectItem value="rounded">rounded</SelectItem>
-										<SelectItem value="classy">classy</SelectItem>
-										<SelectItem value="classy-rounded">
-											classy-rounded
-										</SelectItem>
-										<SelectItem value="extra-rounded">extra-rounded</SelectItem>
-									</SelectContent>
-								</Select>
+						<Card className="flex flex-col">
+							<CardHeader className="pb-4">
+								<CardTitle className="text-base">预览</CardTitle>
+							</CardHeader>
+							<CardContent className="flex-1 flex flex-col items-center justify-center gap-6">
+								<div
+									ref={containerRef}
+									className="rounded-xl shadow-sm ring-1 ring-border/50 bg-white p-4"
+									style={{ minWidth: 200, minHeight: 200 }}
+								/>
+
+								<div className="flex items-center gap-3 w-full max-w-xs">
+									<Select
+										value={downloadExt}
+										onValueChange={(value) =>
+											setDownloadExt(value as Extension)
+										}
+									>
+										<SelectTrigger className="w-28">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="png">PNG</SelectItem>
+											<SelectItem value="jpeg">JPEG</SelectItem>
+											<SelectItem value="svg">SVG</SelectItem>
+											<SelectItem value="webp">WebP</SelectItem>
+										</SelectContent>
+									</Select>
+									<Button onClick={download} className="flex-1 gap-2">
+										<Download className="h-4 w-4" />
+										下载
+									</Button>
+								</div>
 							</CardContent>
-
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label className="min-w-[100px] justify-end mr-4">
-									定位角(外)形状
-								</Label>
-								<Select
-									value={cornersSquareShape}
-									onValueChange={(value) =>
-										setCornersSquareShape(value as CornerShape)
-									}
-								>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="square">square</SelectItem>
-										<SelectItem value="dot">dot</SelectItem>
-									</SelectContent>
-								</Select>
-							</CardContent>
-
-							<CardContent className="flex items-center justify-start mb-4">
-								<Label className="min-w-[100px] justify-end mr-4">
-									定位角(内)形状
-								</Label>
-								<Select
-									value={cornersDotShape}
-									onValueChange={(value) =>
-										setCornersDotShape(value as CornerShape)
-									}
-								>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="square">square</SelectItem>
-										<SelectItem value="dot">dot</SelectItem>
-									</SelectContent>
-								</Select>
-							</CardContent>
-
-							{/* <CardContent className="flex items-center justify-start mb-4">
-            <Label htmlFor="logo" className="min-w-[100px] justify-end mr-4">
-              Logo / 中心图
-            </Label>
-            <Input type="file" accept="image/*" onChange={handleLogo} />
-          </CardContent> */}
-
-							{/* <CardContent className="flex items-center justify-start mb-4">
-            <Label
-              htmlFor="logoSize"
-              className="min-w-[100px] justify-end mr-4"
-            >
-              Logo大小
-            </Label>
-            <Input
-              className="w-[100px] justify-end mr-2"
-              id="logoSize"
-              type="number"
-              min={0}
-              max={0.5}
-              step={0.05}
-              value={logoSize}
-              onChange={(e) =>
-                setLogoSize(
-                  Math.max(0, Math.min(0.5, Number(e.target.value) || 0.25))
-                )
-              }
-            />
-            <Button
-              onClick={() => {
-                setLogo(null);
-                setLogoSize(0.25);
-              }}
-            >
-              移除
-            </Button>
-          </CardContent> */}
-						</div>
-					</Card>
-					<CardContent>
-						<div
-							ref={containerRef}
-							style={{
-								width: size,
-								height: size,
-								background: "#fff",
-								borderRadius: 12,
-								boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-								display: "grid",
-								placeItems: "center",
-							}}
-						/>
-						{/* <Select
-            value={downloadExt}
-            onValueChange={(value) => setDownloadExt(value as Extension)}
-          >
-            <SelectContent>
-              <SelectItem value="png">PNG</SelectItem>
-              <SelectItem value="jpeg">JPEG</SelectItem>
-              <SelectItem value="svg">SVG</SelectItem>
-              <SelectItem value="webp">WEBP</SelectItem>
-            </SelectContent>
-          </Select> */}
-
-						<div className="flex items-center justify-start mt-4 gap-4">
-							<Label htmlFor="downloadExt">下载格式: </Label>
-							<Select
-								value={downloadExt}
-								onValueChange={(value) => setDownloadExt(value as Extension)}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder="选择下载格式" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="png">PNG</SelectItem>
-									<SelectItem value="jpeg">JPEG</SelectItem>
-									<SelectItem value="svg">SVG</SelectItem>
-									<SelectItem value="webp">WEBP</SelectItem>
-								</SelectContent>
-							</Select>
-							<Button onClick={download}>下载</Button>
-						</div>
-					</CardContent>
+						</Card>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -1,6 +1,13 @@
-import { BadgeCheck, Clipboard, KeyRound, ShieldAlert } from "lucide-react";
+import {
+	AlertTriangle,
+	BadgeCheck,
+	Clipboard,
+	KeyRound,
+	ShieldAlert,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { ToolPageHeader } from "~/components/tool-page-header";
+import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
 	Table,
@@ -30,6 +37,13 @@ type JwtParts = {
 	signature?: string;
 };
 
+type ExpirationStatus = {
+	isExpired: boolean;
+	exp?: number;
+	expiresAt?: string;
+	timeUntilExpiry?: string;
+};
+
 function base64UrlDecode(input: string): string {
 	const pad =
 		input.length % 4 === 2
@@ -50,9 +64,42 @@ function base64UrlDecode(input: string): string {
 				.join(""),
 		);
 	} catch {
-		// 如果失败，回退到直接 atob
 		return atob(b64);
 	}
+}
+
+function checkExpiration(payload?: Record<string, unknown>): ExpirationStatus {
+	if (!payload?.exp || typeof payload.exp !== "number") {
+		return { isExpired: false };
+	}
+
+	const now = Math.floor(Date.now() / 1000);
+	const exp = payload.exp;
+	const diff = exp - now;
+
+	if (diff <= 0) {
+		return {
+			isExpired: true,
+			exp,
+			expiresAt: new Date(exp * 1000).toLocaleString(),
+		};
+	}
+
+	const days = Math.floor(diff / 86400);
+	const hours = Math.floor((diff % 86400) / 3600);
+	const minutes = Math.floor((diff % 3600) / 60);
+
+	let timeUntilExpiry = "";
+	if (days > 0) timeUntilExpiry += `${days}天 `;
+	if (hours > 0) timeUntilExpiry += `${hours}小时 `;
+	if (minutes > 0 || days === 0) timeUntilExpiry += `${minutes}分钟`;
+
+	return {
+		isExpired: false,
+		exp,
+		expiresAt: new Date(exp * 1000).toLocaleString(),
+		timeUntilExpiry,
+	};
 }
 
 function parseJwt(token: string): {
@@ -83,6 +130,11 @@ export default function JwtDecoderPage() {
 	);
 
 	const { data, error } = useMemo(() => parseJwt(jwt), [jwt]);
+
+	const expiration = useMemo(
+		() => checkExpiration(data?.payload),
+		[data?.payload],
+	);
 
 	const renderObjectRows = (obj?: Record<string, unknown>) => {
 		if (!obj) return null;
@@ -151,10 +203,41 @@ export default function JwtDecoderPage() {
 								</Card>
 
 								<Card>
-									<CardHeader className="py-3">
+									<CardHeader className="py-3 flex flex-row items-center justify-between">
 										<CardTitle className="text-base">Payload</CardTitle>
+										{expiration.exp && (
+											<Badge
+												variant={
+													expiration.isExpired ? "destructive" : "secondary"
+												}
+												className="gap-1"
+											>
+												{expiration.isExpired ? (
+													<>
+														<AlertTriangle className="h-3 w-3" />
+														已过期
+													</>
+												) : (
+													<>
+														<BadgeCheck className="h-3 w-3" />
+														{expiration.timeUntilExpiry}后过期
+													</>
+												)}
+											</Badge>
+										)}
 									</CardHeader>
 									<CardContent className="pt-0">
+										{expiration.exp && (
+											<div
+												className={`text-xs mb-3 p-2 rounded ${
+													expiration.isExpired
+														? "bg-destructive/10 text-destructive"
+														: "bg-muted text-muted-foreground"
+												}`}
+											>
+												过期时间: {expiration.expiresAt}
+											</div>
+										)}
 										<Table>
 											<TableHeader>
 												<TableRow>

@@ -402,7 +402,9 @@ function LinkTableRow({
 								<span className="inline-flex items-center gap-1">
 									<span className="w-2 h-2 rounded-full bg-emerald-500" />
 									<span className="text-muted-foreground">真实</span>
-									<span className="font-medium text-foreground">{realCount}</span>
+									<span className="font-medium text-foreground">
+										{realCount}
+									</span>
 								</span>
 							</div>
 							<div className="text-[11px] text-muted-foreground">

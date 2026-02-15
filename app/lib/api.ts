@@ -538,7 +538,9 @@ export async function batchGetABRouterStats(
 	}
 
 	const idsParam = linkIds.join(",");
-	const response = await fetch(`/api/ab-router/links/stats/batch?ids=${idsParam}`);
+	const response = await fetch(
+		`/api/ab-router/links/stats/batch?ids=${idsParam}`,
+	);
 
 	if (!response.ok) {
 		const error = (await response

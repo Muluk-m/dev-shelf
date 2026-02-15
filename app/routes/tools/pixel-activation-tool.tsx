@@ -1,8 +1,8 @@
 import { Target } from "lucide-react";
-import { ToolPageHeader } from "~/components/tool-page-header";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import FacebookPixelTool from "~/components/pixel-tools/facebook-pixel-tool";
 import TikTokPixelTool from "~/components/pixel-tools/tiktok-pixel-tool";
+import { ToolPageHeader } from "~/components/tool-page-header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 export function meta() {
 	return [

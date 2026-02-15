@@ -1,11 +1,9 @@
 import { safeJsonParse } from "@qlj/common-utils/common";
-import { Code, Edit3 } from "lucide-react";
+import { GitCompare, RefreshCcw } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 import type { Route } from "./+types/json-diff";
@@ -15,7 +13,7 @@ export function meta({}: Route.MetaArgs) {
 		{ title: "JSON Diff | DevTools Platform" },
 		{
 			name: "description",
-			content: "Compare and visualize differences between JSON objects",
+			content: "比较两个 JSON 对象并可视化差异",
 		},
 	];
 }
@@ -146,8 +144,6 @@ export default function JsonDiffTool() {
 	const [left, setLeft] = useState<string>("");
 	const [right, setRight] = useState<string>("");
 	const [onlyDiff, setOnlyDiff] = useState<boolean>(false);
-	const [isEditingLeft, setIsEditingLeft] = useState<boolean>(true);
-	const [isEditingRight, setIsEditingRight] = useState<boolean>(true);
 
 	const { node, errorLeft, errorRight } = useMemo(() => {
 		let a: JsonValue = null;
@@ -179,178 +175,145 @@ export default function JsonDiffTool() {
 		return renderNode(node, onlyDiff, 0);
 	}, [node, onlyDiff]);
 
+	const formatLeft = () => {
+		try {
+			const obj = left.trim() ? safeJsonParse(left) : null;
+			setLeft(JSON.stringify(obj, null, 2));
+		} catch {}
+	};
+
+	const formatRight = () => {
+		try {
+			const obj = right.trim() ? JSON.parse(right) : null;
+			setRight(JSON.stringify(obj, null, 2));
+		} catch {}
+	};
+
+	const swapInputs = () => {
+		const temp = left;
+		setLeft(right);
+		setRight(temp);
+	};
+
 	return (
-		<div className="bg-background flex flex-col">
-			<main className="container mx-auto px-4 py-4 flex-1 flex flex-col">
-				<div className="w-full flex flex-col gap-6">
+		<div className="bg-background flex flex-col min-h-[calc(100vh-4rem)]">
+			<div className="container mx-auto px-4 py-4 flex-1 flex flex-col">
+				<div className="max-w-7xl mx-auto w-full flex flex-col gap-6 flex-1">
 					<ToolPageHeader
-						icon={<Code className="h-5 w-5" />}
-						title="JSON diff"
+						icon={<GitCompare className="h-5 w-5" />}
+						title="JSON Diff"
 						description="比较两个 JSON 对象并查看差异"
 					/>
 
-					<div className="flex content-start gap-4">
-						<Card className="w-[20vw] flex-shrink-0 flex-grow-0">
-							<CardContent className="pt-4">
-								<div className="flex items-center justify-between mb-4">
-									<div className="text-sm text-muted-foreground">
-										Your first JSON
-									</div>
-									<div className="flex items-center gap-2">
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => setIsEditingLeft(!isEditingLeft)}
-										>
-											<Edit3 className="h-3 w-3 mr-1" />
-											{isEditingLeft ? "预览" : "编辑"}
-										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => {
-												try {
-													const obj = left.trim() ? safeJsonParse(left) : null;
-													setLeft(JSON.stringify(obj, null, 2));
-												} catch {}
-											}}
-										>
+					<div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+						<div className="flex flex-col gap-4 lg:w-1/2 flex-1 min-h-0">
+							<Card className="flex-1 flex flex-col min-h-0">
+								<CardHeader className="pb-3 flex-shrink-0">
+									<CardTitle className="text-base flex items-center justify-between">
+										<span>JSON A (原始)</span>
+										<Button variant="ghost" size="sm" onClick={formatLeft}>
 											格式化
 										</Button>
-									</div>
-								</div>
-								{isEditingLeft ? (
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="flex-1 flex flex-col pt-0 min-h-0">
 									<Textarea
-										rows={18}
 										value={left}
 										onChange={(e) => setLeft(e.target.value)}
-										placeholder="Paste your first JSON here..."
-										className={`${
+										placeholder="粘贴第一个 JSON..."
+										className={`flex-1 font-mono text-sm resize-none min-h-[200px] ${
 											errorLeft ? "border-destructive" : ""
-										} font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
+										}`}
 									/>
-								) : (
-									<div className="relative rounded-md overflow-hidden border max-h-[70vh] overflow-y-auto">
-										<SyntaxHighlighter
-											language="json"
-											style={vscDarkPlus}
-											customStyle={{
-												margin: 0,
-												fontSize: "0.875rem",
-												lineHeight: "1.5",
-											}}
-											showLineNumbers
-										>
-											{left || "{}"}
-										</SyntaxHighlighter>
-									</div>
-								)}
-								{errorLeft && (
-									<div className="text-destructive text-xs mt-2">
-										{errorLeft}
-									</div>
-								)}
-							</CardContent>
-						</Card>
+									{errorLeft && (
+										<div className="text-destructive text-xs mt-2">
+											{errorLeft}
+										</div>
+									)}
+								</CardContent>
+							</Card>
 
-						<Card className="w-[20vw] flex-shrink-0 flex-grow-0">
-							<CardContent className="pt-4">
-								<div className="flex items-center justify-between mb-4">
-									<div className="text-sm text-muted-foreground">
-										Your JSON to compare
-									</div>
-									<div className="flex items-center gap-2">
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => setIsEditingRight(!isEditingRight)}
-										>
-											<Edit3 className="h-3 w-3 mr-1" />
-											{isEditingRight ? "预览" : "编辑"}
-										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => {
-												try {
-													const obj = right.trim() ? JSON.parse(right) : null;
-													setRight(JSON.stringify(obj, null, 2));
-												} catch {}
-											}}
-										>
-											格式化
-										</Button>
-									</div>
-								</div>
-								{isEditingRight ? (
+							<Card className="flex-1 flex flex-col min-h-0">
+								<CardHeader className="pb-3 flex-shrink-0">
+									<CardTitle className="text-base flex items-center justify-between">
+										<span>JSON B (修改后)</span>
+										<div className="flex gap-2">
+											<Button variant="ghost" size="sm" onClick={formatRight}>
+												格式化
+											</Button>
+											<Button variant="outline" size="sm" onClick={swapInputs}>
+												<RefreshCcw className="h-3 w-3 mr-1" />
+												交换
+											</Button>
+										</div>
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="flex-1 flex flex-col pt-0 min-h-0">
 									<Textarea
-										rows={18}
 										value={right}
 										onChange={(e) => setRight(e.target.value)}
-										placeholder="Paste your JSON to compare here..."
-										className={`${
+										placeholder="粘贴第二个 JSON..."
+										className={`flex-1 font-mono text-sm resize-none min-h-[200px] ${
 											errorRight ? "border-destructive" : ""
-										} font-mono max-h-[70vh] overflow-y-auto overflow-x-auto break-words whitespace-pre-wrap resize-y`}
+										}`}
 									/>
-								) : (
-									<div className="relative rounded-md overflow-hidden border max-h-[70vh] overflow-y-auto">
-										<SyntaxHighlighter
-											language="json"
-											style={vscDarkPlus}
-											customStyle={{
-												margin: 0,
-												fontSize: "0.875rem",
-												lineHeight: "1.5",
-											}}
-											showLineNumbers
-										>
-											{right || "{}"}
-										</SyntaxHighlighter>
-									</div>
-								)}
-								{errorRight && (
-									<div className="text-destructive text-xs mt-2">
-										{errorRight}
-									</div>
-								)}
-							</CardContent>
-						</Card>
+									{errorRight && (
+										<div className="text-destructive text-xs mt-2">
+											{errorRight}
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						</div>
 
-						<Card className="lg:sticky lg:top-6 w-[30vw] flex-shrink-0 flex-grow-0">
-							<CardContent className="pt-4">
-								<div className="flex items-center justify-between mb-4">
-									<div className="text-sm text-muted-foreground">结果</div>
+						<Card className="lg:w-1/2 flex-1 flex flex-col min-h-0">
+							<CardHeader className="pb-3 flex-shrink-0">
+								<CardTitle className="text-base flex items-center justify-between">
+									<span>差异结果</span>
 									<div className="flex items-center gap-2">
 										<span className="text-sm text-muted-foreground">
-											Only show differences
+											仅显示差异
 										</span>
 										<Switch checked={onlyDiff} onCheckedChange={setOnlyDiff} />
 									</div>
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="flex-1 overflow-auto pt-0">
+								<div className="flex gap-4 text-sm mb-4">
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 bg-green-500/20 border border-green-500 rounded" />
+										<span className="text-muted-foreground">新增</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 bg-red-500/20 border border-red-500 rounded" />
+										<span className="text-muted-foreground">删除</span>
+									</div>
 								</div>
 								<pre
-									className="text-sm overflow-auto leading-6 max-h-[70vh] whitespace-pre-wrap break-words font-mono max-w-full"
+									className="text-sm overflow-auto leading-6 whitespace-pre-wrap break-words font-mono p-4 bg-muted/30 rounded-md"
 									style={{
 										fontFamily:
 											"ui-monospace, SFMono-Regular, Menlo, monospace",
 									}}
 								>
 									{rendered ?? (
-										<span className="text-muted-foreground">{`{ }`}</span>
+										<span className="text-muted-foreground">
+											在左侧输入两个 JSON 进行比较
+										</span>
 									)}
 								</pre>
 							</CardContent>
 						</Card>
 					</div>
 
-					{/* inline styles for coloring */}
 					<style>{`
-            .json-key { color: #6b7280; }
-            .json-add { background: #16a34a22; color: #16a34a; padding: 0 2px; border-radius: 4px; }
-            .json-del { background: #dc262622; color: #dc2626; padding: 0 2px; border-radius: 4px; }
-            .json-eq { color: inherit; }
-          `}</style>
+						.json-key { color: #6b7280; }
+						.json-add { background: #16a34a22; color: #16a34a; padding: 0 2px; border-radius: 4px; }
+						.json-del { background: #dc262622; color: #dc2626; padding: 0 2px; border-radius: 4px; }
+						.json-eq { color: inherit; }
+					`}</style>
 				</div>
-			</main>
+			</div>
 		</div>
 	);
 }
