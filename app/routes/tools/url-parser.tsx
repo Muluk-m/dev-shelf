@@ -499,7 +499,7 @@ const URLAnalyzer = ({
 					</DialogHeader>
 					<div className="flex flex-col items-center gap-4 py-4">
 						{/* 二维码显示 */}
-						<div className="p-4 bg-white rounded-lg border-2 border-gray-200">
+						<div className="p-4 bg-background rounded-lg border-2 border-border">
 							<QRCodeSVG
 								value={inputUrl}
 								size={240}

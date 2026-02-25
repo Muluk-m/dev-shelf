@@ -22,11 +22,10 @@ import type { Route } from "./+types/jwt-decoder";
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "JWT Parser | DevTools Platform" },
+		{ title: "JWT 解析器 | DevTools Platform" },
 		{
 			name: "description",
-			content:
-				"Parse and decode your JSON Web Token (jwt) and display its content.",
+			content: "解析 JSON Web Token，展示 Header、Payload 和签名",
 		},
 	];
 }
@@ -157,14 +156,14 @@ export default function JwtDecoderPage() {
 					<div className="mx-auto w-full max-w-[680px] sm:max-w-[720px] md:max-w-[860px] lg:max-w-[920px] xl:max-w-[980px] 2xl:max-w-[1100px]">
 						<ToolPageHeader
 							icon={<KeyRound className="h-5 w-5" />}
-							title="JWT Parser"
-							description="Parse and decode your JSON Web Token (JWT) and display its content"
+							title="JWT 解析器"
+							description="解析 JSON Web Token，展示 Header、Payload 和签名"
 						/>
 
 						<Card className="mb-4">
 							<CardContent className="pt-4">
 								<div className="mb-2 text-sm text-muted-foreground">
-									JWT to decode
+									待解析的 JWT
 								</div>
 								<Textarea
 									value={jwt}
@@ -177,7 +176,7 @@ export default function JwtDecoderPage() {
 								{error && (
 									<div className="flex items-center gap-2 text-destructive mt-2 text-sm">
 										<ShieldAlert className="h-4 w-4" />
-										Invalid JWT
+										无效的 JWT
 									</div>
 								)}
 							</CardContent>

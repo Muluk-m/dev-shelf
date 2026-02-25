@@ -4,9 +4,12 @@ import {
 	Code,
 	ExternalLink,
 	Flame,
+	Heart,
+	History,
 	LayoutGrid,
 	Search,
 	Sparkles,
+	Star,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
@@ -18,6 +21,7 @@ import { useToolsInit } from "~/hooks/use-tools-query";
 import { recordToolUsage } from "~/lib/api";
 import { cn } from "~/lib/utils";
 import { useToolsStore } from "~/stores/tools-store";
+import { useUserPreferencesStore } from "~/stores/user-preferences-store";
 import type { Tool, ToolEnvironment } from "~/types/tool";
 import type { Route } from "./+types/home";
 
@@ -38,6 +42,8 @@ const getIconComponent = (iconName: string) => {
 
 export default function Home() {
 	const { tools, toolCategories, usageStats, _hasHydrated } = useToolsStore();
+	const { favorites, recentTools, toggleFavorite, isFavorite, recordToolUse } =
+		useUserPreferencesStore();
 	useToolsInit();
 	const navigate = useNavigate();
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -80,8 +86,26 @@ export default function Home() {
 		return [];
 	}, [usageStats, toolMap]);
 
+	const favoriteTools = useMemo(() => {
+		return favorites
+			.map((id) => toolMap.get(id))
+			.filter(
+				(tool): tool is Tool => tool !== undefined && tool.status === "active",
+			);
+	}, [favorites, toolMap]);
+
+	const recentUsedTools = useMemo(() => {
+		return recentTools
+			.map((rt) => toolMap.get(rt.id))
+			.filter(
+				(tool): tool is Tool => tool !== undefined && tool.status === "active",
+			)
+			.slice(0, 6);
+	}, [recentTools, toolMap]);
+
 	const handleEnvClick = (tool: Tool, env: ToolEnvironment) => {
 		void recordToolUsage(tool.id);
+		recordToolUse(tool.id);
 		if (tool.isInternal) {
 			navigate(env.url);
 		} else if (env.isExternal) {
@@ -142,9 +166,89 @@ export default function Home() {
 				</div>
 
 				<div className="flex gap-8">
-					{/* 左侧边栏 - 分类导航 + 热门工具 */}
+					{/* 左侧边栏 - 分类导航 + 快捷入口 */}
 					<aside className="hidden lg:block w-56 flex-shrink-0">
 						<div className="sticky top-24 space-y-6">
+							{/* 收藏工具 */}
+							{favoriteTools.length > 0 && (
+								<div className="p-3 rounded-xl bg-gradient-to-br from-rose-500/10 to-pink-500/5 border border-rose-500/20">
+									<div className="flex items-center gap-2 mb-3">
+										<Heart className="h-4 w-4 text-rose-500" />
+										<span className="text-xs font-semibold">我的收藏</span>
+									</div>
+									<div className="space-y-1">
+										{favoriteTools.slice(0, 6).map((tool) => (
+											<button
+												key={tool.id}
+												type="button"
+												onClick={() =>
+													handleEnvClick(tool, tool.environments[0])
+												}
+												className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+											>
+												{tool.icon ? (
+													<img
+														src={tool.icon}
+														alt=""
+														className="h-4 w-4 rounded object-contain flex-shrink-0"
+													/>
+												) : (
+													<Code className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+												)}
+												<span className="flex-1 text-xs truncate text-left group-hover:text-primary transition-colors">
+													{tool.name}
+												</span>
+												<button
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														toggleFavorite(tool.id);
+													}}
+													className="opacity-0 group-hover:opacity-100 transition-opacity"
+												>
+													<Star className="h-3 w-3 text-rose-500 fill-rose-500" />
+												</button>
+											</button>
+										))}
+									</div>
+								</div>
+							)}
+
+							{/* 最近使用 */}
+							{recentUsedTools.length > 0 && (
+								<div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-blue-500/20">
+									<div className="flex items-center gap-2 mb-3">
+										<History className="h-4 w-4 text-blue-500" />
+										<span className="text-xs font-semibold">最近使用</span>
+									</div>
+									<div className="space-y-1">
+										{recentUsedTools.slice(0, 6).map((tool) => (
+											<button
+												key={tool.id}
+												type="button"
+												onClick={() =>
+													handleEnvClick(tool, tool.environments[0])
+												}
+												className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+											>
+												{tool.icon ? (
+													<img
+														src={tool.icon}
+														alt=""
+														className="h-4 w-4 rounded object-contain flex-shrink-0"
+													/>
+												) : (
+													<Code className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+												)}
+												<span className="flex-1 text-xs truncate text-left group-hover:text-primary transition-colors">
+													{tool.name}
+												</span>
+											</button>
+										))}
+									</div>
+								</div>
+							)}
+
 							{/* 热门工具 */}
 							{hotTools.length > 0 && (
 								<div className="p-3 rounded-xl bg-gradient-to-br from-orange-500/10 to-rose-500/5 border border-orange-500/20">
@@ -361,6 +465,8 @@ export default function Home() {
 										key={tool.id}
 										tool={tool}
 										onEnvClick={(env) => handleEnvClick(tool, env)}
+										onToggleFavorite={() => toggleFavorite(tool.id)}
+										isFavorite={isFavorite(tool.id)}
 										index={index}
 									/>
 								))}
@@ -401,10 +507,18 @@ export default function Home() {
 interface ToolCardCompactProps {
 	tool: Tool;
 	onEnvClick: (env: ToolEnvironment) => void;
+	onToggleFavorite: () => void;
+	isFavorite: boolean;
 	index: number;
 }
 
-function ToolCardCompact({ tool, onEnvClick, index }: ToolCardCompactProps) {
+function ToolCardCompact({
+	tool,
+	onEnvClick,
+	onToggleFavorite,
+	isFavorite,
+	index,
+}: ToolCardCompactProps) {
 	const hasMultipleEnvs = tool.environments.length > 1;
 	const defaultEnv = tool.environments[0];
 	const isExternal = !tool.isInternal && defaultEnv?.isExternal;
@@ -457,6 +571,28 @@ function ToolCardCompact({ tool, onEnvClick, index }: ToolCardCompactProps) {
 						{isExternal && (
 							<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
 						)}
+						<button
+							type="button"
+							onClick={(e) => {
+								e.stopPropagation();
+								onToggleFavorite();
+							}}
+							className={cn(
+								"ml-auto transition-opacity cursor-pointer",
+								isFavorite
+									? "opacity-100"
+									: "opacity-0 group-hover:opacity-100",
+							)}
+						>
+							<Star
+								className={cn(
+									"h-4 w-4 transition-colors",
+									isFavorite
+										? "text-rose-500 fill-rose-500"
+										: "text-muted-foreground hover:text-rose-500",
+								)}
+							/>
+						</button>
 					</div>
 					<p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
 						{tool.description}
