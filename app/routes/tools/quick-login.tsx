@@ -29,7 +29,7 @@ export function meta() {
 		{ title: "快捷登录 | DevTools Platform" },
 		{
 			name: "description",
-			content: "通过邮箱快速生成登录链接，一键登录测试环境",
+			content: "通过邮箱快速生成登录链接，一键登录目标环境",
 		},
 	];
 }
@@ -92,6 +92,7 @@ const BUSINESS_LINES: BusinessLine[] = [
 			{ value: "test-1", label: "测试环境 (test-1)" },
 			{ value: "test-2", label: "测试环境 (test-2)" },
 			{ value: "test-3", label: "测试环境 (test-3)" },
+			{ value: "preprod", label: "预发环境 (preprod)" },
 		],
 	},
 ];
@@ -327,7 +328,7 @@ export default function QuickLoginPage() {
 							<ToolPageHeader
 								icon={<LogIn className="h-5 w-5" />}
 								title="快捷登录工具"
-								description="输入邮箱地址，快速生成测试环境登录链接"
+								description="输入邮箱地址，快速生成目标环境登录链接"
 							/>
 						</div>
 
@@ -360,9 +361,9 @@ export default function QuickLoginPage() {
 									</Select>
 								</div>
 
-								{/* 测试环境选择 */}
+								{/* 环境选择 */}
 								<div className="space-y-2">
-									<Label htmlFor="environment">测试环境</Label>
+									<Label htmlFor="environment">环境</Label>
 									<Select
 										value={environment}
 										onValueChange={setEnvironment}
@@ -529,7 +530,7 @@ export default function QuickLoginPage() {
 										<div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-muted/30">
 											<div
 												ref={qrCodeRef}
-												className="bg-white p-2 rounded-lg"
+												className="bg-background p-2 rounded-lg"
 											/>
 											<div className="text-sm text-muted-foreground text-center">
 												使用手机扫描二维码登录

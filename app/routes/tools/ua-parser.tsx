@@ -45,11 +45,11 @@ function parseUserAgent(ua: string): UaInfo {
 
 export function meta() {
 	return [
-		{ title: "User-agent Parser | DevTools Platform" },
+		{ title: "User-Agent 解析器 | DevTools Platform" },
 		{
 			name: "description",
 			content:
-				"Parse User-agent string and get browser, engine, OS, CPU, and Device type/model",
+				"解析 User-Agent 字符串，获取浏览器、引擎、操作系统、CPU 和设备信息",
 		},
 	];
 }
@@ -116,8 +116,8 @@ export default function UAParserPage() {
 					<div className="mx-auto w-full max-w-[680px] sm:max-w-[720px] md:max-w-[860px] lg:max-w-[920px] xl:max-w-[980px] 2xl:max-w-[1100px]">
 						<ToolPageHeader
 							icon={<Fingerprint className="h-5 w-5" />}
-							title="User-Agent Parser"
-							description="Detect and parse Browser, Engine, OS, CPU, and Device type/model from a user-agent string"
+							title="User-Agent 解析器"
+							description="解析 User-Agent 字符串，获取浏览器、引擎、操作系统、CPU 和设备信息"
 							actions={
 								<Button
 									variant="outline"
@@ -135,7 +135,7 @@ export default function UAParserPage() {
 						<Card className="mb-4">
 							<CardContent className="pt-4">
 								<div className="mb-2 text-sm text-muted-foreground">
-									User agent string
+									User-Agent 字符串
 								</div>
 								<Textarea
 									value={ua}
@@ -152,44 +152,35 @@ export default function UAParserPage() {
 								title="Browser"
 								name={info.browserName}
 								version={info.browserVersion}
-								placeholders={[
-									"No browser name available",
-									"No browser version available",
-								]}
+								placeholders={["无法获取浏览器名称", "无法获取浏览器版本"]}
 							/>
 							<Item
-								title="Engine"
+								title="引擎"
 								name={info.engineName}
 								version={info.engineVersion}
-								placeholders={[
-									"No engine name available",
-									"No engine version available",
-								]}
+								placeholders={["无法获取引擎名称", "无法获取引擎版本"]}
 							/>
 							<Item
-								title="OS"
+								title="操作系统"
 								name={info.osName}
 								version={info.osVersion}
-								placeholders={[
-									"No OS name available",
-									"No OS version available",
-								]}
+								placeholders={["无法获取操作系统名称", "无法获取操作系统版本"]}
 							/>
 							<Item
-								title="Device"
+								title="设备"
 								name={info.deviceModel || info.deviceVendor}
 								version={info.deviceType}
 								placeholders={[
-									"No device model available",
-									"No device type available",
-									"No device vendor available",
+									"无法获取设备型号",
+									"无法获取设备类型",
+									"无法获取设备厂商",
 								]}
 							/>
 							<Item
 								title="CPU"
 								name={info.cpuArch}
 								version={undefined}
-								placeholders={["No CPU architecture available"]}
+								placeholders={["无法获取 CPU 架构"]}
 							/>
 						</div>
 					</div>

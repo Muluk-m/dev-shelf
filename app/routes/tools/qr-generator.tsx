@@ -343,7 +343,7 @@ export default function QRCodeMaker() {
 							<CardContent className="flex-1 flex flex-col items-center justify-center gap-6">
 								<div
 									ref={containerRef}
-									className="rounded-xl shadow-sm ring-1 ring-border/50 bg-white p-4"
+									className="rounded-xl shadow-sm ring-1 ring-border/50 bg-background p-4"
 									style={{ minWidth: 200, minHeight: 200 }}
 								/>
 
