@@ -9,14 +9,14 @@ Requirements for initial open-source release. Each maps to roadmap phases.
 
 ### Codebase Cleanup
 
-- [ ] **CLEAN-01**: 去除飞书 OAuth 认证流程（登录、回调、token 管理）
-- [ ] **CLEAN-02**: 去除 DeepClick 快捷登录模块
-- [ ] **CLEAN-03**: 去除 R2 日志存储依赖（CF_ALL_LOG binding）
-- [ ] **CLEAN-04**: 去除 `@qlj/common-utils` 私有 NPM 包依赖，内联必要代码
+- [x] **CLEAN-01**: 去除飞书 OAuth 认证流程（登录、回调、token 管理）
+- [x] **CLEAN-02**: 去除 DeepClick 快捷登录模块
+- [x] **CLEAN-03**: 去除 R2 日志存储依赖（CF_ALL_LOG binding）
+- [x] **CLEAN-04**: 去除 `@qlj/common-utils` 私有 NPM 包依赖，内联必要代码
 - [ ] **CLEAN-05**: 清理 wrangler.jsonc 中的硬编码 secrets（数据库 ID、KV namespace ID）
 - [ ] **CLEAN-06**: 清理代码库中所有内部 URL（qiliangjia.org、deepclick.com 等 27+ 文件）
 - [ ] **CLEAN-07**: 清理业务相关环境变量（FEISHU_CLIENT_ID、OAUTH_BASE_URL 等）
-- [ ] **CLEAN-08**: 去除业务特定的工具路由（quick-login、roibest-analyzer、ClickHouse 查询等）
+- [x] **CLEAN-08**: 去除业务特定的工具路由（quick-login、roibest-analyzer、ClickHouse 查询等）
 
 ### Authentication
 
@@ -104,14 +104,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLEAN-01 | Phase 1 | Pending |
-| CLEAN-02 | Phase 1 | Pending |
-| CLEAN-03 | Phase 1 | Pending |
-| CLEAN-04 | Phase 1 | Pending |
+| CLEAN-01 | Phase 1 | Complete |
+| CLEAN-02 | Phase 1 | Complete |
+| CLEAN-03 | Phase 1 | Complete |
+| CLEAN-04 | Phase 1 | Complete |
 | CLEAN-05 | Phase 1 | Pending |
 | CLEAN-06 | Phase 1 | Pending |
 | CLEAN-07 | Phase 1 | Pending |
-| CLEAN-08 | Phase 1 | Pending |
+| CLEAN-08 | Phase 1 | Complete |
 | AUTH-01 | Phase 2 | Pending |
 | AUTH-02 | Phase 2 | Pending |
 | AUTH-03 | Phase 2 | Pending |
