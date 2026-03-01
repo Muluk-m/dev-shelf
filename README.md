@@ -6,7 +6,7 @@
 
 Manage your team's developer tools, internal links, and environment URLs in one place. Self-hosted on Cloudflare Workers. Deploy in 30 seconds.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qiliangjia/dev-shelf)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Muluk-m/dev-shelf)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -77,7 +77,7 @@ The fastest way to get DevShelf running. Automatically provisions Workers, D1 da
 
 <div align="center">
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qiliangjia/dev-shelf)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Muluk-m/dev-shelf)
 
 </div>
 
@@ -104,7 +104,7 @@ After deployment:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/qiliangjia/dev-shelf.git
+git clone https://github.com/Muluk-m/dev-shelf.git
 cd dev-shelf
 
 # 2. Install dependencies
@@ -136,7 +136,7 @@ Visit your deployed URL and complete the setup wizard.
 
 ```bash
 # Clone and install
-git clone https://github.com/qiliangjia/dev-shelf.git
+git clone https://github.com/Muluk-m/dev-shelf.git
 cd dev-shelf
 pnpm install
 
