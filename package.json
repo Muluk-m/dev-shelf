@@ -1,7 +1,7 @@
 {
 	"name": "devhub",
-	"description": "A modern full-stack template powered by Cloudflare Workers, using Hono for backend APIs, React Router for frontend routing, and shadcn/ui for beautiful, accessible components styled with Tailwind CSS",
-	"private": true,
+	"description": "A self-hosted developer tool management platform. One-click deploy to Cloudflare Workers.",
+	"private": false,
 	"type": "module",
 	"dependencies": {
 		"@radix-ui/react-accordion": "1.2.2",
@@ -80,17 +80,30 @@
 	"scripts": {
 		"build": "react-router build",
 		"cf-typegen": "wrangler types",
-		"deploy": "npm run build && wrangler deploy",
+		"deploy": "npm run build && wrangler d1 migrations apply DB --remote && wrangler deploy",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
 		"dev": "react-router dev",
 		"preview": "npm run build && vite preview",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
-		"db:pull": "wrangler d1 export devhub-database --output db/database.sql",
-		"db:reset": "rm -rf .wrangler/state/v3/d1",
-		"db:apply": "wrangler d1 execute devhub-database --local --file=db/database.sql",
-		"db:migrate:local": "wrangler d1 migrations apply devhub-database --local",
-		"db:sync": "pnpm db:pull && pnpm db:reset && pnpm db:apply"
+		"db:migrate": "wrangler d1 migrations apply DB --remote",
+		"db:migrate:local": "wrangler d1 migrations apply DB --local"
 	},
-	"packageManager": "pnpm@10.12.2+sha512.a32540185b964ee30bb4e979e405adc6af59226b438ee4cc19f9e8773667a66d302f5bfee60a39d3cac69e35e4b96e708a71dd002b7e9359c4112a1722ac323f"
+	"packageManager": "pnpm@10.12.2+sha512.a32540185b964ee30bb4e979e405adc6af59226b438ee4cc19f9e8773667a66d302f5bfee60a39d3cac69e35e4b96e708a71dd002b7e9359c4112a1722ac323f",
+	"cloudflare": {
+		"bindings": {
+			"DB": {
+				"type": "d1",
+				"description": "Application database for tools, users, categories, and preferences"
+			},
+			"CACHE_KV": {
+				"type": "kv",
+				"description": "Cache storage for API responses (improves performance)"
+			},
+			"JWT_SECRET": {
+				"type": "secret",
+				"description": "Secret key for JWT token signing. Generate with: openssl rand -hex 32"
+			}
+		}
+	}
 }
