@@ -2,9 +2,9 @@
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */ {
- "$schema": "node_modules/wrangler/config-schema.json",
- "name": "qlj-devhub-homepage",
- "compatibility_date": "2025-10-10",
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "devhub",
+  "compatibility_date": "2025-10-10",
   "compatibility_flags": [
     "nodejs_compat"
   ],
@@ -14,57 +14,26 @@
     {
       "binding": "ASSETS_BUCKET",
       "bucket_name": "storage"
-    },
-    {
-      "binding": "CF_ALL_LOG",
-      "bucket_name": "cloudflare-all-logs",
-      "experimental_remote": true
     }
   ],
   "observability": {
     "enabled": true
   },
-  "routes": [
-    {
-      "pattern": "qlj-devhub-homepage.qiliangjia.one",
-      "custom_domain": true
-    }
-  ],
   "vars": {
-    "API_BASE_URL": "https://qlj-devhub-homepage.qiliangjia.one",
-    "FEISHU_CLIENT_ID": "cli_a81054e5b13ed013",
-    "OAUTH_BASE_URL": "https://thirdpart-service-hub-app-test.qiliangjia.org",
-    "IMAGE_PREFIX": "https://image.deepclick.com"
+    "API_BASE_URL": ""
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "devhub-database",
-      "database_id": "61845697-203d-4a2c-9eaf-dc2985b7f727"
+      "database_id": ""
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE_KV",
-      "id": "76fb6b23405646699f1eea148fac6079",
-      "preview_id": "76fb6b23405646699f1eea148fac6079"
+      "id": "your-kv-namespace-id",
+      "preview_id": "your-kv-preview-id"
     }
-  ],
-  "env": {
-    "test": {
-      "name": "qlj-devhub-homepage-test",
-      "routes": [
-        {
-          "pattern": "qlj-devhub-homepage-test.qiliangjia.one",
-          "custom_domain": true
-        }
-      ],
-      "vars": {
-        "API_BASE_URL": "https://qlj-devhub-homepage.qiliangjia.one",
-        "FEISHU_CLIENT_ID": "cli_a81054e5b13ed013",
-        "OAUTH_BASE_URL": "https://thirdpart-service-hub-app-test.qiliangjia.org",
-        "IMAGE_PREFIX": "https://image.deepclick.com"
-      }
-    }
-  }
+  ]
 }

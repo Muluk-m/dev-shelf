@@ -1,5 +1,5 @@
 {
-	"name": "qlj-devhub-homepage",
+	"name": "devhub",
 	"description": "A modern full-stack template powered by Cloudflare Workers, using Hono for backend APIs, React Router for frontend routing, and shadcn/ui for beautiful, accessible components styled with Tailwind CSS",
 	"private": true,
 	"type": "module",

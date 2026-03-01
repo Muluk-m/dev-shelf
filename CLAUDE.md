@@ -52,7 +52,6 @@ This is a full-stack application deployed on Cloudflare Workers with the followi
 - **Database**: Cloudflare D1 SQLite database with binding name "DB"
 - **Storage**: Cloudflare R2 buckets:
   - `ASSETS_BUCKET` - General asset storage
-  - `CF_ALL_LOG` - Cloudflare log storage
 
 ### Data Flow & Field Mapping
 **Critical**: The database uses snake_case fields (`is_internal`, `is_external`, `last_updated`) while the frontend uses camelCase (`isInternal`, `isExternal`, `lastUpdated`). Field mapping occurs in `lib/database/tools.ts`.
@@ -60,7 +59,7 @@ This is a full-stack application deployed on Cloudflare Workers with the followi
 ### API Configuration
 The API base URL is dynamically determined in `app/lib/api.ts`:
 1. Development: `http://localhost:5173` (Vite dev server)
-2. Production: `https://qlj-devhub-homepage.qiliangjia.one` (from wrangler.jsonc vars)
+2. Production: Configured via `API_BASE_URL` environment variable in wrangler.jsonc
 
 ### Key Features
 - **Command Panel**: Global command palette (Cmd/Ctrl+K) with keyboard and mouse navigation
@@ -82,9 +81,6 @@ Tools are stored with relationships:
 - **Database**: D1 database "devhub-database" bound as "DB" in wrangler.jsonc
 - **Environment Variables** (in wrangler.jsonc):
   - `API_BASE_URL` - Production API endpoint
-  - `FEISHU_CLIENT_ID` - Feishu OAuth client ID
-  - `OAUTH_BASE_URL` - OAuth service base URL
-  - `IMAGE_PREFIX` - CDN prefix for images
 
 ### Important Patterns
 - React Router v7 loaders return plain objects (no `json()` wrapper needed)
