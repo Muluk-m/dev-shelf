@@ -5,8 +5,10 @@ export default [
 	route("login", "routes/login.tsx"),
 	route("register", "routes/register.tsx"),
 	route("settings", "routes/settings.tsx"),
+	route("setup", "routes/setup.tsx"),
 	route("admin", "routes/admin.tsx"),
 	route("admin/permissions", "routes/admin.permissions.tsx"),
+	route("admin/users", "routes/admin.users.tsx"),
 
 	route("tools", "routes/tools/_layout.tsx", [
 		route("json-formatter", "routes/tools/json-formatter.tsx"),

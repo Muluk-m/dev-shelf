@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 interface ProtectedRouteProps {
 	children: ReactNode;
-	requiredRoles?: "visitor" | "user" | "developer" | "admin" | ({} & string);
+	requiredRoles?: "user" | "admin" | "visitor" | "developer" | ({} & string);
 	requiredPermissions?: Array<{ resource: string; action: string }>;
 	fallback?: ReactNode;
 }

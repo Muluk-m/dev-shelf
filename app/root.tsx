@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	isRouteErrorResponse,
 	Links,
@@ -7,10 +7,13 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
+	useLocation,
+	useNavigate,
 } from "react-router";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { CommandPanelProvider } from "~/context/command-panel-context";
+import { useSetupStatus } from "~/hooks/use-setup-status";
 import { useToolsInit } from "~/hooks/use-tools-query";
 import { useToolsStore } from "~/stores/tools-store";
 import type { Route } from "./+types/root";
@@ -70,6 +73,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	);
 }
 
+/**
+ * Guard that redirects to /setup when the system has no users,
+ * and redirects away from /setup when already initialized.
+ */
+function SetupGuard({ children }: { children: React.ReactNode }) {
+	const { needsSetup, loading } = useSetupStatus();
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (loading || needsSetup === null) return;
+
+		const isSetupPage = location.pathname === "/setup";
+
+		if (needsSetup && !isSetupPage) {
+			navigate("/setup", { replace: true });
+		} else if (!needsSetup && isSetupPage) {
+			navigate("/", { replace: true });
+		}
+	}, [needsSetup, loading, location.pathname, navigate]);
+
+	return <>{children}</>;
+}
+
 function AppContent() {
 	const { tools } = useToolsStore();
 	useToolsInit();
@@ -77,7 +104,9 @@ function AppContent() {
 	// Use cached tools immediately, query will update in background
 	return (
 		<CommandPanelProvider tools={tools}>
-			<Outlet />
+			<SetupGuard>
+				<Outlet />
+			</SetupGuard>
 		</CommandPanelProvider>
 	);
 }

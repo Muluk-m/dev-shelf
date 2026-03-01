@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Home, Shield, Wrench } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Shield, Users, Wrench } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -25,6 +25,11 @@ const sidebarNavItems = [
 		title: "工具管理",
 		href: "/admin",
 		icon: Wrench,
+	},
+	{
+		title: "用户管理",
+		href: "/admin/users",
+		icon: Users,
 	},
 	{
 		title: "权限管理",
