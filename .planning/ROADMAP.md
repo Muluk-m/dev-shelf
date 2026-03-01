@@ -48,11 +48,11 @@ Plans:
   3. User can log out from any page in the application and the session is invalidated
   4. User can change their own password from a personal settings page
   5. User can update their display name from the personal settings page
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md -- Backend auth: D1 migration, PBKDF2 password hashing, user DB operations, auth API (register/login/logout/me), JWT middleware
+- [ ] 02-02-PLAN.md -- Frontend auth: login/register/settings pages, updated stores/types, user profile component
 
 ### Phase 3: User Management & RBAC
 **Goal**: The system enforces role-based access control and provides a zero-config first-run experience for creating the initial admin
@@ -120,7 +120,7 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Codebase Cleanup | 0/3 | Planned | - |
-| 2. Authentication | 0/2 | Not started | - |
+| 2. Authentication | 0/2 | Planned | - |
 | 3. User Management & RBAC | 0/2 | Planned | - |
 | 4. Deployment Configuration | 0/2 | Planned | - |
 | 5. Documentation | 0/1 | Planned | - |
