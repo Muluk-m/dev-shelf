@@ -22,11 +22,13 @@
   "vars": {
     "API_BASE_URL": ""
   },
+  // JWT_SECRET must be set as a secret via: wrangler secret put JWT_SECRET
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "devhub-database",
-      "database_id": ""
+      "database_id": "",
+      "migrations_dir": "db/migrations"
     }
   ],
   "kv_namespaces": [
