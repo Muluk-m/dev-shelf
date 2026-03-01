@@ -122,6 +122,6 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 | 1. Codebase Cleanup | 0/3 | Planned | - |
 | 2. Authentication | 0/2 | Not started | - |
 | 3. User Management & RBAC | 0/2 | Planned | - |
-| 4. Deployment Configuration | 0/1 | Not started | - |
+| 4. Deployment Configuration | 0/2 | Planned | - |
 | 5. Documentation | 0/1 | Planned | - |
 | 6. Data Portability | 0/1 | Planned | - |
