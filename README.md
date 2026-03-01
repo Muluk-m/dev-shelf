@@ -1,249 +1,222 @@
-# DevHub
+<div align="center">
 
-A self-hosted developer tool management platform, deployed on Cloudflare Workers.
+# DevShelf
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qiliangjia/qlj-devhub-homepage)
+**Your team's developer tool shelf — organized, searchable, always within reach.**
+
+Manage your team's developer tools, internal links, and environment URLs in one place. Self-hosted on Cloudflare Workers. Deploy in 30 seconds.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qiliangjia/dev-shelf)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+
+</div>
+
+---
+
+<!-- TODO: Add screenshot here -->
+<!-- ![DevShelf Screenshot](docs/screenshot.png) -->
+
+## Why DevShelf?
+
+Every team maintains a growing list of internal tools, dashboards, APIs, and services scattered across bookmarks, wikis, and Slack messages. DevShelf gives them a home.
+
+- **One place for all tools** — No more "where's the link to staging?" in Slack
+- **Multi-environment URLs** — Dev / Staging / Prod links for every tool, one click away
+- **Zero infrastructure cost** — Runs on Cloudflare's free tier (Workers + D1 + KV)
+- **30-second deploy** — Click the button, get a running instance. No Docker, no VMs, no config files
+- **Own your data** — Self-hosted, export to JSON anytime, no vendor lock-in
 
 ## Features
 
-- **Tool management** -- Full CRUD with categories, tags, and status tracking
-- **Multi-environment support** -- Dev, Test, and Prod URLs per tool
-- **Command palette** -- Cmd/Ctrl+K for keyboard-first navigation
-- **Built-in utilities** -- JSON formatter, Base64 encoder, URL parser, and more
-- **Role-based access control** -- Admin and User roles with protected operations
-- **First-run setup wizard** -- Zero-config initial deployment creates admin account automatically
-- **Light/dark theme** -- System-aware theme switching
-- **Responsive design** -- Works on desktop and mobile
-- **Edge-deployed** -- Runs on Cloudflare Workers with D1 database for low-latency worldwide
+<table>
+<tr>
+<td width="50%">
 
-## Quick Start: One-Click Deploy
+### Tool Management
+Full CRUD with categories, tags, and environment links. Organize hundreds of tools without losing track.
 
-The fastest way to get DevHub running is the Cloudflare Deploy Button. It automatically provisions a Cloudflare Workers application, a D1 database, and a KV namespace.
+### Command Palette
+Press `Cmd/Ctrl + K` to instantly search and jump to any tool. Keyboard-first workflow.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qiliangjia/qlj-devhub-homepage)
+### Role-Based Access
+Admin and User roles. Admins manage tools; users browse and favorite. First-run wizard creates the admin account.
 
-**After deployment:**
+</td>
+<td width="50%">
 
-1. Visit your deployed URL (shown in the Cloudflare dashboard after deploy completes)
-2. The first-run setup wizard will appear -- create your admin account
-3. Log in and start managing your development tools
+### Multi-Environment URLs
+Every tool can have Dev, Staging, and Production URLs. One click to open the right environment.
 
-**Note:** You may need to set the JWT secret for authentication to work:
+### Built-in Utilities
+JSON formatter, Base64 encoder/decoder, URL parser, and more — right in your tool shelf.
 
-```bash
-wrangler secret put JWT_SECRET
-```
+### Data Export
+Admin can export all tools, categories, and tags as a single JSON file for backup or migration.
 
-When prompted, enter a strong random string. You can generate one with:
+</td>
+</tr>
+</table>
 
-```bash
-openssl rand -hex 32
-```
+### Also includes
 
-## Manual Deployment
+- Light / Dark theme (follows system preference)
+- Responsive design (desktop & mobile)
+- Edge-deployed worldwide via Cloudflare Workers
+- D1 database (SQLite at the edge, zero cold starts)
+- User favorites and recently used tools
 
-If you prefer to deploy manually using the Wrangler CLI, follow these steps.
+## Quick Start
 
-### Prerequisites
+### One-Click Deploy
 
-- [Cloudflare account](https://dash.cloudflare.com/sign-up)
-- [Node.js](https://nodejs.org/) (LTS recommended)
+The fastest way to get DevShelf running. Automatically provisions Workers, D1 database, and KV namespace.
+
+<div align="center">
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qiliangjia/dev-shelf)
+
+</div>
+
+After deployment:
+
+1. Set the JWT secret: `wrangler secret put JWT_SECRET` (use `openssl rand -hex 32` to generate)
+2. Visit your deployed URL
+3. Complete the setup wizard to create your admin account
+4. Start adding your team's tools
+
+### Manual Deployment
+
+<details>
+<summary>Click to expand step-by-step instructions</summary>
+
+#### Prerequisites
+
+- [Cloudflare account](https://dash.cloudflare.com/sign-up) (free tier works)
+- [Node.js](https://nodejs.org/) (LTS)
 - [pnpm](https://pnpm.io/installation)
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/): `npm install -g wrangler`
 
-### Steps
-
-1. **Clone the repository**
+#### Steps
 
 ```bash
-git clone https://github.com/qiliangjia/qlj-devhub-homepage.git
-cd qlj-devhub-homepage
-```
+# 1. Clone the repository
+git clone https://github.com/qiliangjia/dev-shelf.git
+cd dev-shelf
 
-2. **Install dependencies**
-
-```bash
+# 2. Install dependencies
 pnpm install
-```
 
-3. **Authenticate with Cloudflare**
-
-```bash
+# 3. Authenticate with Cloudflare
 wrangler login
-```
 
-4. **Create the D1 database**
-
-```bash
+# 4. Create the D1 database
 wrangler d1 create devhub-database
-```
+# Copy the database_id from the output and update wrangler.jsonc
 
-Copy the `database_id` from the output and update the `d1_databases` section in `wrangler.jsonc`:
-
-```jsonc
-"d1_databases": [
-  {
-    "binding": "DB",
-    "database_name": "devhub-database",
-    "database_id": "<your-database-id>",
-    "migrations_dir": "migrations"
-  }
-]
-```
-
-5. **Apply database migrations**
-
-```bash
+# 5. Apply database migrations
 wrangler d1 migrations apply DB --remote
-```
 
-This creates all tables (tools, users, categories, environments, tags) and seeds default categories.
-
-6. **Set the JWT secret**
-
-```bash
+# 6. Set the JWT secret
 wrangler secret put JWT_SECRET
-```
+# Enter a strong random string (generate with: openssl rand -hex 32)
 
-Enter a strong random string when prompted (generate one with `openssl rand -hex 32`).
-
-7. **Deploy**
-
-```bash
+# 7. Deploy
 pnpm run deploy
 ```
 
-This builds the application and deploys it to Cloudflare Workers. The deploy script also applies any pending D1 migrations automatically.
+Visit your deployed URL and complete the setup wizard.
 
-8. **Visit your deployment** and complete the first-run setup wizard to create your admin account.
+</details>
 
 ## Local Development
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (LTS recommended)
-- [pnpm](https://pnpm.io/installation) (v10+)
-
-### Setup
-
-1. **Clone and install**
-
 ```bash
-git clone https://github.com/qiliangjia/qlj-devhub-homepage.git
-cd qlj-devhub-homepage
+# Clone and install
+git clone https://github.com/qiliangjia/dev-shelf.git
+cd dev-shelf
 pnpm install
-```
 
-2. **Configure environment variables**
-
-```bash
+# Configure environment
 cp .dev.vars.example .dev.vars
-```
+# Edit .dev.vars and set JWT_SECRET=any-local-dev-secret
 
-Edit `.dev.vars` and set your JWT secret:
-
-```
-JWT_SECRET=any-local-dev-secret
-```
-
-3. **Set up the local database**
-
-```bash
+# Set up local database
 pnpm run db:migrate:local
-```
 
-This applies all D1 migrations to a local SQLite database used by the Wrangler dev server.
-
-4. **Start the development server**
-
-```bash
+# Start dev server
 pnpm run dev
+# Open http://localhost:5173
 ```
 
-5. **Open** [http://localhost:5173](http://localhost:5173) in your browser. The first-run setup wizard will guide you through creating an admin account.
-
-### Available Commands
+<details>
+<summary>All available commands</summary>
 
 | Command | Description |
 |---------|-------------|
 | `pnpm run dev` | Start development server with hot reload |
 | `pnpm run build` | Build for production |
 | `pnpm run preview` | Preview production build locally |
-| `pnpm run deploy` | Build, apply migrations, and deploy to Cloudflare Workers |
-| `pnpm run typecheck` | Generate types and run TypeScript compiler |
-| `pnpm run lint` | Run Biome linter to check code quality |
-| `pnpm run lint:fix` | Run Biome linter and auto-fix issues |
-| `pnpm run cf-typegen` | Generate Cloudflare D1 binding types |
-| `pnpm run db:migrate` | Apply D1 migrations to remote database |
-| `pnpm run db:migrate:local` | Apply D1 migrations to local database |
+| `pnpm run deploy` | Build, migrate, and deploy to Cloudflare |
+| `pnpm run typecheck` | Run TypeScript type checking |
+| `pnpm run lint` | Check code quality with Biome |
+| `pnpm run lint:fix` | Auto-fix linting issues |
+| `pnpm run cf-typegen` | Generate Cloudflare binding types |
+| `pnpm run db:migrate` | Apply migrations to remote D1 |
+| `pnpm run db:migrate:local` | Apply migrations to local D1 |
+
+</details>
 
 ## Environment Variables
 
-DevHub uses two types of configuration: **vars** (non-sensitive, set in `wrangler.jsonc`) and **secrets** (sensitive, set via `wrangler secret put`).
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `JWT_SECRET` | Secret | Yes | Key for signing auth tokens. Generate: `openssl rand -hex 32` |
+| `API_BASE_URL` | Var | No | Public URL (auto-detected if empty) |
+| `DB` | D1 Binding | Auto | Application database |
+| `CACHE_KV` | KV Binding | Auto | Response cache |
+| `ASSETS_BUCKET` | R2 Binding | Auto | Asset storage |
 
-### Secrets
-
-Set these using `wrangler secret put <NAME>` for production, or in `.dev.vars` for local development. See [`.dev.vars.example`](.dev.vars.example) for a template.
-
-| Variable | Description | Required | Example |
-|----------|-------------|----------|---------|
-| `JWT_SECRET` | Secret key for signing JWT authentication tokens. Generate with `openssl rand -hex 32`. | Yes | `a1b2c3d4e5f6...` |
-
-### Vars
-
-These are configured in `wrangler.jsonc` under the `vars` section.
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `API_BASE_URL` | Public URL of the deployed application. Used for API requests. Leave empty for auto-detection. | No | `""` (empty) |
-
-### Cloudflare Bindings
-
-These are automatically provisioned when using the Deploy Button, or must be created manually for manual deployments.
-
-| Binding | Type | Description |
-|---------|------|-------------|
-| `DB` | D1 Database | Application database for tools, users, categories, and preferences |
-| `CACHE_KV` | KV Namespace | Cache storage for API responses (improves performance) |
-| `ASSETS_BUCKET` | R2 Bucket | Storage for uploaded assets (tool icons, etc.) |
+Secrets are set via `wrangler secret put`. Vars are in `wrangler.jsonc`. Bindings are auto-provisioned by Deploy Button.
 
 ## Tech Stack
 
-- **Frontend:** [React](https://react.dev/) 19, [React Router](https://reactrouter.com/) 7, [Tailwind CSS](https://tailwindcss.com/) 4, [shadcn/ui](https://ui.shadcn.com/)
-- **Backend:** [Hono](https://hono.dev/) on [Cloudflare Workers](https://workers.cloudflare.com/)
-- **Database:** [Cloudflare D1](https://developers.cloudflare.com/d1/) (SQLite at the edge)
-- **Storage:** [Cloudflare R2](https://developers.cloudflare.com/r2/), [Cloudflare KV](https://developers.cloudflare.com/kv/)
-- **Language:** [TypeScript](https://www.typescriptlang.org/) 5.8
-- **Package Manager:** [pnpm](https://pnpm.io/) 10
-- **Linting:** [Biome](https://biomejs.dev/)
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, React Router 7, Tailwind CSS 4, shadcn/ui |
+| Backend | Hono on Cloudflare Workers |
+| Database | Cloudflare D1 (SQLite at the edge) |
+| Storage | Cloudflare R2 + KV |
+| Language | TypeScript 5.8 |
+| Tooling | pnpm, Biome, Vite |
 
 ## Project Structure
 
 ```
-qlj-devhub-homepage/
+dev-shelf/
 ├── app/                    # Frontend (React Router v7)
-│   ├── components/         # UI components (shadcn/ui, layout, admin)
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Client utilities and API helpers
-│   ├── routes/             # Page routes (home, admin, tools, auth)
-│   ├── stores/             # Zustand state management
-│   ├── types/              # TypeScript type definitions
-│   ├── root.tsx            # Root component with providers
-│   └── routes.ts           # Route definitions
-├── workers/                # Backend (Hono API)
-│   ├── middleware/          # Auth and RBAC middleware
-│   ├── routes/             # API route handlers
-│   └── app.ts              # Hono application entry point
+│   ├── components/         # UI components
+│   ├── hooks/              # Custom hooks
+│   ├── lib/                # Utilities & API client
+│   ├── routes/             # Page routes
+│   └── stores/             # Zustand state
+├── workers/                # Backend API (Hono)
+│   ├── middleware/          # Auth & RBAC
+│   └── routes/             # API endpoints
 ├── lib/                    # Shared code
-│   └── database/           # D1 database operations
-├── migrations/             # D1 database migrations
-│   └── 0001_initial_schema.sql
-├── public/                 # Static assets
-├── wrangler.jsonc          # Cloudflare Workers configuration
-├── package.json            # Dependencies and scripts
-└── .dev.vars.example       # Environment variable template
+│   └── database/           # D1 operations
+├── migrations/             # D1 schema migrations
+├── wrangler.jsonc          # Cloudflare config
+└── .dev.vars.example       # Env var template
 ```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT
+[MIT](LICENSE)

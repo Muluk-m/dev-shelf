@@ -1,6 +1,6 @@
 {
-	"name": "devhub",
-	"description": "A self-hosted developer tool management platform. One-click deploy to Cloudflare Workers.",
+	"name": "dev-shelf",
+	"description": "Your team's developer tool shelf. Self-hosted on Cloudflare Workers with one-click deploy.",
 	"private": false,
 	"type": "module",
 	"dependencies": {
