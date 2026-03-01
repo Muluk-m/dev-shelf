@@ -2,14 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createRequestHandler } from "react-router";
 import { authMiddleware } from "./middleware/auth";
-import { abRouterProxy } from "./routes/ab-router";
-import { auth } from "./routes/auth";
 import { categoriesRouter } from "./routes/categories";
-import { cfLogsRouter } from "./routes/cf-logs";
-import { iconGeneratorRouter } from "./routes/icon-generator";
-import { identityRouter } from "./routes/identity";
-import { permissions } from "./routes/permissions";
-import { queryAnalyzerRouter } from "./routes/query-analyzer";
 import { toolsRouter } from "./routes/tools";
 import { uploadsRouter } from "./routes/uploads";
 
@@ -17,25 +10,16 @@ const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
 app.use("*", cors(), authMiddleware);
 
-// 挂载认证路由
-app.route("/auth", auth);
-
-// API 路由
+// API routes
 app.route("/api/tools", toolsRouter);
 app.route("/api/categories", categoriesRouter);
 app.route("/api/uploads", uploadsRouter);
-app.route("/api/cf-logs", cfLogsRouter);
-app.route("/api/query-analyzer", queryAnalyzerRouter);
-app.route("/api/icon-generator", iconGeneratorRouter);
-app.route("/api/ab-router", abRouterProxy);
-app.route("/api/permissions", permissions);
-app.route("/api/identity", identityRouter);
 
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (ctx) =>
 	ctx.json({}),
 );
 
-// 公开读取 R2 对象以形成稳定 CDN URL（带 Cache-Control）
+// Public R2 asset serving
 app.get("/assets/*", async (c) => {
 	const key = c.req.path.replace(/^\/assets\//, "");
 	if (!key || key.length === 0) {

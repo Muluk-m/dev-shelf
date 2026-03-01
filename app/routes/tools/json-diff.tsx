@@ -1,4 +1,3 @@
-import { safeJsonParse } from "@qlj/common-utils/common";
 import { GitCompare, RefreshCcw } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { ToolPageHeader } from "~/components/tool-page-header";
@@ -7,6 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 import type { Route } from "./+types/json-diff";
+
+function safeJsonParse(text: string): unknown {
+	try {
+		return JSON.parse(text);
+	} catch {
+		return null;
+	}
+}
 
 export function meta({}: Route.MetaArgs) {
 	return [

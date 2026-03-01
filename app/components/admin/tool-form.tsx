@@ -38,7 +38,7 @@ import {
 } from "~/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
-import { generateToolIcon, getToolCategories } from "~/lib/api";
+import { getToolCategories } from "~/lib/api";
 import { cn } from "~/lib/utils";
 import type { Tool, ToolCategory, ToolEnvironment } from "~/types/tool";
 
@@ -198,33 +198,8 @@ export function ToolForm({
 	};
 
 	const handleGenerateIcon = async () => {
-		// 检查工具名称是否已填写
-		if (!formData.name.trim()) {
-			toast.error("请先填写工具名称");
-			return;
-		}
-
-		setIsGeneratingIcon(true);
-		try {
-			const result = await generateToolIcon({
-				toolName: formData.name,
-				description: formData.description,
-			});
-
-			setFormData((prev) => ({
-				...prev,
-				icon: result.iconUrl,
-			}));
-
-			toast.success("图标生成成功");
-		} catch (error) {
-			console.error("Failed to generate icon:", error);
-			const errorMessage =
-				error instanceof Error ? error.message : "图标生成失败，请重试";
-			toast.error(errorMessage);
-		} finally {
-			setIsGeneratingIcon(false);
-		}
+		// AI icon generation removed (business-specific feature)
+		toast.info("AI icon generation is not available");
 	};
 
 	const updateProductionEnvironment = (
