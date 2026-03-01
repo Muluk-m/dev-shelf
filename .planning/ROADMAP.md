@@ -64,11 +64,11 @@ Plans:
   3. Non-admin users can browse tools, use favorites, and manage their own preferences
   4. Admin users can reset passwords for other users
   5. The D1 database contains a users table with username, password_hash, role, and created_at columns
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Backend RBAC middleware, first-run setup API, admin user management API, protect tool/category endpoints
+- [ ] 03-02-PLAN.md -- Frontend setup wizard, admin user management page, update ProtectedRoute and permissions for simplified role model
 
 ### Phase 4: Deployment Configuration
 **Goal**: The project can be deployed to Cloudflare Workers via a single Deploy Button click with zero manual configuration
@@ -79,10 +79,11 @@ Plans:
   2. The database schema (including users, tools, categories, environments, tags tables) is automatically initialized during deployment
   3. A `.dev.vars.example` file documents all required secrets with clear descriptions
   4. The project lives in its own public GitHub repository, independent of the internal version
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Configure deployment infrastructure (wrangler.jsonc, D1 migrations, package.json, .dev.vars.example)
+- [ ] 04-02-PLAN.md -- Add Deploy Button to README and create public GitHub repository
 
 ### Phase 5: Documentation
 **Goal**: A developer or team can deploy and use DevHub by following the README alone, with no external documentation needed
@@ -120,7 +121,7 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 |-------|----------------|--------|-----------|
 | 1. Codebase Cleanup | 0/3 | Planned | - |
 | 2. Authentication | 0/2 | Not started | - |
-| 3. User Management & RBAC | 0/2 | Not started | - |
+| 3. User Management & RBAC | 0/2 | Planned | - |
 | 4. Deployment Configuration | 0/1 | Not started | - |
 | 5. Documentation | 0/1 | Planned | - |
 | 6. Data Portability | 0/1 | Planned | - |
