@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-03-01T13:37:46Z"
+last_updated: "2026-03-01T13:45:00Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -22,30 +22,30 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 2 of 6 (Authentication)
-Plan: 1 of 2 in current phase
-Status: Plan 02-01 Complete (backend auth system)
-Last activity: 2026-03-01 -- Completed 02-01 (backend auth: schema, utils, API, middleware)
+Phase: 2 of 6 (Authentication) -- COMPLETE
+Plan: 2 of 2 in current phase (all complete)
+Status: Phase 02 Complete (backend + frontend auth)
+Last activity: 2026-03-01 -- Completed 02-02 (frontend auth UI: login, register, settings, user profile)
 
-Progress: [████░░░░░░] 36%
+Progress: [█████░░░░░] 45%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: ~7 min
-- Total execution time: ~29 min
+- Total execution time: ~33 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-codebase-cleanup | 3/3 | ~13 min | ~4 min |
-| 02-authentication | 1/2 | 16 min | 16 min |
+| 02-authentication | 2/2 | ~20 min | ~10 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (5min), 01-02 (5min), 01-03 (3min), 02-01 (16min)
-- Trend: Auth plan took longer due to complexity (new schema, utils, API, middleware)
+- Last 5 plans: 01-01 (5min), 01-02 (5min), 01-03 (3min), 02-01 (16min), 02-02 (4min)
+- Trend: Frontend auth UI completed quickly leveraging existing backend from 02-01
 
 *Updated after each plan completion*
 
@@ -71,6 +71,10 @@ Recent decisions affecting current work:
 - [02-01]: Cookie name is access_token (HttpOnly, Secure, SameSite=Lax)
 - [02-01]: Added JWT_SECRET type declaration in workers/env.d.ts to extend Cloudflare.Env
 - [02-01]: Updated tools.ts to use context-based userId from middleware instead of getCurrentUserId helper
+- [02-02]: Used Zustand persist with localStorage for auth state (survives page refresh)
+- [02-02]: Auto-refresh user info from server on hydration to validate stale cached state
+- [02-02]: Added credentials: include to all POST/PUT/DELETE fetch calls for cookie auth
+- [02-02]: Admin role has hierarchical access (admin > user) in hasRole check
 
 ### Pending Todos
 
@@ -84,5 +88,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 02-01-PLAN.md (backend auth system)
+Stopped at: Completed 02-02-PLAN.md (frontend auth UI -- Phase 02 complete)
 Resume file: None

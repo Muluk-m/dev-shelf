@@ -25,8 +25,8 @@ Requirements for initial open-source release. Each maps to roadmap phases.
 - [x] **AUTH-03**: 用户登录后 session 通过 JWT HTTP-only cookie 持久化
 - [x] **AUTH-04**: 用户密码使用 Web Crypto API PBKDF2 安全哈希存储
 - [x] **AUTH-05**: 用户可以从任意页面登出
-- [ ] **AUTH-06**: 用户可以在个人设置中修改密码
-- [ ] **AUTH-07**: 用户可以在个人设置中修改个人信息（显示名称等）
+- [x] **AUTH-06**: 用户可以在个人设置中修改密码
+- [x] **AUTH-07**: 用户可以在个人设置中修改个人信息（显示名称等）
 
 ### User Management
 

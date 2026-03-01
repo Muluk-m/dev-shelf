@@ -13,7 +13,7 @@ Transform the internal DevHub tool management platform into a self-deployable op
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Codebase Cleanup** - Remove all business-specific integrations, private dependencies, and internal URLs
-- [ ] **Phase 2: Authentication** - Build self-contained username/password auth with JWT sessions
+- [x] **Phase 2: Authentication** - Build self-contained username/password auth with JWT sessions
 - [ ] **Phase 3: User Management & RBAC** - Implement roles, access control, first-run admin setup, and user management
 - [ ] **Phase 4: Deployment Configuration** - Configure Cloudflare Deploy Button with auto-provisioning and migrations
 - [ ] **Phase 5: Documentation** - Write comprehensive README with deploy, setup, and development instructions
@@ -51,8 +51,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Backend auth: D1 migration, PBKDF2 password hashing, user DB operations, auth API (register/login/logout/me), JWT middleware
-- [ ] 02-02-PLAN.md -- Frontend auth: login/register/settings pages, updated stores/types, user profile component
+- [x] 02-01-PLAN.md -- Backend auth: D1 migration, PBKDF2 password hashing, user DB operations, auth API (register/login/logout/me), JWT middleware
+- [x] 02-02-PLAN.md -- Frontend auth: login/register/settings pages, updated stores/types, user profile component
 
 ### Phase 3: User Management & RBAC
 **Goal**: The system enforces role-based access control and provides a zero-config first-run experience for creating the initial admin
@@ -120,7 +120,7 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Codebase Cleanup | 3/3 | Complete    | 2026-03-01 |
-| 2. Authentication | 0/2 | Planned | - |
+| 2. Authentication | 2/2 | Complete | 2026-03-01 |
 | 3. User Management & RBAC | 0/2 | Planned | - |
 | 4. Deployment Configuration | 0/2 | Planned | - |
 | 5. Documentation | 0/1 | Planned | - |
