@@ -16,6 +16,106 @@ export const API_BASE_URL = import.meta.env.DEV
 	? "http://localhost:5173"
 	: "";
 
+// --- Setup API functions ---
+
+export async function getSetupStatus(): Promise<{
+	initialized: boolean;
+	needsSetup: boolean;
+}> {
+	const response = await fetch(`${API_BASE_URL}/api/setup/status`);
+	if (!response.ok) {
+		throw new Error("Failed to check setup status");
+	}
+	return response.json();
+}
+
+export async function initializeSetup(data: {
+	username: string;
+	password: string;
+	displayName?: string;
+}): Promise<{ message: string; user: UserInfo }> {
+	const response = await fetch(`${API_BASE_URL}/api/setup/init`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify(data),
+	});
+	if (!response.ok) {
+		const err = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(err.error || "Setup initialization failed");
+	}
+	return response.json();
+}
+
+// --- Admin API functions ---
+
+export async function getAdminUsers(): Promise<{
+	users: Array<{
+		id: string;
+		username: string;
+		displayName: string;
+		role: string;
+		createdAt: string;
+	}>;
+}> {
+	const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+		credentials: "include",
+	});
+	if (!response.ok) {
+		const err = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(err.error || "Failed to fetch users");
+	}
+	return response.json();
+}
+
+export async function resetUserPassword(
+	userId: string,
+	newPassword: string,
+): Promise<{ message: string }> {
+	const response = await fetch(
+		`${API_BASE_URL}/api/admin/users/${userId}/reset-password`,
+		{
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ newPassword }),
+		},
+	);
+	if (!response.ok) {
+		const err = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(err.error || "Failed to reset password");
+	}
+	return response.json();
+}
+
+export async function updateUserRole(
+	userId: string,
+	role: "admin" | "user",
+): Promise<{ message: string }> {
+	const response = await fetch(
+		`${API_BASE_URL}/api/admin/users/${userId}/role`,
+		{
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ role }),
+		},
+	);
+	if (!response.ok) {
+		const err = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(err.error || "Failed to update user role");
+	}
+	return response.json();
+}
+
 // --- Auth API functions ---
 
 export async function login(

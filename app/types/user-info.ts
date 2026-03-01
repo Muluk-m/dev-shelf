@@ -3,4 +3,8 @@ export interface UserInfo {
 	username: string;
 	displayName: string;
 	role: "admin" | "user";
+	/** JWT issued-at timestamp (seconds) */
+	iat?: number;
+	/** JWT expiry timestamp (seconds) */
+	exp?: number;
 }
