@@ -20,11 +20,11 @@ Requirements for initial open-source release. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: 用户可以通过用户名和密码注册账户
-- [ ] **AUTH-02**: 用户可以通过用户名和密码登录
-- [ ] **AUTH-03**: 用户登录后 session 通过 JWT HTTP-only cookie 持久化
-- [ ] **AUTH-04**: 用户密码使用 Web Crypto API PBKDF2 安全哈希存储
-- [ ] **AUTH-05**: 用户可以从任意页面登出
+- [x] **AUTH-01**: 用户可以通过用户名和密码注册账户
+- [x] **AUTH-02**: 用户可以通过用户名和密码登录
+- [x] **AUTH-03**: 用户登录后 session 通过 JWT HTTP-only cookie 持久化
+- [x] **AUTH-04**: 用户密码使用 Web Crypto API PBKDF2 安全哈希存储
+- [x] **AUTH-05**: 用户可以从任意页面登出
 - [ ] **AUTH-06**: 用户可以在个人设置中修改密码
 - [ ] **AUTH-07**: 用户可以在个人设置中修改个人信息（显示名称等）
 
@@ -112,11 +112,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLEAN-06 | Phase 1 | Complete |
 | CLEAN-07 | Phase 1 | Complete |
 | CLEAN-08 | Phase 1 | Complete |
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
-| AUTH-05 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
+| AUTH-04 | Phase 2 | Complete |
+| AUTH-05 | Phase 2 | Complete |
 | AUTH-06 | Phase 2 | Pending |
 | AUTH-07 | Phase 2 | Pending |
 | USER-01 | Phase 3 | Pending |
