@@ -105,10 +105,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Admin can trigger a full data export from the admin interface and receive a JSON file
   2. The exported JSON includes tools, categories, environments, and tags as a complete, self-contained dataset
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md -- Backend export endpoint + admin UI export button
 
 ## Progress
 
@@ -123,4 +123,4 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 | 3. User Management & RBAC | 0/2 | Not started | - |
 | 4. Deployment Configuration | 0/1 | Not started | - |
 | 5. Documentation | 0/1 | Planned | - |
-| 6. Data Portability | 0/1 | Not started | - |
+| 6. Data Portability | 0/1 | Planned | - |
