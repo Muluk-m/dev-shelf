@@ -1,15 +1,7 @@
 export interface UserInfo {
-	userId: number;
-	openId: string;
+	userId: string;
 	userName: string;
 	avatar: string;
-	platform: string;
-	appId: string;
-	isNewUser: boolean;
-	iat: number;
-	exp: number;
-	aud: string;
-	iss: string;
 	roles?: string[];
 	permissions?: string[];
 }

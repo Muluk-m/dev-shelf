@@ -2,7 +2,6 @@ import type { D1Database } from "@cloudflare/workers-types";
 
 export interface User {
 	id: string;
-	feishuId: string;
 	name: string;
 	email?: string;
 	avatar?: string;
@@ -46,11 +45,9 @@ export interface ResourcePermission {
 	createdAt: string;
 }
 
-// 数据库字段映射
 function mapUserFromDb(row: any): User {
 	return {
 		id: row.id,
-		feishuId: row.feishu_id,
 		name: row.name,
 		email: row.email,
 		avatar: row.avatar,
@@ -78,14 +75,13 @@ function mapPermissionFromDb(row: any): Permission {
 	};
 }
 
-// 用户相关操作
-export async function getUserByFeishuId(
+export async function getUserByUsername(
 	db: D1Database,
-	feishuId: string,
+	username: string,
 ): Promise<User | null> {
 	const result = await db
-		.prepare("SELECT * FROM users WHERE feishu_id = ?")
-		.bind(feishuId)
+		.prepare("SELECT * FROM users WHERE name = ?")
+		.bind(username)
 		.first();
 
 	return result ? mapUserFromDb(result) : null;
@@ -95,7 +91,6 @@ export async function createUser(
 	db: D1Database,
 	data: {
 		id: string;
-		feishuId: string;
 		name: string;
 		email?: string;
 		avatar?: string;
@@ -103,13 +98,18 @@ export async function createUser(
 ): Promise<User> {
 	await db
 		.prepare(
-			`INSERT INTO users (id, feishu_id, name, email, avatar)
-       VALUES (?, ?, ?, ?, ?)`,
+			`INSERT INTO users (id, name, email, avatar)
+       VALUES (?, ?, ?, ?)`,
 		)
-		.bind(data.id, data.feishuId, data.name, data.email || null, data.avatar || null)
+		.bind(data.id, data.name, data.email || null, data.avatar || null)
 		.run();
 
-	return (await getUserByFeishuId(db, data.feishuId)) as User;
+	const result = await db
+		.prepare("SELECT * FROM users WHERE id = ?")
+		.bind(data.id)
+		.first();
+
+	return mapUserFromDb(result);
 }
 
 export async function updateUser(
@@ -148,7 +148,6 @@ export async function updateUser(
 	}
 }
 
-// 角色相关操作
 export async function getUserRoles(db: D1Database, userId: string): Promise<Role[]> {
 	const result = await db
 		.prepare(
@@ -190,7 +189,6 @@ export async function removeRoleFromUser(
 		.run();
 }
 
-// 权限相关操作
 export async function getUserPermissions(
 	db: D1Database,
 	userId: string,
@@ -227,7 +225,6 @@ export async function checkUserPermission(
 	return (result?.count || 0) > 0;
 }
 
-// 获取用户最高角色
 export async function getUserHighestRole(
 	db: D1Database,
 	userId: string,
@@ -248,7 +245,6 @@ export async function getUserHighestRole(
 	return "visitor";
 }
 
-// 管理端 - 获取所有用户
 export async function getAllUsers(db: D1Database): Promise<
 	(User & {
 		roles: Role[];
@@ -268,7 +264,6 @@ export async function getAllUsers(db: D1Database): Promise<
 	return usersWithRoles;
 }
 
-// 管理端 - 获取所有角色
 export async function getAllRoles(db: D1Database): Promise<
 	(Role & {
 		userCount: number;
@@ -281,13 +276,11 @@ export async function getAllRoles(db: D1Database): Promise<
 
 	const rolesWithDetails = await Promise.all(
 		roles.map(async (role) => {
-			// 获取用户数量
 			const userCountResult = await db
 				.prepare("SELECT COUNT(*) as count FROM user_roles WHERE role_id = ?")
 				.bind(role.id)
 				.first<{ count: number }>();
 
-			// 获取权限列表
 			const permissionsResult = await db
 				.prepare(
 					`SELECT p.* FROM permissions p
@@ -308,7 +301,6 @@ export async function getAllRoles(db: D1Database): Promise<
 	return rolesWithDetails;
 }
 
-// 管理端 - 获取所有权限
 export async function getAllPermissions(db: D1Database): Promise<Permission[]> {
 	const result = await db.prepare("SELECT * FROM permissions ORDER BY resource, action").all();
 
