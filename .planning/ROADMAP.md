@@ -31,11 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The wrangler.jsonc file contains no hardcoded database IDs, KV namespace IDs, or business-specific secrets
   4. No Feishu OAuth routes, DeepClick login modules, or business-specific tool routes exist in the codebase
   5. The application starts and serves the tool dashboard (without auth -- that comes in Phase 2)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- Remove Feishu OAuth auth system and business backend routes
+- [ ] 01-02-PLAN.md -- Remove business frontend routes, components, libs, and private package
+- [ ] 01-03-PLAN.md -- Clean config files, database schema, and final build verification
 
 ### Phase 2: Authentication
 **Goal**: Users can create accounts and securely log in with username/password, with sessions persisted via JWT cookies
@@ -117,7 +118,7 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Codebase Cleanup | 0/2 | Not started | - |
+| 1. Codebase Cleanup | 0/3 | Planned | - |
 | 2. Authentication | 0/2 | Not started | - |
 | 3. User Management & RBAC | 0/2 | Not started | - |
 | 4. Deployment Configuration | 0/1 | Not started | - |
