@@ -28,14 +28,14 @@
       "binding": "DB",
       "database_name": "devhub-database",
       "database_id": "",
-      "migrations_dir": "db/migrations"
+      "migrations_dir": "migrations"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE_KV",
-      "id": "your-kv-namespace-id",
-      "preview_id": "your-kv-preview-id"
+      "id": "",
+      "preview_id": ""
     }
   ]
 }
