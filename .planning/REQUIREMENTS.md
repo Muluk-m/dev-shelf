@@ -32,7 +32,7 @@ Requirements for initial open-source release. Each maps to roadmap phases.
 
 - [x] **USER-01**: 系统区分 admin 和 user 两种角色
 - [x] **USER-02**: 只有 admin 可以创建、编辑、删除工具
-- [ ] **USER-03**: 普通 user 可以查看工具、使用收藏和偏好功能
+- [x] **USER-03**: 普通 user 可以查看工具、使用收藏和偏好功能
 - [x] **USER-04**: Admin 可以重置其他用户的密码
 - [x] **USER-05**: 首次部署访问时自动引导创建 admin 账户（First-Run Setup Wizard）
 - [x] **USER-06**: D1 数据库用户表（username、password_hash、role、created_at）
@@ -121,7 +121,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-07 | Phase 2 | Pending |
 | USER-01 | Phase 3 | Complete |
 | USER-02 | Phase 3 | Complete |
-| USER-03 | Phase 3 | Pending |
+| USER-03 | Phase 3 | Complete |
 | USER-04 | Phase 3 | Complete |
 | USER-05 | Phase 3 | Complete |
 | USER-06 | Phase 3 | Complete |
