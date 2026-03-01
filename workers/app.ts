@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createRequestHandler } from "react-router";
 import { authMiddleware } from "./middleware/auth";
+import { auth } from "./routes/auth";
 import { categoriesRouter } from "./routes/categories";
 import { toolsRouter } from "./routes/tools";
 import { uploadsRouter } from "./routes/uploads";
@@ -11,6 +12,7 @@ const app = new Hono<{ Bindings: Cloudflare.Env }>();
 app.use("*", cors(), authMiddleware);
 
 // API routes
+app.route("/api/auth", auth);
 app.route("/api/tools", toolsRouter);
 app.route("/api/categories", categoriesRouter);
 app.route("/api/uploads", uploadsRouter);
