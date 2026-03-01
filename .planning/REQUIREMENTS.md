@@ -52,10 +52,10 @@ Requirements for initial open-source release. Each maps to roadmap phases.
 
 ### Documentation
 
-- [ ] **DOC-01**: README 包含 Deploy Button 和部署说明
-- [ ] **DOC-02**: README 包含手动部署步骤（wrangler deploy）
-- [ ] **DOC-03**: README 包含本地开发环境搭建说明
-- [ ] **DOC-04**: README 包含环境变量说明和配置指南
+- [x] **DOC-01**: README 包含 Deploy Button 和部署说明
+- [x] **DOC-02**: README 包含手动部署步骤（wrangler deploy）
+- [x] **DOC-03**: README 包含本地开发环境搭建说明
+- [x] **DOC-04**: README 包含环境变量说明和配置指南
 
 ## v2 Requirements
 
@@ -130,10 +130,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-03 | Phase 4 | Complete |
 | DEPLOY-04 | Phase 4 | Complete |
 | DEPLOY-05 | Phase 4 | Complete |
-| DOC-01 | Phase 5 | Pending |
-| DOC-02 | Phase 5 | Pending |
-| DOC-03 | Phase 5 | Pending |
-| DOC-04 | Phase 5 | Pending |
+| DOC-01 | Phase 5 | Complete |
+| DOC-02 | Phase 5 | Complete |
+| DOC-03 | Phase 5 | Complete |
+| DOC-04 | Phase 5 | Complete |
 | DATA-01 | Phase 6 | Complete |
 | DATA-02 | Phase 6 | Complete |
 

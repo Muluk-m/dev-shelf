@@ -16,8 +16,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Authentication** - Build self-contained username/password auth with JWT sessions
 - [x] **Phase 3: User Management & RBAC** - Implement roles, access control, first-run admin setup, and user management (completed 2026-03-01)
 - [x] **Phase 4: Deployment Configuration** - Configure Cloudflare Deploy Button with auto-provisioning and migrations (completed 2026-03-01)
-- [ ] **Phase 5: Documentation** - Write comprehensive README with deploy, setup, and development instructions
-- [ ] **Phase 6: Data Portability** - Enable admin data export for tool portability and backup
+- [x] **Phase 5: Documentation** - Write comprehensive README with deploy, setup, and development instructions (completed 2026-03-01)
+- [x] **Phase 6: Data Portability** - Enable admin data export for tool portability and backup (completed 2026-03-01)
 
 ## Phase Details
 
@@ -67,8 +67,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Backend RBAC middleware, first-run setup API, admin user management API, protect tool/category endpoints
-- [ ] 03-02-PLAN.md -- Frontend setup wizard, admin user management page, update ProtectedRoute and permissions for simplified role model
+- [x] 03-01-PLAN.md -- Backend RBAC middleware, first-run setup API, admin user management API, protect tool/category endpoints
+- [x] 03-02-PLAN.md -- Frontend setup wizard, admin user management page, update ProtectedRoute and permissions for simplified role model
 
 ### Phase 4: Deployment Configuration
 **Goal**: The project can be deployed to Cloudflare Workers via a single Deploy Button click with zero manual configuration
@@ -97,7 +97,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 05-01-PLAN.md -- Write comprehensive README with deploy button, manual deployment, local dev setup, and env var documentation
+- [x] 05-01-PLAN.md -- Write comprehensive README with deploy button, manual deployment, local dev setup, and env var documentation
 
 ### Phase 6: Data Portability
 **Goal**: Admin users can export their complete tool data for backup or migration purposes
@@ -109,7 +109,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md -- Backend export endpoint + admin UI export button
+- [x] 06-01-PLAN.md -- Backend export endpoint + admin UI export button
 
 ## Progress
 
@@ -121,7 +121,7 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 |-------|----------------|--------|-----------|
 | 1. Codebase Cleanup | 3/3 | Complete    | 2026-03-01 |
 | 2. Authentication | 2/2 | Complete    | 2026-03-01 |
-| 3. User Management & RBAC | 0/2 | Complete    | 2026-03-01 |
+| 3. User Management & RBAC | 2/2 | Complete    | 2026-03-01 |
 | 4. Deployment Configuration | 2/2 | Complete    | 2026-03-01 |
-| 5. Documentation | 0/1 | Planned | - |
-| 6. Data Portability | 0/1 | Planned | - |
+| 5. Documentation | 1/1 | Complete    | 2026-03-01 |
+| 6. Data Portability | 1/1 | Complete    | 2026-03-01 |
