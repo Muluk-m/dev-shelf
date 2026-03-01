@@ -47,8 +47,8 @@ Requirements for initial open-source release. Each maps to roadmap phases.
 
 ### Data Portability
 
-- [ ] **DATA-01**: Admin 可以导出所有工具数据为 JSON 格式
-- [ ] **DATA-02**: 导出包含工具、分类、环境、标签完整数据
+- [x] **DATA-01**: Admin 可以导出所有工具数据为 JSON 格式
+- [x] **DATA-02**: 导出包含工具、分类、环境、标签完整数据
 
 ### Documentation
 
@@ -134,8 +134,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOC-02 | Phase 5 | Pending |
 | DOC-03 | Phase 5 | Pending |
 | DOC-04 | Phase 5 | Pending |
-| DATA-01 | Phase 6 | Pending |
-| DATA-02 | Phase 6 | Pending |
+| DATA-01 | Phase 6 | Complete |
+| DATA-02 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 32 total
