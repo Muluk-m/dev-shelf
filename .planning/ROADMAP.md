@@ -12,7 +12,7 @@ Transform the internal DevHub tool management platform into a self-deployable op
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Codebase Cleanup** - Remove all business-specific integrations, private dependencies, and internal URLs
+- [x] **Phase 1: Codebase Cleanup** - Remove all business-specific integrations, private dependencies, and internal URLs
 - [ ] **Phase 2: Authentication** - Build self-contained username/password auth with JWT sessions
 - [ ] **Phase 3: User Management & RBAC** - Implement roles, access control, first-run admin setup, and user management
 - [ ] **Phase 4: Deployment Configuration** - Configure Cloudflare Deploy Button with auto-provisioning and migrations
@@ -34,9 +34,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Remove Feishu OAuth auth system and business backend routes
-- [ ] 01-02-PLAN.md -- Remove business frontend routes, components, libs, and private package
-- [ ] 01-03-PLAN.md -- Clean config files, database schema, and final build verification
+- [x] 01-01-PLAN.md -- Remove Feishu OAuth auth system and business backend routes
+- [x] 01-02-PLAN.md -- Remove business frontend routes, components, libs, and private package
+- [x] 01-03-PLAN.md -- Clean config files, database schema, and final build verification
 
 ### Phase 2: Authentication
 **Goal**: Users can create accounts and securely log in with username/password, with sessions persisted via JWT cookies
@@ -119,7 +119,7 @@ Note: Phase 6 depends only on Phase 3 and could execute in parallel with Phases 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Codebase Cleanup | 0/3 | Planned | - |
+| 1. Codebase Cleanup | 3/3 | Complete | 2026-03-01 |
 | 2. Authentication | 0/2 | Planned | - |
 | 3. User Management & RBAC | 0/2 | Planned | - |
 | 4. Deployment Configuration | 0/2 | Planned | - |
