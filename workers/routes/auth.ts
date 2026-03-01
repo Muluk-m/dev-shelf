@@ -6,7 +6,10 @@ import {
 	createUser,
 	deleteUserSessions,
 	getPublicUserById,
+	getUserById,
 	getUserByUsername,
+	updateUserPassword,
+	updateUserProfile,
 } from "../../lib/database/auth";
 import {
 	ACCESS_TOKEN_EXPIRY,
@@ -205,6 +208,95 @@ auth.get("/me", async (c) => {
 	}
 
 	return c.json({ user }, 200);
+});
+
+// Validation schemas for change-password and profile
+const changePasswordSchema = z.object({
+	currentPassword: z.string().min(1, "Current password is required"),
+	newPassword: z
+		.string()
+		.min(8, "New password must be at least 8 characters")
+		.max(128, "New password must be at most 128 characters"),
+});
+
+const updateProfileSchema = z.object({
+	displayName: z
+		.string()
+		.min(1, "Display name cannot be empty")
+		.max(100, "Display name must be at most 100 characters"),
+});
+
+// POST /api/auth/change-password
+auth.post("/change-password", async (c) => {
+	const userId = c.get("userId" as never) as string | undefined;
+	if (!userId) {
+		return c.json({ error: "Not authenticated" }, 401);
+	}
+
+	let body: unknown;
+	try {
+		body = await c.req.json();
+	} catch {
+		return c.json({ error: "Invalid JSON body" }, 400);
+	}
+
+	const result = changePasswordSchema.safeParse(body);
+	if (!result.success) {
+		const errors = result.error.issues.map((i) => i.message);
+		return c.json({ error: "Validation failed", details: errors }, 400);
+	}
+
+	const { currentPassword, newPassword } = result.data;
+
+	const user = await getUserById(c.env.DB, userId);
+	if (!user) {
+		return c.json({ error: "User not found" }, 404);
+	}
+
+	const valid = await verifyPassword(currentPassword, user.passwordHash);
+	if (!valid) {
+		return c.json({ error: "Current password is incorrect" }, 400);
+	}
+
+	const newHash = await hashPassword(newPassword);
+	await updateUserPassword(c.env.DB, userId, newHash);
+
+	// Invalidate all other sessions (keep current session active)
+	await deleteUserSessions(c.env.DB, userId);
+
+	return c.json({ message: "Password changed successfully" }, 200);
+});
+
+// PUT /api/auth/profile
+auth.put("/profile", async (c) => {
+	const userId = c.get("userId" as never) as string | undefined;
+	if (!userId) {
+		return c.json({ error: "Not authenticated" }, 401);
+	}
+
+	let body: unknown;
+	try {
+		body = await c.req.json();
+	} catch {
+		return c.json({ error: "Invalid JSON body" }, 400);
+	}
+
+	const result = updateProfileSchema.safeParse(body);
+	if (!result.success) {
+		const errors = result.error.issues.map((i) => i.message);
+		return c.json({ error: "Validation failed", details: errors }, 400);
+	}
+
+	const { displayName } = result.data;
+
+	await updateUserProfile(c.env.DB, userId, { displayName });
+
+	const updatedUser = await getPublicUserById(c.env.DB, userId);
+	if (!updatedUser) {
+		return c.json({ error: "User not found" }, 404);
+	}
+
+	return c.json({ user: updatedUser }, 200);
 });
 
 export { auth };

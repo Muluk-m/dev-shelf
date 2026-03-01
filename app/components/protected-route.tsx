@@ -24,7 +24,7 @@ export function ProtectedRoute({
 	requiredPermissions,
 	fallback,
 }: ProtectedRouteProps) {
-	const { roles, loading, hasPermission, hasRole } = usePermissions();
+	const { roles, loading, hasRole } = usePermissions();
 	const hasHydrated = useHydration();
 
 	if (loading) {
@@ -50,17 +50,8 @@ export function ProtectedRoute({
 		}
 	}
 
-	// 检查权限
-	if (requiredPermissions && requiredPermissions.length > 0) {
-		if (
-			requiredPermissions.some(
-				(perm) => !hasPermission(perm.resource, perm.action),
-			)
-		) {
-			if (fallback) return <>{fallback}</>;
-			return <AccessDenied reason="缺少必要的权限" currentRoles={roles} />;
-		}
-	}
+	// Permission-based checks removed (simple admin/user role model)
+	// Will be reintroduced in Phase 3 if granular RBAC is needed
 
 	return <>{children}</>;
 }

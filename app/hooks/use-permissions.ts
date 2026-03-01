@@ -1,24 +1,27 @@
+import { useUserInfoStore } from "~/stores/user-info-store";
+
 /**
- * Permissions hook.
- * Stub: grants admin access to all users until auth is rebuilt in Phase 2.
+ * Permissions hook for role-based access control.
+ * Uses a simple admin/user role model with hierarchy: admin > user.
  */
 export function usePermissions() {
-	const roles = ["admin"];
-	const permissions: string[] = [];
+	const { userInfo, loading } = useUserInfoStore();
 
-	const hasPermission = (_resource: string, _action: string) => true;
-	const hasRole = (_role: string) => true;
-	const hasAnyRole = (_rolesToCheck: string[]) => true;
-	const isAdmin = true;
+	const role = userInfo?.role ?? null;
+	const isAdmin = role === "admin";
+
+	const hasRole = (requiredRole: string): boolean => {
+		if (!role) return false;
+		// Admin has access to everything
+		if (isAdmin) return true;
+		return role === requiredRole;
+	};
 
 	return {
-		userInfo: null,
-		roles,
-		permissions,
-		loading: false,
-		hasPermission,
-		hasRole,
-		hasAnyRole,
+		userInfo,
+		roles: role ? [role] : [],
+		loading,
 		isAdmin,
+		hasRole,
 	};
 }

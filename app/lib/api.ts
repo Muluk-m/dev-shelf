@@ -1,5 +1,6 @@
 import type { UploadFile } from "workers/routes/uploads";
 import type { Tool, ToolCategory } from "~/types/tool";
+import type { UserInfo } from "~/types/user-info";
 
 export interface ToolUsageStat {
 	toolId: string;
@@ -14,6 +15,106 @@ export interface ToolUsageStat {
 export const API_BASE_URL = import.meta.env.DEV
 	? "http://localhost:5173"
 	: "";
+
+// --- Auth API functions ---
+
+export async function login(
+	username: string,
+	password: string,
+): Promise<{ user: UserInfo }> {
+	const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify({ username, password }),
+	});
+	if (!response.ok) {
+		const data = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(data.error || "Login failed");
+	}
+	return response.json();
+}
+
+export async function register(
+	username: string,
+	password: string,
+	displayName?: string,
+): Promise<{ user: UserInfo }> {
+	const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify({ username, password, displayName }),
+	});
+	if (!response.ok) {
+		const data = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(data.error || "Registration failed");
+	}
+	return response.json();
+}
+
+export async function logout(): Promise<void> {
+	const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+		method: "POST",
+		credentials: "include",
+	});
+	if (!response.ok) {
+		throw new Error("Logout failed");
+	}
+}
+
+export async function getUserInfo(): Promise<{ user: UserInfo }> {
+	const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+		credentials: "include",
+	});
+	if (!response.ok) {
+		throw new Error("Not authenticated");
+	}
+	return response.json();
+}
+
+export async function changePassword(
+	currentPassword: string,
+	newPassword: string,
+): Promise<{ message: string }> {
+	const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify({ currentPassword, newPassword }),
+	});
+	if (!response.ok) {
+		const data = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(data.error || "Failed to change password");
+	}
+	return response.json();
+}
+
+export async function updateProfile(
+	displayName: string,
+): Promise<{ user: UserInfo }> {
+	const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+		method: "PUT",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify({ displayName }),
+	});
+	if (!response.ok) {
+		const data = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new Error(data.error || "Failed to update profile");
+	}
+	return response.json();
+}
+
+// --- Tool API functions ---
 
 export async function getTools(): Promise<Tool[]> {
 	const response = await fetch(`${API_BASE_URL}/api/tools`);
@@ -58,6 +159,7 @@ export async function createTool(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify(toolData),
 	});
 
@@ -80,6 +182,7 @@ export async function updateTool(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify(toolData),
 	});
 
@@ -96,6 +199,7 @@ export async function updateTool(
 export async function deleteTool(id: string): Promise<{ message: string }> {
 	const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
 		method: "DELETE",
+		credentials: "include",
 	});
 
 	if (!response.ok) {
@@ -116,6 +220,7 @@ export async function createCategory(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify(categoryData),
 	});
 
@@ -138,6 +243,7 @@ export async function updateCategory(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify(categoryData),
 	});
 
@@ -154,6 +260,7 @@ export async function updateCategory(
 export async function deleteCategory(id: string): Promise<{ message: string }> {
 	const response = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
 		method: "DELETE",
+		credentials: "include",
 	});
 
 	if (!response.ok) {
@@ -200,6 +307,7 @@ export async function uploadFiles(
 ): Promise<{ files: UploadFile[] }> {
 	const response = await fetch(`${API_BASE_URL}/api/uploads`, {
 		method: "POST",
+		credentials: "include",
 		body: files,
 	});
 	if (!response.ok) {

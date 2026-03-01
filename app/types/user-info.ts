@@ -1,7 +1,6 @@
 export interface UserInfo {
-	userId: string;
-	userName: string;
-	avatar: string;
-	roles?: string[];
-	permissions?: string[];
+	id: string;
+	username: string;
+	displayName: string;
+	role: "admin" | "user";
 }

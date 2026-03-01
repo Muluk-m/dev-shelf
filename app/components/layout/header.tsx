@@ -76,7 +76,7 @@ export function Header({
 									首页
 								</Button>
 							</Link>
-							{hasRole("developer") && (
+							{hasRole("admin") && (
 								<Link to="/admin">
 									<Button
 										variant="ghost"
