@@ -5,6 +5,7 @@ import {
 	filterToolsByUserPermissions,
 } from "../../lib/database/tool-permissions";
 import * as toolsDb from "../../lib/database/tools";
+import { requireAdmin } from "../middleware/rbac";
 
 const toolsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -185,8 +186,8 @@ toolsRouter.get("/:id", async (c) => {
 	}
 });
 
-// 创建工具
-toolsRouter.post("/", async (c) => {
+// 创建工具 (admin only)
+toolsRouter.post("/", requireAdmin, async (c) => {
 	try {
 		const toolData = (await c.req.json()) as any;
 
@@ -215,8 +216,8 @@ toolsRouter.post("/", async (c) => {
 	}
 });
 
-// 更新工具
-toolsRouter.put("/:id", async (c) => {
+// 更新工具 (admin only)
+toolsRouter.put("/:id", requireAdmin, async (c) => {
 	try {
 		const toolId = c.req.param("id");
 		const toolData = (await c.req.json()) as any;
@@ -255,8 +256,8 @@ toolsRouter.put("/:id", async (c) => {
 	}
 });
 
-// 删除工具
-toolsRouter.delete("/:id", async (c) => {
+// 删除工具 (admin only)
+toolsRouter.delete("/:id", requireAdmin, async (c) => {
 	try {
 		const toolId = c.req.param("id");
 

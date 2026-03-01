@@ -1,7 +1,11 @@
 import { createMiddleware } from "hono/factory";
 import { getAuthToken, verifyAccessToken } from "../utils/auth";
 
-const PUBLIC_API_PATHS = ["/api/auth/login", "/api/auth/register"];
+const PUBLIC_API_PATHS = [
+	"/api/auth/login",
+	"/api/auth/register",
+	"/api/setup",
+];
 
 export const authMiddleware = createMiddleware(async (c, next) => {
 	const path = c.req.path;

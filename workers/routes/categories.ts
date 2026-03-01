@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { CacheContext } from "../../lib/cache-manager";
 import * as toolsDb from "../../lib/database/tools";
+import { requireAdmin } from "../middleware/rbac";
 
 const categoriesRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -28,8 +29,8 @@ categoriesRouter.get("/", async (c) => {
 	}
 });
 
-// 创建分类
-categoriesRouter.post("/", async (c) => {
+// 创建分类 (admin only)
+categoriesRouter.post("/", requireAdmin, async (c) => {
 	try {
 		const categoryData = await c.req.json();
 		const categoryId = await toolsDb.createToolCategory(
@@ -48,8 +49,8 @@ categoriesRouter.post("/", async (c) => {
 	}
 });
 
-// 更新分类
-categoriesRouter.put("/:id", async (c) => {
+// 更新分类 (admin only)
+categoriesRouter.put("/:id", requireAdmin, async (c) => {
 	try {
 		const id = c.req.param("id");
 		const categoryData = await c.req.json();
@@ -67,8 +68,8 @@ categoriesRouter.put("/:id", async (c) => {
 	}
 });
 
-// 删除分类
-categoriesRouter.delete("/:id", async (c) => {
+// 删除分类 (admin only)
+categoriesRouter.delete("/:id", requireAdmin, async (c) => {
 	try {
 		const id = c.req.param("id");
 		await toolsDb.deleteToolCategory(c.env.DB, id, getCacheContext(c));
