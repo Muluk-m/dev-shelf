@@ -2,6 +2,7 @@ import {
 	Activity,
 	ArrowDownRight,
 	ArrowUpRight,
+	Download,
 	ExternalLink,
 	Flame,
 	FolderOpen,
@@ -34,6 +35,7 @@ import {
 	createTool,
 	deleteCategory,
 	deleteTool,
+	getExportUrl,
 	getToolCategories,
 	getTools,
 	getToolUsageStats,
@@ -398,13 +400,25 @@ export default function AdminPage() {
 				title="工具管理"
 				description="管理和配置平台工具，支持添加自定义工具"
 				actions={
-					<Button
-						onClick={() => setIsFormOpen(true)}
-						className="gap-2 shadow-lg shadow-primary/25"
-					>
-						<Plus className="h-4 w-4" />
-						添加工具
-					</Button>
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							onClick={() => {
+								window.location.href = getExportUrl();
+							}}
+							className="gap-2"
+						>
+							<Download className="h-4 w-4" />
+							导出数据
+						</Button>
+						<Button
+							onClick={() => setIsFormOpen(true)}
+							className="gap-2 shadow-lg shadow-primary/25"
+						>
+							<Plus className="h-4 w-4" />
+							添加工具
+						</Button>
+					</div>
 				}
 			>
 				<div className="space-y-6">

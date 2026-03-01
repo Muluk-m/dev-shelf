@@ -12,9 +12,7 @@ export interface ToolUsageStat {
 	isInternal: boolean;
 }
 
-export const API_BASE_URL = import.meta.env.DEV
-	? "http://localhost:5173"
-	: "";
+export const API_BASE_URL = import.meta.env.DEV ? "http://localhost:5173" : "";
 
 // --- Setup API functions ---
 
@@ -212,6 +210,12 @@ export async function updateProfile(
 		throw new Error(data.error || "Failed to update profile");
 	}
 	return response.json();
+}
+
+// --- Export API functions ---
+
+export function getExportUrl(): string {
+	return `${API_BASE_URL}/api/export`;
 }
 
 // --- Tool API functions ---
