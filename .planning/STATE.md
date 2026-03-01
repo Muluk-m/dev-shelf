@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-03-01T14:12:40Z"
+last_updated: "2026-03-01T14:17:12Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Anyone can deploy a fully functional developer tool management platform via Cloudflare Deploy Button with zero configuration.
-**Current focus:** Phase 4: Deploy Button & Auto-Migration
+**Current focus:** Phase 5: Documentation
 
 ## Current Position
 
 Phase: 4 of 6 (Deploy Button & Auto-Migration)
-Plan: 1 of 2 in current phase
-Status: Executing Phase 04 -- 04-01 complete
-Last activity: 2026-03-01 -- Completed 04-01 (deploy configuration)
+Plan: 2 of 2 in current phase (complete)
+Status: Phase 04 complete -- ready for Phase 05
+Last activity: 2026-03-01 -- Completed 04-02 (deploy button & public repo)
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: ~5 min
-- Total execution time: ~45 min
+- Total execution time: ~46 min
 
 **By Phase:**
 
@@ -44,12 +44,12 @@ Progress: [████████░░] 82%
 | 02-authentication | 2/2 | ~20 min | ~10 min |
 | 03-user-management-rbac | 2/2 | ~8 min | ~4 min |
 
-| 04-deployment-configuration | 1/2 | ~2 min | ~2 min |
+| 04-deployment-configuration | 2/2 | ~3 min | ~1.5 min |
 | 06-data-portability | 1/1 | ~2 min | ~2 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (4min), 03-01 (3min), 03-02 (5min), 04-01 (2min), 06-01 (2min)
-- Trend: Phase 06 completed in 2 min (1 plan, parallel with Phase 04)
+- Last 5 plans: 03-01 (3min), 03-02 (5min), 04-01 (2min), 06-01 (2min), 04-02 (1min)
+- Trend: Phase 04 completed in 3 min total (2 plans)
 
 *Updated after each plan completion*
 
@@ -94,6 +94,9 @@ Recent decisions affecting current work:
 - [06-01]: Export queries all four tables directly (no cache) to guarantee fresh data
 - [06-01]: Export uses parallel Promise.all queries then assembles via Map lookups for efficiency
 - [06-01]: Export endpoint is GET (allowed by auth middleware without token) with TODO for future admin restriction
+- [04-02]: Replaced entire Chinese business-specific README with minimal English version for open-source
+- [04-02]: Used qiliangjia/qlj-devhub-homepage as Deploy Button target URL (matches existing git remote)
+- [04-02]: Kept README minimal since Phase 5 will write comprehensive documentation
 
 ### Pending Todos
 
@@ -107,5 +110,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 06-01-PLAN.md (data export)
+Stopped at: Completed 04-02-PLAN.md (deploy button & public repo)
 Resume file: None

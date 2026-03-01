@@ -39,11 +39,11 @@ Requirements for initial open-source release. Each maps to roadmap phases.
 
 ### Deployment
 
-- [ ] **DEPLOY-01**: 项目支持 Cloudflare Deploy Button 一键部署
+- [x] **DEPLOY-01**: 项目支持 Cloudflare Deploy Button 一键部署
 - [x] **DEPLOY-02**: deploy.json 配置自动创建 D1 数据库和 KV namespace
 - [x] **DEPLOY-03**: 部署后数据库 schema 自动初始化（D1 migrations）
 - [x] **DEPLOY-04**: 提供 `.dev.vars.example` 文件说明所需 secrets
-- [ ] **DEPLOY-05**: 新仓库独立发布到 GitHub（公开仓库）
+- [x] **DEPLOY-05**: 新仓库独立发布到 GitHub（公开仓库）
 
 ### Data Portability
 
@@ -125,11 +125,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | USER-04 | Phase 3 | Complete |
 | USER-05 | Phase 3 | Complete |
 | USER-06 | Phase 3 | Complete |
-| DEPLOY-01 | Phase 4 | Pending |
+| DEPLOY-01 | Phase 4 | Complete |
 | DEPLOY-02 | Phase 4 | Complete |
 | DEPLOY-03 | Phase 4 | Complete |
 | DEPLOY-04 | Phase 4 | Complete |
-| DEPLOY-05 | Phase 4 | Pending |
+| DEPLOY-05 | Phase 4 | Complete |
 | DOC-01 | Phase 5 | Pending |
 | DOC-02 | Phase 5 | Pending |
 | DOC-03 | Phase 5 | Pending |
