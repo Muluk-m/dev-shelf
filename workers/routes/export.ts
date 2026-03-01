@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { exportAllData } from "../../lib/database/export";
+import { requireAdmin } from "../middleware/rbac";
 
 const exportRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
-// TODO: restrict to admin role after Phase 3 RBAC
-exportRouter.get("/", async (c) => {
+exportRouter.get("/", requireAdmin, async (c) => {
 	try {
 		const exportData = await exportAllData(c.env.DB);
 		const json = JSON.stringify(exportData, null, 2);
