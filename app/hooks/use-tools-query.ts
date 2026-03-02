@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { API_BASE_URL } from "~/lib/api";
 import { usePermissionsStore } from "~/stores/permissions-store";
 import { useToolsStore } from "~/stores/tools-store";
 import type { Tool, ToolCategory, ToolUsageStat } from "~/types/tool";
@@ -20,7 +19,7 @@ interface ToolAccessResponse {
  * Fetch initial tools data (tools, categories, usage stats)
  */
 async function fetchToolsInit(): Promise<ToolsInitResponse> {
-	const response = await fetch(`${API_BASE_URL}/api/tools/init`);
+	const response = await fetch(`/api/tools/init`);
 	if (!response.ok) {
 		throw new Error("Failed to fetch tools data");
 	}
@@ -57,7 +56,7 @@ export function useToolsInit() {
  * Fetch tool access permission
  */
 async function fetchToolAccess(toolSlug: string): Promise<ToolAccessResponse> {
-	const response = await fetch(`${API_BASE_URL}/api/tools/${toolSlug}/access`);
+	const response = await fetch(`/api/tools/${toolSlug}/access`);
 	if (!response.ok) {
 		// Fail-open: allow access if API fails
 		return { hasAccess: true, error: null };

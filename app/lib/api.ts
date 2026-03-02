@@ -11,15 +11,13 @@ export interface ToolUsageStat {
 	isInternal: boolean;
 }
 
-export const API_BASE_URL = import.meta.env.DEV ? "http://localhost:5173" : "";
-
 // --- Setup API functions ---
 
 export async function getSetupStatus(): Promise<{
 	initialized: boolean;
 	needsSetup: boolean;
 }> {
-	const response = await fetch(`${API_BASE_URL}/api/setup/status`);
+	const response = await fetch(`/api/setup/status`);
 	if (!response.ok) {
 		throw new Error("Failed to check setup status");
 	}
@@ -31,7 +29,7 @@ export async function initializeSetup(data: {
 	password: string;
 	displayName?: string;
 }): Promise<{ message: string; user: UserInfo }> {
-	const response = await fetch(`${API_BASE_URL}/api/setup/init`, {
+	const response = await fetch(`/api/setup/init`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",
@@ -57,7 +55,7 @@ export async function getAdminUsers(): Promise<{
 		createdAt: string;
 	}>;
 }> {
-	const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+	const response = await fetch(`/api/admin/users`, {
 		credentials: "include",
 	});
 	if (!response.ok) {
@@ -74,7 +72,7 @@ export async function resetUserPassword(
 	newPassword: string,
 ): Promise<{ message: string }> {
 	const response = await fetch(
-		`${API_BASE_URL}/api/admin/users/${userId}/reset-password`,
+		`/api/admin/users/${userId}/reset-password`,
 		{
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -96,7 +94,7 @@ export async function updateUserRole(
 	role: "admin" | "user",
 ): Promise<{ message: string }> {
 	const response = await fetch(
-		`${API_BASE_URL}/api/admin/users/${userId}/role`,
+		`/api/admin/users/${userId}/role`,
 		{
 			method: "PUT",
 			headers: { "Content-Type": "application/json" },
@@ -119,7 +117,7 @@ export async function login(
 	username: string,
 	password: string,
 ): Promise<{ user: UserInfo }> {
-	const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+	const response = await fetch(`/api/auth/login`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",
@@ -139,7 +137,7 @@ export async function register(
 	password: string,
 	displayName?: string,
 ): Promise<{ user: UserInfo }> {
-	const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+	const response = await fetch(`/api/auth/register`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",
@@ -155,7 +153,7 @@ export async function register(
 }
 
 export async function logout(): Promise<void> {
-	const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+	const response = await fetch(`/api/auth/logout`, {
 		method: "POST",
 		credentials: "include",
 	});
@@ -165,7 +163,7 @@ export async function logout(): Promise<void> {
 }
 
 export async function getUserInfo(): Promise<{ user: UserInfo }> {
-	const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+	const response = await fetch(`/api/auth/me`, {
 		credentials: "include",
 	});
 	if (!response.ok) {
@@ -178,7 +176,7 @@ export async function changePassword(
 	currentPassword: string,
 	newPassword: string,
 ): Promise<{ message: string }> {
-	const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+	const response = await fetch(`/api/auth/change-password`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",
@@ -196,7 +194,7 @@ export async function changePassword(
 export async function updateProfile(
 	displayName: string,
 ): Promise<{ user: UserInfo }> {
-	const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+	const response = await fetch(`/api/auth/profile`, {
 		method: "PUT",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",
@@ -214,13 +212,13 @@ export async function updateProfile(
 // --- Export API functions ---
 
 export function getExportUrl(): string {
-	return `${API_BASE_URL}/api/export`;
+	return `/api/export`;
 }
 
 // --- Tool API functions ---
 
 export async function getTools(): Promise<Tool[]> {
-	const response = await fetch(`${API_BASE_URL}/api/tools`);
+	const response = await fetch(`/api/tools`);
 	if (!response.ok) {
 		throw new Error("Failed to fetch tools");
 	}
@@ -228,7 +226,7 @@ export async function getTools(): Promise<Tool[]> {
 }
 
 export async function getToolCategories(): Promise<ToolCategory[]> {
-	const response = await fetch(`${API_BASE_URL}/api/categories`);
+	const response = await fetch(`/api/categories`);
 
 	if (!response.ok) {
 		const cloneResponse = response.clone();
@@ -244,7 +242,7 @@ export async function getToolCategories(): Promise<ToolCategory[]> {
 }
 
 export async function getToolById(id: string): Promise<Tool | null> {
-	const response = await fetch(`${API_BASE_URL}/api/tools/${id}`);
+	const response = await fetch(`/api/tools/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) {
 			return null;
@@ -257,7 +255,7 @@ export async function getToolById(id: string): Promise<Tool | null> {
 export async function createTool(
 	toolData: Omit<Tool, "id">,
 ): Promise<{ id: string; message: string }> {
-	const response = await fetch(`${API_BASE_URL}/api/tools`, {
+	const response = await fetch(`/api/tools`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -280,7 +278,7 @@ export async function updateTool(
 	id: string,
 	toolData: Omit<Tool, "id">,
 ): Promise<{ message: string }> {
-	const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+	const response = await fetch(`/api/tools/${id}`, {
 		method: "PUT",
 		headers: {
 			"Content-Type": "application/json",
@@ -300,7 +298,7 @@ export async function updateTool(
 }
 
 export async function deleteTool(id: string): Promise<{ message: string }> {
-	const response = await fetch(`${API_BASE_URL}/api/tools/${id}`, {
+	const response = await fetch(`/api/tools/${id}`, {
 		method: "DELETE",
 		credentials: "include",
 	});
@@ -318,7 +316,7 @@ export async function deleteTool(id: string): Promise<{ message: string }> {
 export async function createCategory(
 	categoryData: Omit<ToolCategory, "id">,
 ): Promise<{ id: string; message: string }> {
-	const response = await fetch(`${API_BASE_URL}/api/categories`, {
+	const response = await fetch(`/api/categories`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -341,7 +339,7 @@ export async function updateCategory(
 	id: string,
 	categoryData: Omit<ToolCategory, "id">,
 ): Promise<{ message: string }> {
-	const response = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
+	const response = await fetch(`/api/categories/${id}`, {
 		method: "PUT",
 		headers: {
 			"Content-Type": "application/json",
@@ -361,7 +359,7 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string): Promise<{ message: string }> {
-	const response = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
+	const response = await fetch(`/api/categories/${id}`, {
 		method: "DELETE",
 		credentials: "include",
 	});
@@ -377,7 +375,7 @@ export async function deleteCategory(id: string): Promise<{ message: string }> {
 }
 
 export async function recordToolUsage(toolId: string): Promise<void> {
-	const url = `${API_BASE_URL}/api/tools/${toolId}/usage`;
+	const url = `/api/tools/${toolId}/usage`;
 	try {
 		// biome-ignore lint/complexity/useOptionalChain: navigator.sendBeacon compatibility check
 		if (typeof navigator !== "undefined" && navigator.sendBeacon) {
@@ -397,7 +395,7 @@ export async function recordToolUsage(toolId: string): Promise<void> {
 
 export async function getToolUsageStats(limit = 8): Promise<ToolUsageStat[]> {
 	const response = await fetch(
-		`${API_BASE_URL}/api/tools/analytics/usage?limit=${limit}`,
+		`/api/tools/analytics/usage?limit=${limit}`,
 	);
 	if (!response.ok) {
 		throw new Error("Failed to fetch tool usage stats");

@@ -13,9 +13,6 @@
   "observability": {
     "enabled": true
   },
-  "vars": {
-    "API_BASE_URL": ""
-  },
   // JWT_SECRET must be set as a secret via: wrangler secret put JWT_SECRET
   "d1_databases": [
     {

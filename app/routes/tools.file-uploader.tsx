@@ -13,7 +13,7 @@ import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/components/ui/use-toast";
 import { uploadFiles } from "~/lib/api";
-import type { Route } from "./+types/file-uploader";
+import type { Route } from "./+types/tools.file-uploader";
 
 export function meta({}: Route.MetaArgs) {
 	return [
