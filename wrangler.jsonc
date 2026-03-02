@@ -10,12 +10,6 @@
   ],
   "main": "./workers/app.ts",
   "upload_source_maps": true,
-  "r2_buckets": [
-    {
-      "binding": "ASSETS_BUCKET",
-      "bucket_name": "storage"
-    }
-  ],
   "observability": {
     "enabled": true
   },

@@ -14,9 +14,16 @@ import {
 import {
 	ACCESS_TOKEN_EXPIRY,
 	generateAccessToken,
+	getJwtSecret,
 	hashPassword,
 	verifyPassword,
 } from "../utils/auth";
+import {
+	getJwtSecretErrorMessage,
+	getSchemaRecoveryMessage,
+	isMissingSchemaError,
+	isJwtSecretError,
+} from "../utils/db-errors";
 
 const auth = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -65,9 +72,7 @@ function setAccessTokenCookie(
 /**
  * Clear the access_token cookie.
  */
-function clearAccessTokenCookie(
-	c: Parameters<typeof setCookie>[0],
-): void {
+function clearAccessTokenCookie(c: Parameters<typeof setCookie>[0]): void {
 	setCookie(c, "access_token", "", {
 		httpOnly: true,
 		secure: true,
@@ -79,104 +84,124 @@ function clearAccessTokenCookie(
 
 // POST /api/auth/register
 auth.post("/register", async (c) => {
-	let body: unknown;
 	try {
-		body = await c.req.json();
-	} catch {
-		return c.json({ error: "Invalid JSON body" }, 400);
+		let body: unknown;
+		try {
+			body = await c.req.json();
+		} catch {
+			return c.json({ error: "Invalid JSON body" }, 400);
+		}
+
+		const result = registerSchema.safeParse(body);
+		if (!result.success) {
+			const errors = result.error.issues.map((i) => i.message);
+			return c.json({ error: "Validation failed", details: errors }, 400);
+		}
+
+		const { username, password, displayName } = result.data;
+
+		// Check for existing username
+		const existingUser = await getUserByUsername(c.env.DB, username);
+		if (existingUser) {
+			return c.json({ error: "Username already taken" }, 409);
+		}
+
+		// Hash password and create user
+		const passwordHash = await hashPassword(password);
+		const userId = crypto.randomUUID();
+
+		const user = await createUser(c.env.DB, {
+			id: userId,
+			username,
+			displayName: displayName || username,
+			passwordHash,
+			role: "user",
+		});
+
+		// Generate access token and create session
+		const jwtSecret = getJwtSecret(c.env);
+		const accessToken = await generateAccessToken(userId, "user", jwtSecret);
+		const refreshToken = crypto.randomUUID();
+		const expiresAt = new Date(
+			Date.now() + ACCESS_TOKEN_EXPIRY * 1000,
+		).toISOString();
+		await createSession(c.env.DB, userId, refreshToken, expiresAt);
+
+		// Set cookie
+		setAccessTokenCookie(c, accessToken);
+
+		return c.json({ user }, 201);
+	} catch (error) {
+		console.error("Error during registration:", error);
+		if (isMissingSchemaError(error)) {
+			return c.json({ error: getSchemaRecoveryMessage() }, 500);
+		}
+		if (isJwtSecretError(error)) {
+			return c.json({ error: getJwtSecretErrorMessage() }, 503);
+		}
+		return c.json({ error: "Internal server error" }, 500);
 	}
-
-	const result = registerSchema.safeParse(body);
-	if (!result.success) {
-		const errors = result.error.issues.map((i) => i.message);
-		return c.json({ error: "Validation failed", details: errors }, 400);
-	}
-
-	const { username, password, displayName } = result.data;
-
-	// Check for existing username
-	const existingUser = await getUserByUsername(c.env.DB, username);
-	if (existingUser) {
-		return c.json({ error: "Username already taken" }, 409);
-	}
-
-	// Hash password and create user
-	const passwordHash = await hashPassword(password);
-	const userId = crypto.randomUUID();
-
-	const user = await createUser(c.env.DB, {
-		id: userId,
-		username,
-		displayName: displayName || username,
-		passwordHash,
-		role: "user",
-	});
-
-	// Generate access token and create session
-	const accessToken = await generateAccessToken(
-		userId,
-		"user",
-		c.env.JWT_SECRET,
-	);
-	const refreshToken = crypto.randomUUID();
-	const expiresAt = new Date(
-		Date.now() + ACCESS_TOKEN_EXPIRY * 1000,
-	).toISOString();
-	await createSession(c.env.DB, userId, refreshToken, expiresAt);
-
-	// Set cookie
-	setAccessTokenCookie(c, accessToken);
-
-	return c.json({ user }, 201);
 });
 
 // POST /api/auth/login
 auth.post("/login", async (c) => {
-	let body: unknown;
 	try {
-		body = await c.req.json();
-	} catch {
-		return c.json({ error: "Invalid JSON body" }, 400);
+		let body: unknown;
+		try {
+			body = await c.req.json();
+		} catch {
+			return c.json({ error: "Invalid JSON body" }, 400);
+		}
+
+		const result = loginSchema.safeParse(body);
+		if (!result.success) {
+			const errors = result.error.issues.map((i) => i.message);
+			return c.json({ error: "Validation failed", details: errors }, 400);
+		}
+
+		const { username, password } = result.data;
+
+		// Look up user
+		const user = await getUserByUsername(c.env.DB, username);
+		if (!user) {
+			return c.json({ error: "Invalid credentials" }, 401);
+		}
+
+		// Verify password
+		const valid = await verifyPassword(password, user.passwordHash);
+		if (!valid) {
+			return c.json({ error: "Invalid credentials" }, 401);
+		}
+
+		// Generate access token and create session
+		const jwtSecret = getJwtSecret(c.env);
+		const accessToken = await generateAccessToken(
+			user.id,
+			user.role,
+			jwtSecret,
+		);
+		const refreshToken = crypto.randomUUID();
+		const expiresAt = new Date(
+			Date.now() + ACCESS_TOKEN_EXPIRY * 1000,
+		).toISOString();
+		await createSession(c.env.DB, user.id, refreshToken, expiresAt);
+
+		// Set cookie
+		setAccessTokenCookie(c, accessToken);
+
+		// Return public user (no passwordHash)
+		const { passwordHash: _, ...publicUser } = user;
+		return c.json({ user: publicUser }, 200);
+	} catch (error) {
+		console.error("Error during login:", error);
+		if (isMissingSchemaError(error)) {
+			return c.json({ error: getSchemaRecoveryMessage() }, 500);
+		}
+		if (isJwtSecretError(error)) {
+			return c.json({ error: getJwtSecretErrorMessage() }, 503);
+		}
+		return c.json({ error: "Internal server error" }, 500);
 	}
-
-	const result = loginSchema.safeParse(body);
-	if (!result.success) {
-		const errors = result.error.issues.map((i) => i.message);
-		return c.json({ error: "Validation failed", details: errors }, 400);
-	}
-
-	const { username, password } = result.data;
-
-	// Look up user
-	const user = await getUserByUsername(c.env.DB, username);
-	if (!user) {
-		return c.json({ error: "Invalid credentials" }, 401);
-	}
-
-	// Verify password
-	const valid = await verifyPassword(password, user.passwordHash);
-	if (!valid) {
-		return c.json({ error: "Invalid credentials" }, 401);
-	}
-
-	// Generate access token and create session
-	const accessToken = await generateAccessToken(
-		user.id,
-		user.role,
-		c.env.JWT_SECRET,
-	);
-	const refreshToken = crypto.randomUUID();
-	const expiresAt = new Date(
-		Date.now() + ACCESS_TOKEN_EXPIRY * 1000,
-	).toISOString();
-	await createSession(c.env.DB, user.id, refreshToken, expiresAt);
-
-	// Set cookie
-	setAccessTokenCookie(c, accessToken);
-
-	// Return public user (no passwordHash)
-	const { passwordHash: _, ...publicUser } = user;
-	return c.json({ user: publicUser }, 200);
 });
 
 // POST /api/auth/logout

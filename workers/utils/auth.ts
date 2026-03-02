@@ -4,10 +4,21 @@ import { sign, verify } from "hono/jwt";
 import type { AuthPayload } from "../../lib/types/auth";
 
 // PBKDF2 configuration constants
-export const PBKDF2_ITERATIONS = 600_000;
+export const PBKDF2_ITERATIONS = 100_000; // Cloudflare Workers Web Crypto max
 export const SALT_LENGTH = 16; // bytes
 export const HASH_BITS = 256; // bits
 export const ACCESS_TOKEN_EXPIRY = 60 * 60 * 24; // 24 hours in seconds
+
+export function getJwtSecret(env: Partial<Cloudflare.Env>): string {
+	const secret = env.JWT_SECRET;
+	if (typeof secret !== "string" || secret.length === 0) {
+		throw new Error(
+			"JWT_SECRET is not configured. Create `.dev.vars` with `JWT_SECRET=...` for local dev, or set the Worker secret in Cloudflare.",
+		);
+	}
+
+	return secret;
+}
 
 /**
  * Hash a password using PBKDF2-SHA256 with a random salt.
@@ -74,9 +85,7 @@ export async function verifyPassword(
 		HASH_BITS,
 	);
 
-	const computedB64 = btoa(
-		String.fromCharCode(...new Uint8Array(derivedBits)),
-	);
+	const computedB64 = btoa(String.fromCharCode(...new Uint8Array(derivedBits)));
 	return computedB64 === hashB64;
 }
 

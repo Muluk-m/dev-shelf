@@ -6,8 +6,15 @@ import { getUserCount } from "../../lib/database/users";
 import {
 	ACCESS_TOKEN_EXPIRY,
 	generateAccessToken,
+	getJwtSecret,
 	hashPassword,
 } from "../utils/auth";
+import {
+	getJwtSecretErrorMessage,
+	getSchemaRecoveryMessage,
+	isMissingSchemaError,
+	isJwtSecretError,
+} from "../utils/db-errors";
 
 const setupRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -47,6 +54,9 @@ setupRouter.get("/status", async (c) => {
 		});
 	} catch (error) {
 		console.error("Error checking setup status:", error);
+		if (isMissingSchemaError(error)) {
+			return c.json({ error: getSchemaRecoveryMessage() }, 500);
+		}
 		return c.json({ error: "Internal server error" }, 500);
 	}
 });
@@ -95,11 +105,8 @@ setupRouter.post("/init", async (c) => {
 		});
 
 		// Generate JWT access token
-		const accessToken = await generateAccessToken(
-			userId,
-			"admin",
-			c.env.JWT_SECRET,
-		);
+		const jwtSecret = getJwtSecret(c.env);
+		const accessToken = await generateAccessToken(userId, "admin", jwtSecret);
 
 		// Set auth cookie
 		setCookie(c, "access_token", accessToken, {
@@ -124,6 +131,12 @@ setupRouter.post("/init", async (c) => {
 		);
 	} catch (error) {
 		console.error("Error during setup initialization:", error);
+		if (isMissingSchemaError(error)) {
+			return c.json({ error: getSchemaRecoveryMessage() }, 500);
+		}
+		if (isJwtSecretError(error)) {
+			return c.json({ error: getJwtSecretErrorMessage() }, 503);
+		}
 		return c.json({ error: "Internal server error" }, 500);
 	}
 });

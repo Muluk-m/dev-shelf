@@ -1,5 +1,5 @@
 import { createMiddleware } from "hono/factory";
-import { getAuthToken, verifyAccessToken } from "../utils/auth";
+import { getAuthToken, getJwtSecret, verifyAccessToken } from "../utils/auth";
 
 const PUBLIC_API_PATHS = [
 	"/api/auth/login",
@@ -26,7 +26,20 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 	// GET/OPTIONS/HEAD on API -- allow anonymous but attach user if token present
 	if (method === "GET" || method === "OPTIONS" || method === "HEAD") {
 		if (token) {
-			const payload = await verifyAccessToken(token, c.env.JWT_SECRET);
+			let jwtSecret: string;
+			try {
+				jwtSecret = getJwtSecret(c.env);
+			} catch (error) {
+				console.error("Auth configuration error:", error);
+				return c.json(
+					{
+						error:
+							"JWT_SECRET is not configured. Create `.dev.vars` with `JWT_SECRET=...` for local dev, or set the Worker secret in Cloudflare.",
+					},
+					500,
+				);
+			}
+			const payload = await verifyAccessToken(token, jwtSecret);
 			if (payload) {
 				c.set("userId" as never, payload.sub as never);
 				c.set("userRole" as never, payload.role as never);
@@ -40,7 +53,20 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 		return c.json({ error: "Unauthorized" }, 401);
 	}
 
-	const payload = await verifyAccessToken(token, c.env.JWT_SECRET);
+	let jwtSecret: string;
+	try {
+		jwtSecret = getJwtSecret(c.env);
+	} catch (error) {
+		console.error("Auth configuration error:", error);
+		return c.json(
+			{
+				error:
+					"JWT_SECRET is not configured. Create `.dev.vars` with `JWT_SECRET=...` for local dev, or set the Worker secret in Cloudflare.",
+			},
+			500,
+		);
+	}
+	const payload = await verifyAccessToken(token, jwtSecret);
 	if (!payload) {
 		return c.json({ error: "Token expired or invalid" }, 401);
 	}

@@ -1,8 +1,12 @@
 <div align="center">
 
+<img src="public/logo.svg" alt="DevShelf" width="80" height="80" />
+
 # DevShelf
 
 **Your team's developer tool shelf — organized, searchable, always within reach.**
+
+[English](README.md) | [简体中文](README.zh-CN.md)
 
 Manage your team's developer tools, internal links, and environment URLs in one place. Self-hosted on Cloudflare Workers. Deploy in 30 seconds.
 
@@ -178,7 +182,6 @@ pnpm run dev
 | `API_BASE_URL` | Var | No | Public URL (auto-detected if empty) |
 | `DB` | D1 Binding | Auto | Application database |
 | `CACHE_KV` | KV Binding | Auto | Response cache |
-| `ASSETS_BUCKET` | R2 Binding | Auto | Asset storage |
 
 Secrets are set via `wrangler secret put`. Vars are in `wrangler.jsonc`. Bindings are auto-provisioned by Deploy Button.
 
@@ -189,7 +192,7 @@ Secrets are set via `wrangler secret put`. Vars are in `wrangler.jsonc`. Binding
 | Frontend | React 19, React Router 7, Tailwind CSS 4, shadcn/ui |
 | Backend | Hono on Cloudflare Workers |
 | Database | Cloudflare D1 (SQLite at the edge) |
-| Storage | Cloudflare R2 + KV |
+| Cache | Cloudflare KV |
 | Language | TypeScript 5.8 |
 | Tooling | pnpm, Biome, Vite |
 
