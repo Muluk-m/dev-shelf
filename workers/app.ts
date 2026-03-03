@@ -8,6 +8,7 @@ import { categoriesRouter } from "./routes/categories";
 import { exportRouter } from "./routes/export";
 import { setupRouter } from "./routes/setup";
 import { toolsRouter } from "./routes/tools";
+import { uploadsRouter } from "./routes/uploads";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -20,6 +21,7 @@ app.route("/api/admin", adminRouter);
 app.route("/api/tools", toolsRouter);
 app.route("/api/categories", categoriesRouter);
 app.route("/api/export", exportRouter);
+app.route("/api/uploads", uploadsRouter);
 
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (ctx) =>
 	ctx.json({}),

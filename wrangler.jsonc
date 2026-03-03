@@ -18,14 +18,14 @@
     {
       "binding": "DB",
       "database_name": "devhub-database",
-      "database_id": "PLACEHOLDER_D1_ID",
+      "database_id": "86a546b1-96d3-4af5-bb0e-0f671afe9e38",
       "migrations_dir": "migrations"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE_KV",
-      "id": "PLACEHOLDER_KV_ID"
+      "id": "43902c8bb47b4c3a85e07eeb57eb1168"
     }
   ]
 }

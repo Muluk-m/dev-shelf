@@ -1,4 +1,4 @@
-# DevHub - Development Environment Variables
+# DevShelf - Development Environment Variables
 # Copy this file to .dev.vars and fill in values
 
 # JWT signing secret for authentication tokens

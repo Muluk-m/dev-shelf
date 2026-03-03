@@ -374,6 +374,21 @@ export async function deleteCategory(id: string): Promise<{ message: string }> {
 	return response.json();
 }
 
+export async function uploadFiles(
+	formData: FormData,
+): Promise<{ files: Array<{ key: string; urls: Record<string, string>; name: string; size: number; type: string }> }> {
+	const response = await fetch(`/api/uploads`, {
+		method: "POST",
+		credentials: "include",
+		body: formData,
+	});
+	if (!response.ok) {
+		const error = (await response.json().catch(() => ({ error: "Upload failed" }))) as { error: string };
+		throw new Error(error.error || "Failed to upload files");
+	}
+	return response.json();
+}
+
 export async function recordToolUsage(toolId: string): Promise<void> {
 	const url = `/api/tools/${toolId}/usage`;
 	try {
