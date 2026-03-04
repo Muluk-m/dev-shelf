@@ -1,3 +1,4 @@
+import type { BuiltinToolMeta } from "~/types/tool";
 import { Copy, Fingerprint } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -43,9 +44,18 @@ function parseUserAgent(ua: string): UaInfo {
 	};
 }
 
+export const toolMeta: BuiltinToolMeta = {
+	id: "ua-parser",
+	name: "User-Agent 解析器",
+	description: "解析 User-Agent 字符串，获取浏览器、引擎、操作系统、CPU 和设备信息",
+	icon: "Fingerprint",
+	category: "builtin",
+	tags: ["ua", "user-agent", "browser", "parse"],
+};
+
 export function meta() {
 	return [
-		{ title: "User-Agent 解析器 | DevTools Platform" },
+		{ title: "User-Agent 解析器 | DevShelf" },
 		{
 			name: "description",
 			content:

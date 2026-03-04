@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Home, Shield, Users, Wrench } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
+import { LanguageToggle } from "~/components/language-toggle";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { UserProfile } from "~/components/user-profile";
+import { useI18n } from "~/hooks/use-i18n";
 import { cn } from "~/lib/utils";
 import logo from "../../../public/logo.svg";
 
@@ -20,24 +22,6 @@ interface AdminLayoutProps {
 	actions?: React.ReactNode;
 }
 
-const sidebarNavItems = [
-	{
-		title: "工具管理",
-		href: "/admin",
-		icon: Wrench,
-	},
-	{
-		title: "用户管理",
-		href: "/admin/users",
-		icon: Users,
-	},
-	{
-		title: "权限管理",
-		href: "/admin/permissions",
-		icon: Shield,
-	},
-];
-
 export function AdminLayout({
 	children,
 	title,
@@ -46,6 +30,13 @@ export function AdminLayout({
 }: AdminLayoutProps) {
 	const location = useLocation();
 	const [collapsed, setCollapsed] = useState(false);
+	const { t } = useI18n();
+
+	const sidebarNavItems = [
+		{ title: t("admin.tools"), href: "/admin", icon: Wrench },
+		{ title: t("admin.users"), href: "/admin/users", icon: Users },
+		{ title: t("admin.permissions"), href: "/admin/permissions", icon: Shield },
+	];
 
 	const isActive = (path: string) => {
 		if (path === "/admin") {
@@ -57,7 +48,7 @@ export function AdminLayout({
 	return (
 		<TooltipProvider delayDuration={0}>
 			<div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-				{/* 侧边栏 */}
+				{/* Sidebar */}
 				<aside
 					className={cn(
 						"fixed left-0 top-0 z-40 h-screen transition-all duration-300 ease-in-out",
@@ -65,7 +56,7 @@ export function AdminLayout({
 						collapsed ? "w-[72px]" : "w-64",
 					)}
 				>
-					{/* Logo 区域 */}
+					{/* Logo area */}
 					<div
 						className={cn(
 							"flex h-16 items-center border-b border-slate-800 px-4",
@@ -78,26 +69,26 @@ export function AdminLayout({
 						>
 							<img
 								src={logo}
-								alt="DevTools"
+								alt="DevShelf"
 								className="h-9 w-9 rounded-xl transition-transform group-hover:scale-105"
 							/>
 							{!collapsed && (
 								<div className="flex flex-col">
 									<span className="text-lg font-bold tracking-tight text-white">
-										DevTools
+										{t("brand.name")}
 									</span>
 									<span className="text-[10px] text-slate-400 -mt-0.5">
-										管理后台
+										{t("brand.adminSubtitle")}
 									</span>
 								</div>
 							)}
 						</Link>
 					</div>
 
-					{/* 导航菜单 */}
+					{/* Navigation */}
 					<div className="flex flex-col h-[calc(100vh-64px)]">
 						<nav className="flex-1 space-y-1 p-3">
-							{/* 返回首页 */}
+							{/* Back to home */}
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<Link to="/">
@@ -109,19 +100,19 @@ export function AdminLayout({
 											)}
 										>
 											<Home className="h-5 w-5 flex-shrink-0" />
-											{!collapsed && <span>返回首页</span>}
+											{!collapsed && <span>{t("admin.backToHome")}</span>}
 										</Button>
 									</Link>
 								</TooltipTrigger>
 								{collapsed && (
-									<TooltipContent side="right">返回首页</TooltipContent>
+									<TooltipContent side="right">{t("admin.backToHome")}</TooltipContent>
 								)}
 							</Tooltip>
 
 							<div className="pt-4 pb-2">
 								{!collapsed && (
 									<p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-										管理
+										{t("admin.manage")}
 									</p>
 								)}
 							</div>
@@ -156,9 +147,8 @@ export function AdminLayout({
 							})}
 						</nav>
 
-						{/* 底部区域 */}
+						{/* Bottom area */}
 						<div className="border-t border-slate-800 p-3 space-y-2">
-							{/* 折叠按钮 */}
 							<Button
 								variant="ghost"
 								size="sm"
@@ -172,7 +162,7 @@ export function AdminLayout({
 								) : (
 									<>
 										<ChevronLeft className="h-5 w-5 mr-2" />
-										<span>收起菜单</span>
+										<span>{t("admin.collapse")}</span>
 									</>
 								)}
 							</Button>
@@ -180,14 +170,14 @@ export function AdminLayout({
 					</div>
 				</aside>
 
-				{/* 主内容区 */}
+				{/* Main content */}
 				<div
 					className={cn(
 						"min-h-screen transition-all duration-300 ease-in-out",
 						collapsed ? "pl-[72px]" : "pl-64",
 					)}
 				>
-					{/* 顶部导航栏 */}
+					{/* Top navbar */}
 					<header className="sticky top-0 z-30 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
 						<div className="flex h-full items-center justify-between px-6">
 							<div>
@@ -203,6 +193,7 @@ export function AdminLayout({
 							<div className="flex items-center gap-4">
 								{actions}
 								<div className="flex items-center gap-2 pl-4 border-l border-slate-200 dark:border-slate-700">
+									<LanguageToggle />
 									<ThemeToggle />
 									<UserProfile />
 								</div>
@@ -210,7 +201,7 @@ export function AdminLayout({
 						</div>
 					</header>
 
-					{/* 页面内容 */}
+					{/* Page content */}
 					<main className="p-6">{children}</main>
 				</div>
 			</div>

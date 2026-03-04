@@ -27,6 +27,15 @@ export interface ToolCategory {
 	color: string;
 }
 
+export interface BuiltinToolMeta {
+	id: string;
+	name: string;
+	description: string;
+	icon: string;
+	category: "builtin";
+	tags: string[];
+}
+
 export interface ToolUsageStat {
 	toolId: string;
 	name: string;

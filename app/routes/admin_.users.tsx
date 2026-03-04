@@ -44,7 +44,7 @@ import {
 import { useUserInfoStore } from "~/stores/user-info-store";
 
 export function meta() {
-	return [{ title: "User Management | DevHub" }];
+	return [{ title: "User Management | DevShelf" }];
 }
 
 interface AdminUser {

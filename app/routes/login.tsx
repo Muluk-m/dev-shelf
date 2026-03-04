@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { LoginForm } from "~/components/auth/login-form";
+import { LanguageToggle } from "~/components/language-toggle";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
 export function meta() {
-	return [{ title: "Login - DevTools" }];
+	return [{ title: "Login | DevShelf" }];
 }
 
 export default function LoginPage() {
@@ -19,6 +20,9 @@ export default function LoginPage() {
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
+			<div className="absolute top-4 right-4">
+				<LanguageToggle />
+			</div>
 			<LoginForm />
 		</div>
 	);

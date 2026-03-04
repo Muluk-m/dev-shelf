@@ -14,16 +14,18 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
+import { useI18n } from "~/hooks/use-i18n";
 import { changePassword, updateProfile } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
 export function meta() {
-	return [{ title: "Settings - DevTools" }];
+	return [{ title: "Settings | DevShelf" }];
 }
 
 export default function SettingsPage() {
 	const { userInfo, setUserInfo } = useUserInfoStore();
 	const navigate = useNavigate();
+	const { t } = useI18n();
 
 	useEffect(() => {
 		if (!userInfo) {
@@ -41,10 +43,10 @@ export default function SettingsPage() {
 			<main className="mx-auto max-w-2xl px-4 py-8 space-y-6">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">
-						Personal Settings
+						{t("settings.title")}
 					</h1>
 					<p className="text-muted-foreground mt-1">
-						Manage your account information and security
+						{t("settings.subtitle")}
 					</p>
 				</div>
 
@@ -68,13 +70,14 @@ function ProfileSection({
 	const [displayName, setDisplayName] = useState(userInfo.displayName);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const { t } = useI18n();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		setError(null);
 
 		if (!displayName.trim()) {
-			setError("Display name cannot be empty");
+			setError(t("settings.profile.displayNameRequired"));
 			return;
 		}
 
@@ -82,10 +85,10 @@ function ProfileSection({
 		try {
 			const { user } = await updateProfile(displayName.trim());
 			onProfileUpdated(user);
-			toast.success("Profile updated successfully");
+			toast.success(t("settings.profile.success"));
 		} catch (err) {
 			const message =
-				err instanceof Error ? err.message : "Failed to update profile";
+				err instanceof Error ? err.message : t("settings.profile.failed");
 			setError(message);
 		} finally {
 			setLoading(false);
@@ -95,9 +98,9 @@ function ProfileSection({
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Profile Information</CardTitle>
+				<CardTitle>{t("settings.profile.title")}</CardTitle>
 				<CardDescription>
-					Update your display name and view your account details
+					{t("settings.profile.subtitle")}
 				</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
@@ -108,32 +111,34 @@ function ProfileSection({
 						</div>
 					)}
 					<div className="space-y-2">
-						<Label>Username</Label>
+						<Label>{t("settings.profile.username")}</Label>
 						<p className="text-sm text-muted-foreground">
 							{userInfo.username}
 						</p>
 					</div>
 					<div className="space-y-2">
-						<Label>Role</Label>
+						<Label>{t("settings.profile.role")}</Label>
 						<div>
 							<Badge variant={userInfo.role === "admin" ? "default" : "secondary"}>
-								{userInfo.role === "admin" ? "Admin" : "User"}
+								{userInfo.role === "admin"
+									? t("settings.profile.roleAdmin")
+									: t("settings.profile.roleUser")}
 							</Badge>
 						</div>
 					</div>
 					<Separator />
 					<div className="space-y-2">
-						<Label htmlFor="displayName">Display Name</Label>
+						<Label htmlFor="displayName">{t("settings.profile.displayName")}</Label>
 						<Input
 							id="displayName"
 							type="text"
 							value={displayName}
 							onChange={(e) => setDisplayName(e.target.value)}
-							placeholder="Enter your display name"
+							placeholder={t("settings.profile.displayNamePlaceholder")}
 						/>
 					</div>
 					<Button type="submit" disabled={loading}>
-						{loading ? "Saving..." : "Save Changes"}
+						{loading ? t("settings.profile.saving") : t("settings.profile.save")}
 					</Button>
 				</CardContent>
 			</form>
@@ -147,28 +152,29 @@ function ChangePasswordSection() {
 	const [confirmNewPassword, setConfirmNewPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const { t } = useI18n();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		setError(null);
 
 		if (!currentPassword) {
-			setError("Current password is required");
+			setError(t("settings.password.currentRequired"));
 			return;
 		}
 		if (newPassword.length < 8) {
-			setError("New password must be at least 8 characters");
+			setError(t("settings.password.newMinLength"));
 			return;
 		}
 		if (newPassword !== confirmNewPassword) {
-			setError("New passwords do not match");
+			setError(t("settings.password.noMatch"));
 			return;
 		}
 
 		setLoading(true);
 		try {
 			await changePassword(currentPassword, newPassword);
-			toast.success("Password changed successfully");
+			toast.success(t("settings.password.success"));
 			setCurrentPassword("");
 			setNewPassword("");
 			setConfirmNewPassword("");
@@ -176,7 +182,7 @@ function ChangePasswordSection() {
 			const message =
 				err instanceof Error
 					? err.message
-					: "Failed to change password";
+					: t("settings.password.failed");
 			setError(message);
 		} finally {
 			setLoading(false);
@@ -186,9 +192,9 @@ function ChangePasswordSection() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Change Password</CardTitle>
+				<CardTitle>{t("settings.password.title")}</CardTitle>
 				<CardDescription>
-					Update your password to keep your account secure
+					{t("settings.password.subtitle")}
 				</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
@@ -200,47 +206,43 @@ function ChangePasswordSection() {
 					)}
 					<div className="space-y-2">
 						<Label htmlFor="currentPassword">
-							Current Password
+							{t("settings.password.current")}
 						</Label>
 						<Input
 							id="currentPassword"
 							type="password"
 							value={currentPassword}
-							onChange={(e) =>
-								setCurrentPassword(e.target.value)
-							}
-							placeholder="Enter your current password"
+							onChange={(e) => setCurrentPassword(e.target.value)}
+							placeholder={t("settings.password.currentPlaceholder")}
 							autoComplete="current-password"
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="newPassword">New Password</Label>
+						<Label htmlFor="newPassword">{t("settings.password.new")}</Label>
 						<Input
 							id="newPassword"
 							type="password"
 							value={newPassword}
 							onChange={(e) => setNewPassword(e.target.value)}
-							placeholder="At least 8 characters"
+							placeholder={t("settings.password.newPlaceholder")}
 							autoComplete="new-password"
 						/>
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="confirmNewPassword">
-							Confirm New Password
+							{t("settings.password.confirm")}
 						</Label>
 						<Input
 							id="confirmNewPassword"
 							type="password"
 							value={confirmNewPassword}
-							onChange={(e) =>
-								setConfirmNewPassword(e.target.value)
-							}
-							placeholder="Repeat your new password"
+							onChange={(e) => setConfirmNewPassword(e.target.value)}
+							placeholder={t("settings.password.confirmPlaceholder")}
 							autoComplete="new-password"
 						/>
 					</div>
 					<Button type="submit" disabled={loading}>
-						{loading ? "Changing password..." : "Change Password"}
+						{loading ? t("settings.password.loading") : t("settings.password.submit")}
 					</Button>
 				</CardContent>
 			</form>

@@ -72,6 +72,7 @@
 		"@types/react-dom": "19.0.4",
 		"@types/react-syntax-highlighter": "^15.5.13",
 		"tailwindcss": "4.1.1",
+		"tsx": "^4.21.0",
 		"tw-animate-css": "^1.3.7",
 		"typescript": "5.8.3",
 		"vite": "^6.0.0",
@@ -88,7 +89,9 @@
 		"preview": "npm run build && vite preview",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
 		"db:migrate": "wrangler d1 migrations apply DB --remote",
-		"db:migrate:local": "wrangler d1 migrations apply DB --local"
+		"db:migrate:local": "wrangler d1 migrations apply DB --local",
+		"seed:builtin": "tsx scripts/seed-builtin-tools.ts",
+		"seed:builtin:remote": "tsx scripts/seed-builtin-tools.ts -- --remote"
 	},
 	"packageManager": "pnpm@10.12.2+sha512.a32540185b964ee30bb4e979e405adc6af59226b438ee4cc19f9e8773667a66d302f5bfee60a39d3cac69e35e4b96e708a71dd002b7e9359c4112a1722ac323f",
 	"cloudflare": {

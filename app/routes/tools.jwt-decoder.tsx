@@ -18,11 +18,21 @@ import {
 	TableRow,
 } from "~/components/ui/table";
 import { Textarea } from "~/components/ui/textarea";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.jwt-decoder";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "jwt-decoder",
+	name: "JWT 解析器",
+	description: "解析 JSON Web Token，展示 Header、Payload 和签名",
+	icon: "KeyRound",
+	category: "builtin",
+	tags: ["jwt", "token", "decode", "auth"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "JWT 解析器 | DevTools Platform" },
+		{ title: "JWT 解析器 | DevShelf" },
 		{
 			name: "description",
 			content: "解析 JSON Web Token，展示 Header、Payload 和签名",

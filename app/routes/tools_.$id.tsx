@@ -64,13 +64,13 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
 
 	if (!tool) {
 		return [
-			{ title: "工具未找到 | 研发平台工具站" },
+			{ title: "Tool Not Found | DevShelf" },
 			{ name: "description", content: "抱歉，您访问的工具不存在或已被移除。" },
 		];
 	}
 
 	return [
-		{ title: `${tool.name} | 研发平台工具站` },
+		{ title: `${tool.name} | DevShelf` },
 		{ name: "description", content: tool.description },
 	];
 }

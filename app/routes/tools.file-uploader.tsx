@@ -13,11 +13,21 @@ import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/components/ui/use-toast";
 import { uploadFiles } from "~/lib/api";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.file-uploader";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "file-uploader",
+	name: "文件上传",
+	description: "Upload and manage files with preview and URL generation",
+	icon: "Upload",
+	category: "builtin",
+	tags: ["file", "upload", "storage"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "File Uploader | DevTools Platform" },
+		{ title: "File Uploader | DevShelf" },
 		{
 			name: "description",
 			content: "Upload and manage files with preview and URL generation",

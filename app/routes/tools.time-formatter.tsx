@@ -12,11 +12,21 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.time-formatter";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "time-formatter",
+	name: "日期时间转换器",
+	description: "将日期和时间在多种不同格式之间转换",
+	icon: "Clock",
+	category: "builtin",
+	tags: ["time", "date", "format", "convert"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "日期时间转换器 | DevTools Platform" },
+		{ title: "日期时间转换器 | DevShelf" },
 		{
 			name: "description",
 			content: "将日期和时间在多种不同格式之间转换",

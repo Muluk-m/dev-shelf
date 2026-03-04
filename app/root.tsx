@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useLocaleStore } from "~/stores/locale-store";
 import {
 	isRouteErrorResponse,
 	Links,
@@ -99,7 +100,12 @@ function SetupGuard({ children }: { children: React.ReactNode }) {
 
 function AppContent() {
 	const { tools } = useToolsStore();
+	const locale = useLocaleStore((s) => s.locale);
 	useToolsInit();
+
+	useEffect(() => {
+		document.documentElement.lang = locale;
+	}, [locale]);
 
 	// Use cached tools immediately, query will update in background
 	return (

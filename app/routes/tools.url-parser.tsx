@@ -27,11 +27,21 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.url-parser";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "url-parser",
+	name: "URL 分析器",
+	description: "可视化、编辑、分析和比较 URL，支持编辑参数值并生成新URL",
+	icon: "Globe",
+	category: "builtin",
+	tags: ["url", "parse", "analyze", "query"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "URL分析器 | DevTools Platform" },
+		{ title: "URL分析器 | DevShelf" },
 		{
 			name: "description",
 			content: "可视化、编辑、分析和比较 URL，支持编辑参数值并生成新URL",

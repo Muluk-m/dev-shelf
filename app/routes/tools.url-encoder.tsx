@@ -7,11 +7,21 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.url-encoder";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "url-encoder",
+	name: "URL 编解码",
+	description: "Encode and decode URLs with encodeURIComponent and decodeURIComponent",
+	icon: "Link",
+	category: "builtin",
+	tags: ["url", "encode", "decode"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "URL Encoder/Decoder | DevTools Platform" },
+		{ title: "URL Encoder/Decoder | DevShelf" },
 		{
 			name: "description",
 			content:

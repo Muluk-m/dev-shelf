@@ -22,11 +22,21 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Switch } from "~/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.json-formatter";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "json-formatter",
+	name: "JSON 工具箱",
+	description: "格式化、查询、对比和可视化 JSON 数据",
+	icon: "Braces",
+	category: "builtin",
+	tags: ["json", "format", "validate", "query"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "JSON 工具箱 | DevTools Platform" },
+		{ title: "JSON 工具箱 | DevShelf" },
 		{
 			name: "description",
 			content: "格式化、查询、对比和可视化 JSON 数据",

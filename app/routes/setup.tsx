@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { LanguageToggle } from "~/components/language-toggle";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -11,17 +12,19 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { useI18n } from "~/hooks/use-i18n";
 import { useSetupStatus } from "~/hooks/use-setup-status";
 import { initializeSetup } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
 export function meta() {
-	return [{ title: "Setup | DevHub" }];
+	return [{ title: "Setup | DevShelf" }];
 }
 
 export default function SetupPage() {
 	const { needsSetup, loading: statusLoading } = useSetupStatus();
 	const navigate = useNavigate();
+	const { t } = useI18n();
 
 	useEffect(() => {
 		if (needsSetup === false) {
@@ -32,7 +35,7 @@ export default function SetupPage() {
 	if (statusLoading || needsSetup === null) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-background">
-				<p className="text-muted-foreground">Loading...</p>
+				<p className="text-muted-foreground">{t("setup.loading")}</p>
 			</div>
 		);
 	}
@@ -43,6 +46,9 @@ export default function SetupPage() {
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
+			<div className="absolute top-4 right-4">
+				<LanguageToggle />
+			</div>
 			<SetupForm />
 		</div>
 	);
@@ -51,6 +57,7 @@ export default function SetupPage() {
 function SetupForm() {
 	const navigate = useNavigate();
 	const setUserInfo = useUserInfoStore((s) => s.setUserInfo);
+	const { t } = useI18n();
 
 	const [username, setUsername] = useState("");
 	const [displayName, setDisplayName] = useState("");
@@ -64,15 +71,15 @@ function SetupForm() {
 		setError(null);
 
 		if (username.trim().length < 3) {
-			setError("Username must be at least 3 characters");
+			setError(t("setup.usernameMinLength"));
 			return;
 		}
 		if (password.length < 8) {
-			setError("Password must be at least 8 characters");
+			setError(t("setup.passwordMinLength"));
 			return;
 		}
 		if (password !== confirmPassword) {
-			setError("Passwords do not match");
+			setError(t("setup.passwordNoMatch"));
 			return;
 		}
 
@@ -84,11 +91,11 @@ function SetupForm() {
 				displayName: displayName.trim() || undefined,
 			});
 			setUserInfo(user);
-			toast.success("Admin account created successfully");
+			toast.success(t("setup.success"));
 			navigate("/", { replace: true });
 		} catch (err) {
 			const message =
-				err instanceof Error ? err.message : "Setup initialization failed";
+				err instanceof Error ? err.message : t("setup.failed");
 			setError(message);
 		} finally {
 			setLoading(false);
@@ -98,9 +105,9 @@ function SetupForm() {
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">
-				<CardTitle className="text-2xl">Welcome to DevHub</CardTitle>
+				<CardTitle className="text-2xl">{t("setup.title")}</CardTitle>
 				<CardDescription>
-					Create your admin account to get started
+					{t("setup.subtitle")}
 				</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
@@ -111,13 +118,13 @@ function SetupForm() {
 						</div>
 					)}
 					<div className="space-y-2">
-						<Label htmlFor="username">Username</Label>
+						<Label htmlFor="username">{t("setup.username")}</Label>
 						<Input
 							id="username"
 							type="text"
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
-							placeholder="At least 3 characters"
+							placeholder={t("setup.usernamePlaceholder")}
 							autoComplete="username"
 							required
 							minLength={3}
@@ -125,44 +132,44 @@ function SetupForm() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="displayName">
-							Display Name{" "}
-							<span className="text-muted-foreground">(optional)</span>
+							{t("setup.displayName")}{" "}
+							<span className="text-muted-foreground">{t("setup.displayNameOptional")}</span>
 						</Label>
 						<Input
 							id="displayName"
 							type="text"
 							value={displayName}
 							onChange={(e) => setDisplayName(e.target.value)}
-							placeholder="How you want to be called"
+							placeholder={t("setup.displayNamePlaceholder")}
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="password">Password</Label>
+						<Label htmlFor="password">{t("setup.password")}</Label>
 						<Input
 							id="password"
 							type="password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							placeholder="At least 8 characters"
+							placeholder={t("setup.passwordPlaceholder")}
 							autoComplete="new-password"
 							required
 							minLength={8}
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="confirmPassword">Confirm Password</Label>
+						<Label htmlFor="confirmPassword">{t("setup.confirmPassword")}</Label>
 						<Input
 							id="confirmPassword"
 							type="password"
 							value={confirmPassword}
 							onChange={(e) => setConfirmPassword(e.target.value)}
-							placeholder="Repeat your password"
+							placeholder={t("setup.confirmPasswordPlaceholder")}
 							autoComplete="new-password"
 							required
 						/>
 					</div>
 					<Button type="submit" className="w-full" disabled={loading}>
-						{loading ? "Creating account..." : "Create Admin Account"}
+						{loading ? t("setup.submitting") : t("setup.submit")}
 					</Button>
 				</CardContent>
 			</form>

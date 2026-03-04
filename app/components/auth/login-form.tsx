@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { useI18n } from "~/hooks/use-i18n";
 import { login } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
@@ -24,17 +25,18 @@ export function LoginForm() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 	const setUserInfo = useUserInfoStore((s) => s.setUserInfo);
+	const { t } = useI18n();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		setError(null);
 
 		if (!username.trim()) {
-			setError("Username is required");
+			setError(t("auth.login.usernameRequired"));
 			return;
 		}
 		if (password.length < 8) {
-			setError("Password must be at least 8 characters");
+			setError(t("auth.login.passwordMinLength"));
 			return;
 		}
 
@@ -42,12 +44,12 @@ export function LoginForm() {
 		try {
 			const { user } = await login(username, password);
 			setUserInfo(user);
-			toast.success("Logged in successfully");
+			toast.success(t("auth.login.success"));
 			const redirectTo = searchParams.get("redirectTo") || "/";
 			navigate(redirectTo);
 		} catch (err) {
 			const message =
-				err instanceof Error ? err.message : "Login failed";
+				err instanceof Error ? err.message : t("auth.login.failed");
 			setError(message);
 		} finally {
 			setLoading(false);
@@ -57,9 +59,9 @@ export function LoginForm() {
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">
-				<CardTitle className="text-2xl">Welcome back</CardTitle>
+				<CardTitle className="text-2xl">{t("auth.login.title")}</CardTitle>
 				<CardDescription>
-					Sign in to your account to continue
+					{t("auth.login.subtitle")}
 				</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
@@ -70,13 +72,13 @@ export function LoginForm() {
 						</div>
 					)}
 					<div className="space-y-2">
-						<Label htmlFor="username">Username</Label>
+						<Label htmlFor="username">{t("auth.login.username")}</Label>
 						<div className="relative">
 							<User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								id="username"
 								type="text"
-								placeholder="Enter your username"
+								placeholder={t("auth.login.usernamePlaceholder")}
 								value={username}
 								onChange={(e) => setUsername(e.target.value)}
 								className="pl-10"
@@ -86,13 +88,13 @@ export function LoginForm() {
 						</div>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="password">Password</Label>
+						<Label htmlFor="password">{t("auth.login.password")}</Label>
 						<div className="relative">
 							<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								id="password"
 								type="password"
-								placeholder="Enter your password"
+								placeholder={t("auth.login.passwordPlaceholder")}
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								className="pl-10"
@@ -107,15 +109,15 @@ export function LoginForm() {
 						className="w-full"
 						disabled={loading}
 					>
-						{loading ? "Signing in..." : "Sign in"}
+						{loading ? t("auth.login.loading") : t("auth.login.submit")}
 					</Button>
 					<p className="text-sm text-muted-foreground text-center">
-						Don't have an account?{" "}
+						{t("auth.login.noAccount")}{" "}
 						<Link
 							to="/register"
 							className="text-primary underline-offset-4 hover:underline"
 						>
-							Register
+							{t("auth.login.register")}
 						</Link>
 					</p>
 				</CardFooter>

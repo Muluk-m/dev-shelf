@@ -49,8 +49,8 @@ import type { Route } from "./+types/admin";
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "工具管理 | 研发平台工具站" },
-		{ name: "description", content: "管理和配置平台工具，支持添加自定义工具" },
+		{ title: "Tool Management | DevShelf" },
+		{ name: "description", content: "Manage and configure your team's tools" },
 	];
 }
 

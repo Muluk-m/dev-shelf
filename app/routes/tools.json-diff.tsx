@@ -5,7 +5,17 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.json-diff";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "json-diff",
+	name: "JSON Diff",
+	description: "比较两个 JSON 对象并可视化差异",
+	icon: "GitCompare",
+	category: "builtin",
+	tags: ["json", "diff", "compare"],
+};
 
 function safeJsonParse(text: string): unknown {
 	try {
@@ -17,7 +27,7 @@ function safeJsonParse(text: string): unknown {
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "JSON Diff | DevTools Platform" },
+		{ title: "JSON Diff | DevShelf" },
 		{
 			name: "description",
 			content: "比较两个 JSON 对象并可视化差异",

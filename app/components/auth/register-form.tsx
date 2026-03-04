@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { useI18n } from "~/hooks/use-i18n";
 import { register } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
@@ -25,32 +26,30 @@ export function RegisterForm() {
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
 	const setUserInfo = useUserInfoStore((s) => s.setUserInfo);
+	const { t } = useI18n();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		setError(null);
 
-		// Client-side validation
 		if (!username.trim()) {
-			setError("Username is required");
+			setError(t("auth.register.usernameRequired"));
 			return;
 		}
 		if (username.length < 3 || username.length > 50) {
-			setError("Username must be between 3 and 50 characters");
+			setError(t("auth.register.usernameLength"));
 			return;
 		}
 		if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-			setError(
-				"Username can only contain letters, numbers, and underscores",
-			);
+			setError(t("auth.register.usernameFormat"));
 			return;
 		}
 		if (password.length < 8) {
-			setError("Password must be at least 8 characters");
+			setError(t("auth.register.passwordMinLength"));
 			return;
 		}
 		if (password !== confirmPassword) {
-			setError("Passwords do not match");
+			setError(t("auth.register.passwordNoMatch"));
 			return;
 		}
 
@@ -62,11 +61,11 @@ export function RegisterForm() {
 				displayName.trim() || undefined,
 			);
 			setUserInfo(user);
-			toast.success("Account created successfully");
+			toast.success(t("auth.register.success"));
 			navigate("/");
 		} catch (err) {
 			const message =
-				err instanceof Error ? err.message : "Registration failed";
+				err instanceof Error ? err.message : t("auth.register.failed");
 			setError(message);
 		} finally {
 			setLoading(false);
@@ -76,9 +75,9 @@ export function RegisterForm() {
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">
-				<CardTitle className="text-2xl">Create an account</CardTitle>
+				<CardTitle className="text-2xl">{t("auth.register.title")}</CardTitle>
 				<CardDescription>
-					Enter your details to get started
+					{t("auth.register.subtitle")}
 				</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
@@ -89,13 +88,13 @@ export function RegisterForm() {
 						</div>
 					)}
 					<div className="space-y-2">
-						<Label htmlFor="username">Username</Label>
+						<Label htmlFor="username">{t("auth.register.username")}</Label>
 						<div className="relative">
 							<User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								id="username"
 								type="text"
-								placeholder="Choose a username"
+								placeholder={t("auth.register.usernamePlaceholder")}
 								value={username}
 								onChange={(e) => setUsername(e.target.value)}
 								className="pl-10"
@@ -104,34 +103,33 @@ export function RegisterForm() {
 							/>
 						</div>
 						<p className="text-xs text-muted-foreground">
-							3-50 characters, letters, numbers, and underscores
-							only
+							{t("auth.register.usernameHint")}
 						</p>
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="displayName">
-							Display Name{" "}
+							{t("auth.register.displayName")}{" "}
 							<span className="text-muted-foreground font-normal">
-								(optional)
+								{t("auth.register.displayNameOptional")}
 							</span>
 						</Label>
 						<Input
 							id="displayName"
 							type="text"
-							placeholder="How you want to be called"
+							placeholder={t("auth.register.displayNamePlaceholder")}
 							value={displayName}
 							onChange={(e) => setDisplayName(e.target.value)}
 							autoComplete="name"
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="password">Password</Label>
+						<Label htmlFor="password">{t("auth.register.password")}</Label>
 						<div className="relative">
 							<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								id="password"
 								type="password"
-								placeholder="At least 8 characters"
+								placeholder={t("auth.register.passwordPlaceholder")}
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								className="pl-10"
@@ -141,18 +139,16 @@ export function RegisterForm() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="confirmPassword">
-							Confirm Password
+							{t("auth.register.confirmPassword")}
 						</Label>
 						<div className="relative">
 							<Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								id="confirmPassword"
 								type="password"
-								placeholder="Repeat your password"
+								placeholder={t("auth.register.confirmPasswordPlaceholder")}
 								value={confirmPassword}
-								onChange={(e) =>
-									setConfirmPassword(e.target.value)
-								}
+								onChange={(e) => setConfirmPassword(e.target.value)}
 								className="pl-10"
 								autoComplete="new-password"
 							/>
@@ -165,15 +161,15 @@ export function RegisterForm() {
 						className="w-full"
 						disabled={loading}
 					>
-						{loading ? "Creating account..." : "Create account"}
+						{loading ? t("auth.register.loading") : t("auth.register.submit")}
 					</Button>
 					<p className="text-sm text-muted-foreground text-center">
-						Already have an account?{" "}
+						{t("auth.register.hasAccount")}{" "}
 						<Link
 							to="/login"
 							className="text-primary underline-offset-4 hover:underline"
 						>
-							Sign in
+							{t("auth.register.signIn")}
 						</Link>
 					</p>
 				</CardFooter>

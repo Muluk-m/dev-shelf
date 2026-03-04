@@ -16,6 +16,7 @@ import { useNavigate } from "react-router";
 import { Header } from "~/components/layout/header";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
+import { useI18n } from "~/hooks/use-i18n";
 import { useSearch } from "~/hooks/use-search";
 import { useToolsInit } from "~/hooks/use-tools-query";
 import { recordToolUsage } from "~/lib/api";
@@ -27,10 +28,10 @@ import type { Route } from "./+types/_index";
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "DevTools Platform | 研发工具集成平台" },
+		{ title: "DevShelf | Team Dev Tool Hub" },
 		{
 			name: "description",
-			content: "内部研发工具集成平台，提供常用开发工具的统一入口",
+			content: "Your team's developer tool shelf — organized, searchable, always within reach.",
 		},
 	];
 }
@@ -46,6 +47,7 @@ export default function Home() {
 		useUserPreferencesStore();
 	useToolsInit();
 	const navigate = useNavigate();
+	const { t } = useI18n();
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
 	const { query, setQuery, updateFilters, searchResults } = useSearch(tools);
@@ -135,24 +137,22 @@ export default function Home() {
 			<Header showSearch={false} />
 
 			<div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-				{/* Hero 区域 - 标题 + 搜索 */}
+				{/* Hero area */}
 				<div className="text-center mb-8">
 					<h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-						<span className="text-gradient">DevTools</span>
-						<span className="text-foreground"> Platform</span>
+						<span className="text-gradient">{t("brand.name")}</span>
+						<span className="text-foreground"> {t("home.titleSuffix")}</span>
 					</h1>
 					<p className="text-muted-foreground mb-6">
-						统一入口，高效协作。集成{" "}
-						<span className="text-foreground font-medium">{tools.length}</span>{" "}
-						款常用开发工具
+						{t("home.subtitle", { count: tools.length })}
 					</p>
 
-					{/* 搜索框 */}
+					{/* Search box */}
 					<div className="relative max-w-2xl mx-auto">
 						<Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
 						<Input
 							type="text"
-							placeholder="搜索工具名称、描述或标签..."
+							placeholder={t("home.search.placeholder")}
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
 							className="h-12 pl-12 pr-4 text-base rounded-2xl bg-card border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
@@ -169,12 +169,12 @@ export default function Home() {
 					{/* 左侧边栏 - 分类导航 + 快捷入口 */}
 					<aside className="hidden lg:block w-56 flex-shrink-0">
 						<div className="sticky top-24 space-y-6">
-							{/* 收藏工具 */}
+							{/* Favorites */}
 							{favoriteTools.length > 0 && (
 								<div className="p-3 rounded-xl bg-gradient-to-br from-rose-500/10 to-pink-500/5 border border-rose-500/20">
 									<div className="flex items-center gap-2 mb-3">
 										<Heart className="h-4 w-4 text-rose-500" />
-										<span className="text-xs font-semibold">我的收藏</span>
+										<span className="text-xs font-semibold">{t("home.sidebar.favorites")}</span>
 									</div>
 									<div className="space-y-1">
 										{favoriteTools.slice(0, 6).map((tool) => (
@@ -214,12 +214,12 @@ export default function Home() {
 								</div>
 							)}
 
-							{/* 最近使用 */}
+							{/* Recent */}
 							{recentUsedTools.length > 0 && (
 								<div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-blue-500/20">
 									<div className="flex items-center gap-2 mb-3">
 										<History className="h-4 w-4 text-blue-500" />
-										<span className="text-xs font-semibold">最近使用</span>
+										<span className="text-xs font-semibold">{t("home.sidebar.recent")}</span>
 									</div>
 									<div className="space-y-1">
 										{recentUsedTools.slice(0, 6).map((tool) => (
@@ -249,12 +249,12 @@ export default function Home() {
 								</div>
 							)}
 
-							{/* 热门工具 */}
+							{/* Hot tools */}
 							{hotTools.length > 0 && (
 								<div className="p-3 rounded-xl bg-gradient-to-br from-orange-500/10 to-rose-500/5 border border-orange-500/20">
 									<div className="flex items-center gap-2 mb-3">
 										<Flame className="h-4 w-4 text-orange-500" />
-										<span className="text-xs font-semibold">热门工具</span>
+										<span className="text-xs font-semibold">{t("home.sidebar.hot")}</span>
 									</div>
 									<div className="space-y-1">
 										{hotTools.slice(0, 6).map(({ tool, usageCount }, index) => (
@@ -301,10 +301,10 @@ export default function Home() {
 								</div>
 							)}
 
-							{/* 分类列表 */}
+							{/* Category list */}
 							<div className="space-y-1">
 								<h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-									工具分类
+									{t("home.sidebar.categories")}
 								</h3>
 								<button
 									type="button"
@@ -317,7 +317,7 @@ export default function Home() {
 									)}
 								>
 									<LayoutGrid className="h-4 w-4" />
-									<span className="flex-1 text-left">全部工具</span>
+									<span className="flex-1 text-left">{t("home.sidebar.allTools")}</span>
 									<span
 										className={cn(
 											"text-xs px-2 py-0.5 rounded-md",
@@ -382,7 +382,7 @@ export default function Home() {
 
 					{/* 主内容区 - 工具网格 */}
 					<main className="flex-1 min-w-0">
-						{/* 移动端分类选择器 */}
+						{/* Mobile category selector */}
 						<div className="lg:hidden mb-6">
 							<div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
 								<button
@@ -395,7 +395,7 @@ export default function Home() {
 											: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 									)}
 								>
-									全部 ({tools.length})
+									{t("home.all", { count: tools.length })}
 								</button>
 								{toolCategories.map((category) => {
 									const isSelected = selectedCategory === category.id;
@@ -423,7 +423,7 @@ export default function Home() {
 							</div>
 						</div>
 
-						{/* 当前分类标题 */}
+						{/* Current category title */}
 						{selectedCategory && (
 							<div className="mb-6">
 								{(() => {
@@ -448,7 +448,7 @@ export default function Home() {
 													{category.name}
 												</h2>
 												<p className="text-sm text-muted-foreground">
-													{toolCounts[category.id] || 0} 个工具
+													{t("home.toolCount", { count: toolCounts[category.id] || 0 })}
 												</p>
 											</div>
 										</div>
@@ -476,11 +476,11 @@ export default function Home() {
 								<div className="p-4 rounded-2xl bg-muted/50 mb-4">
 									<Search className="h-8 w-8 text-muted-foreground" />
 								</div>
-								<h3 className="text-lg font-semibold mb-2">未找到工具</h3>
+								<h3 className="text-lg font-semibold mb-2">{t("home.noResults.title")}</h3>
 								<p className="text-muted-foreground max-w-sm">
 									{query
-										? `没有找到与 "${query}" 相关的工具`
-										: "该分类下暂无可用工具"}
+										? t("home.noResults.query", { query })
+										: t("home.noResults.category")}
 								</p>
 								{(query || selectedCategory) && (
 									<button
@@ -491,7 +491,7 @@ export default function Home() {
 										}}
 										className="mt-4 text-primary hover:underline text-sm font-medium"
 									>
-										清除筛选条件
+										{t("home.noResults.clearFilters")}
 									</button>
 								)}
 							</div>
@@ -519,6 +519,7 @@ function ToolCardCompact({
 	isFavorite,
 	index,
 }: ToolCardCompactProps) {
+	const { t } = useI18n();
 	const hasMultipleEnvs = tool.environments.length > 1;
 	const defaultEnv = tool.environments[0];
 	const isExternal = !tool.isInternal && defaultEnv?.isExternal;
@@ -565,7 +566,7 @@ function ToolCardCompact({
 								className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0"
 							>
 								<Sparkles className="h-2.5 w-2.5 mr-0.5" />
-								内部
+								{t("home.card.internal")}
 							</Badge>
 						)}
 						{isExternal && (
@@ -663,7 +664,7 @@ function ToolCardCompact({
 								className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0"
 							>
 								<Sparkles className="h-2.5 w-2.5 mr-0.5" />
-								内部
+								{t("home.card.internal")}
 							</Badge>
 						)}
 						{isExternal && (

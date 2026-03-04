@@ -110,3 +110,5 @@ INSERT OR IGNORE INTO tool_categories (id, name, description, icon, color) VALUE
   ('database', 'Database', 'Database management and operations tools', 'Database', '#f59f45');
 INSERT OR IGNORE INTO tool_categories (id, name, description, icon, color) VALUES
   ('utilities', 'Utilities', 'General purpose utility tools', 'Wrench', '#64748b');
+INSERT OR IGNORE INTO tool_categories (id, name, description, icon, color) VALUES
+  ('builtin', '内置工具', 'DevShelf 内置的开发者工具', 'Puzzle', '#6366f1');

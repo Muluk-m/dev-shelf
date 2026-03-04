@@ -14,11 +14,21 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.qr-generator";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "qr-generator",
+	name: "二维码生成器",
+	description: "生成可自定义样式的二维码，支持多种形状、渐变色和下载格式",
+	icon: "QrCode",
+	category: "builtin",
+	tags: ["qr", "qrcode", "generate"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "二维码生成器 | DevTools Platform" },
+		{ title: "二维码生成器 | DevShelf" },
 		{
 			name: "description",
 			content: "生成可自定义样式的二维码，支持多种形状、渐变色和下载格式",

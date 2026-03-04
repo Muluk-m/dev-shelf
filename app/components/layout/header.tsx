@@ -1,10 +1,12 @@
 import { Command, Home, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router";
+import { LanguageToggle } from "~/components/language-toggle";
 import { SearchInput } from "~/components/search/search-input";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { UserProfile } from "~/components/user-profile";
 import { useCommandPanelContext } from "~/context/command-panel-context";
+import { useI18n } from "~/hooks/use-i18n";
 import { usePermissions } from "~/hooks/use-permissions";
 import { cn } from "~/lib/utils";
 import logo from "../../../public/logo.svg";
@@ -31,6 +33,7 @@ export function Header({
 	const commandPanel = useCommandPanelContext();
 	const { hasRole } = usePermissions();
 	const location = useLocation();
+	const { t } = useI18n();
 	const handleOpenCommandPanel = onOpenCommandPanel ?? commandPanel?.openPanel;
 
 	const isActive = (path: string) => location.pathname === path;
@@ -47,15 +50,15 @@ export function Header({
 						>
 							<img
 								src={logo}
-								alt="DevTools Platform"
+								alt="DevShelf"
 								className="h-9 w-9 rounded-xl transition-transform group-hover:scale-105"
 							/>
 							<div className="flex flex-col">
 								<span className="text-lg font-bold tracking-tight">
-									DevTools
+									{t("brand.name")}
 								</span>
 								<span className="text-[10px] text-muted-foreground -mt-0.5 hidden sm:block">
-									研发工具平台
+									{t("brand.subtitle")}
 								</span>
 							</div>
 						</Link>
@@ -73,7 +76,7 @@ export function Header({
 									)}
 								>
 									<Home className="h-4 w-4" />
-									首页
+									{t("nav.home")}
 								</Button>
 							</Link>
 							{hasRole("admin") && (
@@ -88,7 +91,7 @@ export function Header({
 										)}
 									>
 										<Settings className="h-4 w-4" />
-										管理
+										{t("nav.admin")}
 									</Button>
 								</Link>
 							)}
@@ -123,6 +126,7 @@ export function Header({
 						</div>
 
 						<div className="flex items-center gap-2 pl-2 border-l border-border/50">
+							<LanguageToggle />
 							<ThemeToggle />
 							<UserProfile />
 						</div>

@@ -8,11 +8,21 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
+import type { BuiltinToolMeta } from "~/types/tool";
 import type { Route } from "./+types/tools.base64-converter";
+
+export const toolMeta: BuiltinToolMeta = {
+	id: "base64-converter",
+	name: "Base64 编解码",
+	description: "Encode and decode Base64 data with customizable options",
+	icon: "Binary",
+	category: "builtin",
+	tags: ["base64", "encode", "decode"],
+};
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "Base64 Encoder/Decoder | DevTools Platform" },
+		{ title: "Base64 Encoder/Decoder | DevShelf" },
 		{
 			name: "description",
 			content: "Encode and decode Base64 data with customizable options",

@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { RegisterForm } from "~/components/auth/register-form";
+import { LanguageToggle } from "~/components/language-toggle";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
 export function meta() {
-	return [{ title: "Register - DevTools" }];
+	return [{ title: "Register | DevShelf" }];
 }
 
 export default function RegisterPage() {
@@ -19,6 +20,9 @@ export default function RegisterPage() {
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
+			<div className="absolute top-4 right-4">
+				<LanguageToggle />
+			</div>
 			<RegisterForm />
 		</div>
 	);

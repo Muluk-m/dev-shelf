@@ -11,7 +11,7 @@ import type { Route } from "./+types/admin_.permissions";
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: "User Management - DevHub" },
+		{ title: "User Management | DevShelf" },
 		{ name: "description", content: "User and permission management" },
 	];
 }
