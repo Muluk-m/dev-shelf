@@ -1,5 +1,6 @@
 import { Check, Clock, Copy, RefreshCcw } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
@@ -151,6 +152,7 @@ function parseByFormat(value: string, format: InputFormat): Date | null {
 }
 
 export default function DateTimeConverterPage() {
+	const { t } = useTranslation();
 	const [input, setInput] = useState("");
 	const [format, setFormat] = useState<InputFormat>("timestamp");
 	const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
@@ -161,11 +163,11 @@ export default function DateTimeConverterPage() {
 		if (!d) {
 			return {
 				date: null as Date | null,
-				error: "输入与所选格式不匹配或无法解析",
+				error: t("tools.timeFormatter.error.parse"),
 			};
 		}
 		return { date: d, error: "" };
-	}, [input, format]);
+	}, [input, format, t]);
 
 	const results = useMemo(() => {
 		if (!date) return null;
@@ -199,7 +201,7 @@ export default function DateTimeConverterPage() {
 		if (!text) return;
 		try {
 			await navigator.clipboard.writeText(text);
-			toast.success(`${label} 已复制到剪贴板`);
+			toast.success(t("tools.timeFormatter.copied", { label }));
 			const key = `${label}-${text}`;
 			setCopiedItems((prev) => new Set(prev).add(key));
 			setTimeout(() => {
@@ -252,8 +254,8 @@ export default function DateTimeConverterPage() {
 				<div className="max-w-3xl mx-auto w-full flex flex-col gap-6">
 					<ToolPageHeader
 						icon={<Clock className="h-5 w-5" />}
-						title="日期时间转换器"
-						description="将日期和时间在多种不同格式之间转换"
+						title={t("tools.timeFormatter.title")}
+						description={t("tools.timeFormatter.description")}
 						actions={
 							<Button
 								variant="outline"
@@ -262,7 +264,7 @@ export default function DateTimeConverterPage() {
 								className="gap-2"
 							>
 								<RefreshCcw className="h-4 w-4" />
-								当前时间
+								{t("tools.timeFormatter.now")}
 							</Button>
 						}
 					/>
@@ -273,7 +275,7 @@ export default function DateTimeConverterPage() {
 								<Input
 									value={input}
 									onChange={(e) => setInput(e.target.value)}
-									placeholder="输入时间戳、日期字符串..."
+									placeholder={t("tools.timeFormatter.placeholder")}
 									className={`flex-1 font-mono ${error ? "border-destructive" : undefined}`}
 								/>
 								<Select
@@ -281,7 +283,9 @@ export default function DateTimeConverterPage() {
 									onValueChange={(v) => setFormat(v as InputFormat)}
 								>
 									<SelectTrigger className="w-[180px]">
-										<SelectValue placeholder="选择格式" />
+										<SelectValue
+											placeholder={t("tools.timeFormatter.selectFormat")}
+										/>
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="timestamp">Timestamp (ms)</SelectItem>

@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { LanguageToggle } from "~/components/language-toggle";
@@ -12,7 +13,7 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useI18n } from "~/hooks/use-i18n";
+import { useDocumentTitle } from "~/hooks/use-document-title";
 import { useSetupStatus } from "~/hooks/use-setup-status";
 import { initializeSetup } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
@@ -24,7 +25,8 @@ export function meta() {
 export default function SetupPage() {
 	const { needsSetup, loading: statusLoading } = useSetupStatus();
 	const navigate = useNavigate();
-	const { t } = useI18n();
+	const { t } = useTranslation();
+	useDocumentTitle("meta.setup");
 
 	useEffect(() => {
 		if (needsSetup === false) {
@@ -57,7 +59,7 @@ export default function SetupPage() {
 function SetupForm() {
 	const navigate = useNavigate();
 	const setUserInfo = useUserInfoStore((s) => s.setUserInfo);
-	const { t } = useI18n();
+	const { t } = useTranslation();
 
 	const [username, setUsername] = useState("");
 	const [displayName, setDisplayName] = useState("");
@@ -94,8 +96,7 @@ function SetupForm() {
 			toast.success(t("setup.success"));
 			navigate("/", { replace: true });
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : t("setup.failed");
+			const message = err instanceof Error ? err.message : t("setup.failed");
 			setError(message);
 		} finally {
 			setLoading(false);
@@ -106,9 +107,7 @@ function SetupForm() {
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">
 				<CardTitle className="text-2xl">{t("setup.title")}</CardTitle>
-				<CardDescription>
-					{t("setup.subtitle")}
-				</CardDescription>
+				<CardDescription>{t("setup.subtitle")}</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
 				<CardContent className="space-y-4">
@@ -133,7 +132,9 @@ function SetupForm() {
 					<div className="space-y-2">
 						<Label htmlFor="displayName">
 							{t("setup.displayName")}{" "}
-							<span className="text-muted-foreground">{t("setup.displayNameOptional")}</span>
+							<span className="text-muted-foreground">
+								{t("setup.displayNameOptional")}
+							</span>
 						</Label>
 						<Input
 							id="displayName"
@@ -157,7 +158,9 @@ function SetupForm() {
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="confirmPassword">{t("setup.confirmPassword")}</Label>
+						<Label htmlFor="confirmPassword">
+							{t("setup.confirmPassword")}
+						</Label>
 						<Input
 							id="confirmPassword"
 							type="password"

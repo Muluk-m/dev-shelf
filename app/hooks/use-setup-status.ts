@@ -32,7 +32,8 @@ export function useSetupStatus() {
 			setState({
 				needsSetup: false,
 				loading: false,
-				error: err instanceof Error ? err.message : "Failed to check setup status",
+				error:
+					err instanceof Error ? err.message : "Failed to check setup status",
 			});
 		}
 	}, []);

@@ -12,14 +12,21 @@ import {
 	Star,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Header } from "~/components/layout/header";
+import { ToolIcon } from "~/components/tool-icon";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
-import { useI18n } from "~/hooks/use-i18n";
+import { useDocumentTitle } from "~/hooks/use-document-title";
 import { useSearch } from "~/hooks/use-search";
 import { useToolsInit } from "~/hooks/use-tools-query";
 import { recordToolUsage } from "~/lib/api";
+import {
+	getCategoryName,
+	getToolDescription,
+	getToolName,
+} from "~/lib/tool-i18n";
 import { cn } from "~/lib/utils";
 import { useToolsStore } from "~/stores/tools-store";
 import { useUserPreferencesStore } from "~/stores/user-preferences-store";
@@ -31,7 +38,8 @@ export function meta({}: Route.MetaArgs) {
 		{ title: "DevShelf | Team Dev Tool Hub" },
 		{
 			name: "description",
-			content: "Your team's developer tool shelf — organized, searchable, always within reach.",
+			content:
+				"Your team's developer tool shelf — organized, searchable, always within reach.",
 		},
 	];
 }
@@ -46,8 +54,9 @@ export default function Home() {
 	const { favorites, recentTools, toggleFavorite, isFavorite, recordToolUse } =
 		useUserPreferencesStore();
 	useToolsInit();
+	useDocumentTitle("meta.home");
 	const navigate = useNavigate();
-	const { t } = useI18n();
+	const { t } = useTranslation();
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
 	const { query, setQuery, updateFilters, searchResults } = useSearch(tools);
@@ -174,7 +183,9 @@ export default function Home() {
 								<div className="p-3 rounded-xl bg-gradient-to-br from-rose-500/10 to-pink-500/5 border border-rose-500/20">
 									<div className="flex items-center gap-2 mb-3">
 										<Heart className="h-4 w-4 text-rose-500" />
-										<span className="text-xs font-semibold">{t("home.sidebar.favorites")}</span>
+										<span className="text-xs font-semibold">
+											{t("home.sidebar.favorites")}
+										</span>
 									</div>
 									<div className="space-y-1">
 										{favoriteTools.slice(0, 6).map((tool) => (
@@ -186,17 +197,12 @@ export default function Home() {
 												}
 												className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition-colors cursor-pointer group"
 											>
-												{tool.icon ? (
-													<img
-														src={tool.icon}
-														alt=""
-														className="h-4 w-4 rounded object-contain flex-shrink-0"
-													/>
-												) : (
-													<Code className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-												)}
+												<ToolIcon
+													icon={tool.icon}
+													className="h-4 w-4 text-muted-foreground flex-shrink-0"
+												/>
 												<span className="flex-1 text-xs truncate text-left group-hover:text-primary transition-colors">
-													{tool.name}
+													{getToolName(tool, t)}
 												</span>
 												<button
 													type="button"
@@ -219,7 +225,9 @@ export default function Home() {
 								<div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-blue-500/20">
 									<div className="flex items-center gap-2 mb-3">
 										<History className="h-4 w-4 text-blue-500" />
-										<span className="text-xs font-semibold">{t("home.sidebar.recent")}</span>
+										<span className="text-xs font-semibold">
+											{t("home.sidebar.recent")}
+										</span>
 									</div>
 									<div className="space-y-1">
 										{recentUsedTools.slice(0, 6).map((tool) => (
@@ -231,17 +239,12 @@ export default function Home() {
 												}
 												className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition-colors cursor-pointer group"
 											>
-												{tool.icon ? (
-													<img
-														src={tool.icon}
-														alt=""
-														className="h-4 w-4 rounded object-contain flex-shrink-0"
-													/>
-												) : (
-													<Code className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-												)}
+												<ToolIcon
+													icon={tool.icon}
+													className="h-4 w-4 text-muted-foreground flex-shrink-0"
+												/>
 												<span className="flex-1 text-xs truncate text-left group-hover:text-primary transition-colors">
-													{tool.name}
+													{getToolName(tool, t)}
 												</span>
 											</button>
 										))}
@@ -254,7 +257,9 @@ export default function Home() {
 								<div className="p-3 rounded-xl bg-gradient-to-br from-orange-500/10 to-rose-500/5 border border-orange-500/20">
 									<div className="flex items-center gap-2 mb-3">
 										<Flame className="h-4 w-4 text-orange-500" />
-										<span className="text-xs font-semibold">{t("home.sidebar.hot")}</span>
+										<span className="text-xs font-semibold">
+											{t("home.sidebar.hot")}
+										</span>
 									</div>
 									<div className="space-y-1">
 										{hotTools.slice(0, 6).map(({ tool, usageCount }, index) => (
@@ -280,17 +285,12 @@ export default function Home() {
 												>
 													{index + 1}
 												</span>
-												{tool.icon ? (
-													<img
-														src={tool.icon}
-														alt=""
-														className="h-4 w-4 rounded object-contain flex-shrink-0"
-													/>
-												) : (
-													<Code className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-												)}
+												<ToolIcon
+													icon={tool.icon}
+													className="h-4 w-4 text-muted-foreground flex-shrink-0"
+												/>
 												<span className="flex-1 text-xs truncate text-left group-hover:text-primary transition-colors">
-													{tool.name}
+													{getToolName(tool, t)}
 												</span>
 												<span className="text-[10px] text-muted-foreground">
 													{usageCount}
@@ -317,7 +317,9 @@ export default function Home() {
 									)}
 								>
 									<LayoutGrid className="h-4 w-4" />
-									<span className="flex-1 text-left">{t("home.sidebar.allTools")}</span>
+									<span className="flex-1 text-left">
+										{t("home.sidebar.allTools")}
+									</span>
 									<span
 										className={cn(
 											"text-xs px-2 py-0.5 rounded-md",
@@ -362,7 +364,9 @@ export default function Home() {
 													color: isSelected ? "white" : category.color,
 												}}
 											/>
-											<span className="flex-1 text-left">{category.name}</span>
+											<span className="flex-1 text-left">
+												{getCategoryName(category, t)}
+											</span>
 											<span
 												className={cn(
 													"text-xs px-2 py-0.5 rounded-md",
@@ -416,7 +420,8 @@ export default function Home() {
 													: undefined
 											}
 										>
-											{category.name} ({toolCounts[category.id] || 0})
+											{getCategoryName(category, t)} (
+											{toolCounts[category.id] || 0})
 										</button>
 									);
 								})}
@@ -445,10 +450,12 @@ export default function Home() {
 											</div>
 											<div>
 												<h2 className="text-xl font-semibold">
-													{category.name}
+													{getCategoryName(category, t)}
 												</h2>
 												<p className="text-sm text-muted-foreground">
-													{t("home.toolCount", { count: toolCounts[category.id] || 0 })}
+													{t("home.toolCount", {
+														count: toolCounts[category.id] || 0,
+													})}
 												</p>
 											</div>
 										</div>
@@ -476,7 +483,9 @@ export default function Home() {
 								<div className="p-4 rounded-2xl bg-muted/50 mb-4">
 									<Search className="h-8 w-8 text-muted-foreground" />
 								</div>
-								<h3 className="text-lg font-semibold mb-2">{t("home.noResults.title")}</h3>
+								<h3 className="text-lg font-semibold mb-2">
+									{t("home.noResults.title")}
+								</h3>
 								<p className="text-muted-foreground max-w-sm">
 									{query
 										? t("home.noResults.query", { query })
@@ -519,7 +528,7 @@ function ToolCardCompact({
 	isFavorite,
 	index,
 }: ToolCardCompactProps) {
-	const { t } = useI18n();
+	const { t } = useTranslation();
 	const hasMultipleEnvs = tool.environments.length > 1;
 	const defaultEnv = tool.environments[0];
 	const isExternal = !tool.isInternal && defaultEnv?.isExternal;
@@ -541,16 +550,7 @@ function ToolCardCompact({
 				{/* 图标 */}
 				<div className="flex-shrink-0">
 					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 transition-transform group-hover:scale-105">
-						{tool.icon ? (
-							<img
-								src={tool.icon}
-								alt=""
-								className="h-6 w-6 object-contain"
-								loading="lazy"
-							/>
-						) : (
-							<Code className="h-6 w-6 text-primary" />
-						)}
+						<ToolIcon icon={tool.icon} className="h-6 w-6 text-primary" />
 					</div>
 				</div>
 
@@ -558,7 +558,7 @@ function ToolCardCompact({
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2 mb-1">
 						<h3 className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
-							{tool.name}
+							{getToolName(tool, t)}
 						</h3>
 						{tool.isInternal && (
 							<Badge
@@ -572,11 +572,19 @@ function ToolCardCompact({
 						{isExternal && (
 							<ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
 						)}
-						<button
-							type="button"
+						<span
+							role="button"
+							tabIndex={0}
 							onClick={(e) => {
 								e.stopPropagation();
 								onToggleFavorite();
+							}}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") {
+									e.stopPropagation();
+									e.preventDefault();
+									onToggleFavorite();
+								}
 							}}
 							className={cn(
 								"ml-auto transition-opacity cursor-pointer",
@@ -593,10 +601,10 @@ function ToolCardCompact({
 										: "text-muted-foreground hover:text-rose-500",
 								)}
 							/>
-						</button>
+						</span>
 					</div>
 					<p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-						{tool.description}
+						{getToolDescription(tool, t)}
 					</p>
 					{/* 标签 */}
 					{tool.tags.length > 0 && (
@@ -639,16 +647,7 @@ function ToolCardCompact({
 				{/* 图标 */}
 				<div className="flex-shrink-0">
 					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 transition-transform group-hover:scale-105">
-						{tool.icon ? (
-							<img
-								src={tool.icon}
-								alt=""
-								className="h-6 w-6 object-contain"
-								loading="lazy"
-							/>
-						) : (
-							<Code className="h-6 w-6 text-primary" />
-						)}
+						<ToolIcon icon={tool.icon} className="h-6 w-6 text-primary" />
 					</div>
 				</div>
 
@@ -656,7 +655,7 @@ function ToolCardCompact({
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2 mb-1">
 						<h3 className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
-							{tool.name}
+							{getToolName(tool, t)}
 						</h3>
 						{tool.isInternal && (
 							<Badge
@@ -672,7 +671,7 @@ function ToolCardCompact({
 						)}
 					</div>
 					<p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-						{tool.description}
+						{getToolDescription(tool, t)}
 					</p>
 					{/* 标签 */}
 					{tool.tags.length > 0 && (

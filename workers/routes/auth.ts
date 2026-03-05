@@ -21,8 +21,8 @@ import {
 import {
 	getJwtSecretErrorMessage,
 	getSchemaRecoveryMessage,
-	isMissingSchemaError,
 	isJwtSecretError,
+	isMissingSchemaError,
 } from "../utils/db-errors";
 
 const auth = new Hono<{ Bindings: Cloudflare.Env }>();

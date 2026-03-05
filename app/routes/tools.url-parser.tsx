@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
@@ -133,8 +134,9 @@ const QueryParamRow = ({
 	onCopy: (text: string, label: string) => void;
 	onDelete: (index: number) => void;
 }) => {
-	const keyCopyKey = `参数名-${editedKey}`;
-	const valueCopyKey = `参数值-${editedValue}`;
+	const { t } = useTranslation();
+	const keyCopyKey = `${t("tools.urlParser.params.paramKey")}-${editedKey}`;
+	const valueCopyKey = `${t("tools.urlParser.params.paramValue")}-${editedValue}`;
 	const isKeyCopied = copiedItems.has(keyCopyKey);
 	const isValueCopied = copiedItems.has(valueCopyKey);
 
@@ -167,7 +169,9 @@ const QueryParamRow = ({
 								? "text-green-600 bg-green-100 dark:bg-green-900/30"
 								: ""
 						}`}
-						onClick={() => onCopy(editedKey, "参数名")}
+						onClick={() =>
+							onCopy(editedKey, t("tools.urlParser.params.paramKey"))
+						}
 					>
 						{isKeyCopied ? (
 							<Check className="h-3 w-3" />
@@ -199,7 +203,9 @@ const QueryParamRow = ({
 									? "text-green-600 bg-green-100 dark:bg-green-900/30"
 									: ""
 							}`}
-							onClick={() => onCopy(editedValue, "参数值")}
+							onClick={() =>
+								onCopy(editedValue, t("tools.urlParser.params.paramValue"))
+							}
 						>
 							{isValueCopied ? (
 								<Check className="h-3 w-3" />
@@ -245,6 +251,7 @@ const QueryParamsSection = ({
 	onDelete: (index: number) => void;
 	onAddParam: () => void;
 }) => {
+	const { t } = useTranslation();
 	if (!parsedUrl) {
 		return null;
 	}
@@ -256,7 +263,9 @@ const QueryParamsSection = ({
 				edited.key !== parsedUrl.params[i]?.key ||
 				edited.value !== parsedUrl.params[i]?.value,
 		);
-	const isNewUrlCopied = copiedItems.has(`新URL-${newUrl}`);
+	const isNewUrlCopied = copiedItems.has(
+		`${t("tools.urlParser.params.newUrl")}-${newUrl}`,
+	);
 
 	return (
 		<Card>
@@ -267,7 +276,9 @@ const QueryParamsSection = ({
 							Query Parameters
 						</div>
 						<div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-							{editedParams.length} 个参数
+							{t("tools.urlParser.params.count", {
+								count: editedParams.length,
+							})}
 						</div>
 					</div>
 				</div>
@@ -297,7 +308,7 @@ const QueryParamsSection = ({
 							onClick={onAddParam}
 						>
 							<Plus className="h-3 w-3" />
-							添加参数
+							{t("tools.urlParser.params.add")}
 						</Button>
 						{hasChanges && newUrl && (
 							<Button
@@ -308,14 +319,16 @@ const QueryParamsSection = ({
 										? "bg-green-100 dark:bg-green-900/30 text-green-600"
 										: ""
 								}`}
-								onClick={() => onCopy(newUrl, "新URL")}
+								onClick={() =>
+									onCopy(newUrl, t("tools.urlParser.params.newUrl"))
+								}
 							>
 								{isNewUrlCopied ? (
 									<Check className="h-3 w-3" />
 								) : (
 									<Copy className="h-3 w-3" />
 								)}
-								复制新URL
+								{t("tools.urlParser.params.copyNew")}
 							</Button>
 						)}
 					</div>
@@ -323,7 +336,7 @@ const QueryParamsSection = ({
 						<div className="flex items-center gap-2">
 							<RefreshCw className="h-3.5 w-3.5 text-blue-600" />
 							<span className="text-xs font-medium text-blue-600">
-								生成的新URL
+								{t("tools.urlParser.params.newUrl")}
 							</span>
 						</div>
 					)}
@@ -346,6 +359,7 @@ const URLAnalyzer = ({
 	label?: string;
 	onStateChange?: (state: URLAnalyzerState) => void;
 }) => {
+	const { t } = useTranslation();
 	const [inputUrl, setInputUrl] = useState(
 		"https://me:pwd@it-tools.tech:3000/url-parser?key1=value&key2=value2#the-hash",
 	);
@@ -386,7 +400,7 @@ const URLAnalyzer = ({
 		} catch {
 			setParsedUrl(null);
 			setEditedParams([]);
-			toast.error("解析失败，请输入有效的URL地址");
+			toast.error(t("tools.urlParser.error.parse"));
 		}
 	};
 
@@ -438,7 +452,7 @@ const URLAnalyzer = ({
 
 	const copyToClipboard = (text: string, label: string) => {
 		navigator.clipboard.writeText(text).then(() => {
-			toast.success(`${label} 已复制到剪贴板`);
+			toast.success(t("tools.urlParser.copied", { label }));
 			// 添加到已复制列表，1秒后移除
 			const key = `${label}-${text}`;
 			setCopiedItems((prev) => new Set(prev).add(key));
@@ -484,7 +498,7 @@ const URLAnalyzer = ({
 							disabled={!inputUrl.trim()}
 						>
 							<QrCode className="h-3.5 w-3.5" />
-							生成二维码
+							{t("tools.urlParser.generateQr")}
 						</Button>
 					</div>
 					<Textarea
@@ -504,7 +518,7 @@ const URLAnalyzer = ({
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<QrCode className="h-5 w-5" />
-							URL 二维码
+							{t("tools.urlParser.qrTitle")}
 						</DialogTitle>
 					</DialogHeader>
 					<div className="flex flex-col items-center gap-4 py-4">
@@ -556,7 +570,7 @@ const URLAnalyzer = ({
 														a.download = "qrcode.png";
 														a.click();
 														URL.revokeObjectURL(url);
-														toast.success("二维码已下载");
+														toast.success(t("tools.urlParser.qrDownloaded"));
 													}
 												});
 											}
@@ -565,14 +579,14 @@ const URLAnalyzer = ({
 									}
 								}}
 							>
-								下载二维码
+								{t("tools.urlParser.downloadQr")}
 							</Button>
 							<Button
 								variant="default"
 								className="flex-1 text-xs"
 								onClick={() => setShowQrCode(false)}
 							>
-								关闭
+								{t("tools.urlParser.close")}
 							</Button>
 						</div>
 					</div>
@@ -651,6 +665,7 @@ const URLAnalyzer = ({
 
 // 主组件
 export default function URLParserPage() {
+	const { t } = useTranslation();
 	const [compareMode, setCompareMode] = useState(false);
 	const [leftState, setLeftState] = useState<URLAnalyzerState | null>(null);
 	const [rightState, setRightState] = useState<URLAnalyzerState | null>(null);
@@ -665,7 +680,7 @@ export default function URLParserPage() {
 					<ToolPageHeader
 						icon={<Link2 className="h-5 w-5" />}
 						title="URL分析器"
-						description="可视化、编辑、分析和比较 URL，支持编辑参数值并生成新URL"
+						description={t("tools.urlParser.description")}
 						actions={
 							<div className="flex items-center gap-2">
 								<span
@@ -673,7 +688,7 @@ export default function URLParserPage() {
 										!compareMode ? "text-primary" : "text-muted-foreground"
 									}`}
 								>
-									单URL模式
+									{t("tools.urlParser.singleMode")}
 								</span>
 								<Switch
 									checked={compareMode}
@@ -684,7 +699,7 @@ export default function URLParserPage() {
 										compareMode ? "text-primary" : "text-muted-foreground"
 									}`}
 								>
-									对比模式
+									{t("tools.urlParser.compareMode")}
 								</span>
 							</div>
 						}
@@ -719,7 +734,7 @@ export default function URLParserPage() {
 									<div className="flex items-center gap-2">
 										<RefreshCw className="h-3.5 w-3.5 text-blue-600" />
 										<span className="text-xs font-medium text-blue-600">
-											参数差异
+											{t("tools.urlParser.diff.title")}
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
@@ -732,7 +747,7 @@ export default function URLParserPage() {
 											onClick={() => setSortByKey(!sortByKey)}
 										>
 											<ArrowUpDown className="h-3 w-3" />
-											按Key排序
+											{t("tools.urlParser.diff.sortByKey")}
 										</Button>
 										<Button
 											size="sm"
@@ -743,7 +758,9 @@ export default function URLParserPage() {
 											onClick={() => setShowOnlyDiff(!showOnlyDiff)}
 										>
 											<Filter className="h-3 w-3" />
-											{showOnlyDiff ? "显示全部" : "仅显示差异"}
+											{showOnlyDiff
+												? t("tools.urlParser.diff.showAll")
+												: t("tools.urlParser.diff.onlyDiff")}
 										</Button>
 									</div>
 								</div>
@@ -789,25 +806,28 @@ export default function URLParserPage() {
 											<div className="flex items-center gap-1.5">
 												<BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
 												<span className="text-xs text-muted-foreground">
-													统计:
+													{t("tools.urlParser.diff.stats")}
 												</span>
 											</div>
 											<div className="flex items-center gap-4 text-xs">
 												<span className="text-muted-foreground">
-													总计{" "}
+													{t("tools.urlParser.diff.total")}{" "}
 													<span className="font-medium text-foreground">
 														{total}
 													</span>
 												</span>
 												<span className="text-green-600">
-													相同 <span className="font-medium">{same}</span>
+													{t("tools.urlParser.diff.same")}{" "}
+													<span className="font-medium">{same}</span>
 												</span>
 												<span className="text-red-600 dark:text-amber-400">
-													不同 <span className="font-medium">{diff}</span>
+													{t("tools.urlParser.diff.diff")}{" "}
+													<span className="font-medium">{diff}</span>
 												</span>
 												{missing > 0 && (
 													<span className="text-orange-600">
-														缺失 <span className="font-medium">{missing}</span>
+														{t("tools.urlParser.diff.missing")}{" "}
+														<span className="font-medium">{missing}</span>
 													</span>
 												)}
 											</div>
@@ -908,7 +928,9 @@ export default function URLParserPage() {
 															: "text-red-600 dark:text-amber-400"
 													}`}
 												>
-													{row.same ? "相同" : "不同"}
+													{row.same
+														? t("tools.urlParser.status.same")
+														: t("tools.urlParser.status.diff")}
 												</div>
 											</div>
 										));
@@ -919,13 +941,17 @@ export default function URLParserPage() {
 													<div className="col-span-3">Key</div>
 													<div className="col-span-4">URL 1</div>
 													<div className="col-span-4">URL 2</div>
-													<div className="col-span-1 text-right">状态</div>
+													<div className="col-span-1 text-right">
+														{t("tools.urlParser.diff.status")}
+													</div>
 												</div>
 												{rows.length ? (
 													rows
 												) : (
 													<div className="text-muted-foreground text-xs px-2 py-1">
-														{showOnlyDiff ? "无差异参数" : "无参数"}
+														{showOnlyDiff
+															? t("tools.urlParser.diff.noDiff")
+															: t("tools.urlParser.diff.noParams")}
 													</div>
 												)}
 											</div>

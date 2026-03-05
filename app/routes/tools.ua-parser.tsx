@@ -1,6 +1,6 @@
-import type { BuiltinToolMeta } from "~/types/tool";
 import { Copy, Fingerprint } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { UAParser } from "ua-parser-js";
 import { ToolPageHeader } from "~/components/tool-page-header";
@@ -8,6 +8,7 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
+import type { BuiltinToolMeta } from "~/types/tool";
 
 type UaInfo = {
 	browserName?: string;
@@ -47,7 +48,8 @@ function parseUserAgent(ua: string): UaInfo {
 export const toolMeta: BuiltinToolMeta = {
 	id: "ua-parser",
 	name: "User-Agent 解析器",
-	description: "解析 User-Agent 字符串，获取浏览器、引擎、操作系统、CPU 和设备信息",
+	description:
+		"解析 User-Agent 字符串，获取浏览器、引擎、操作系统、CPU 和设备信息",
 	icon: "Fingerprint",
 	category: "builtin",
 	tags: ["ua", "user-agent", "browser", "parse"],
@@ -65,6 +67,7 @@ export function meta() {
 }
 
 export default function UAParserPage() {
+	const { t } = useTranslation();
 	const [ua, setUa] = useState<string>("");
 
 	// 默认填入当前浏览器 UA，便于打开即用
@@ -80,7 +83,7 @@ export default function UAParserPage() {
 		if (!ua.trim()) return;
 		try {
 			await navigator.clipboard.writeText(JSON.stringify(info, null, 2));
-			toast.success("已复制为 JSON");
+			toast.success(t("tools.uaParser.copiedJson"));
 		} catch {
 			// ignore
 		}
@@ -126,8 +129,8 @@ export default function UAParserPage() {
 					<div className="mx-auto w-full max-w-[680px] sm:max-w-[720px] md:max-w-[860px] lg:max-w-[920px] xl:max-w-[980px] 2xl:max-w-[1100px]">
 						<ToolPageHeader
 							icon={<Fingerprint className="h-5 w-5" />}
-							title="User-Agent 解析器"
-							description="解析 User-Agent 字符串，获取浏览器、引擎、操作系统、CPU 和设备信息"
+							title={t("tools.uaParser.title")}
+							description={t("tools.uaParser.description")}
 							actions={
 								<Button
 									variant="outline"
@@ -137,7 +140,7 @@ export default function UAParserPage() {
 									className="gap-2"
 								>
 									<Copy className="h-4 w-4" />
-									复制 JSON
+									{t("tools.uaParser.copyJson")}
 								</Button>
 							}
 						/>
@@ -145,12 +148,12 @@ export default function UAParserPage() {
 						<Card className="mb-4">
 							<CardContent className="pt-4">
 								<div className="mb-2 text-sm text-muted-foreground">
-									User-Agent 字符串
+									{t("tools.uaParser.inputLabel")}
 								</div>
 								<Textarea
 									value={ua}
 									onChange={(e) => setUa(e.target.value)}
-									placeholder="在此输入或粘贴 UA 字符串"
+									placeholder={t("tools.uaParser.placeholder")}
 									className="font-mono text-sm min-h-24"
 								/>
 							</CardContent>
@@ -162,35 +165,44 @@ export default function UAParserPage() {
 								title="Browser"
 								name={info.browserName}
 								version={info.browserVersion}
-								placeholders={["无法获取浏览器名称", "无法获取浏览器版本"]}
+								placeholders={[
+									t("tools.uaParser.browserName.na"),
+									t("tools.uaParser.browserVersion.na"),
+								]}
 							/>
 							<Item
-								title="引擎"
+								title={t("tools.uaParser.engine")}
 								name={info.engineName}
 								version={info.engineVersion}
-								placeholders={["无法获取引擎名称", "无法获取引擎版本"]}
+								placeholders={[
+									t("tools.uaParser.engineName.na"),
+									t("tools.uaParser.engineVersion.na"),
+								]}
 							/>
 							<Item
-								title="操作系统"
+								title={t("tools.uaParser.os")}
 								name={info.osName}
 								version={info.osVersion}
-								placeholders={["无法获取操作系统名称", "无法获取操作系统版本"]}
+								placeholders={[
+									t("tools.uaParser.osName.na"),
+									t("tools.uaParser.osVersion.na"),
+								]}
 							/>
 							<Item
-								title="设备"
+								title={t("tools.uaParser.device")}
 								name={info.deviceModel || info.deviceVendor}
 								version={info.deviceType}
 								placeholders={[
-									"无法获取设备型号",
-									"无法获取设备类型",
-									"无法获取设备厂商",
+									t("tools.uaParser.deviceModel.na"),
+									t("tools.uaParser.deviceType.na"),
+									t("tools.uaParser.deviceVendor.na"),
 								]}
 							/>
 							<Item
 								title="CPU"
 								name={info.cpuArch}
 								version={undefined}
-								placeholders={["无法获取 CPU 架构"]}
+								placeholders={[t("tools.uaParser.cpuArch.na")]}
 							/>
 						</div>
 					</div>

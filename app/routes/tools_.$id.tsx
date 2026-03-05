@@ -1,4 +1,5 @@
 import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link, useLoaderData } from "react-router";
 import { Header } from "~/components/layout/header";
 import { ToolDetailView } from "~/components/tool-detail-view";
@@ -76,6 +77,7 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
 }
 
 function NotFoundPage({ error }: { error?: string | null }) {
+	const { t } = useTranslation();
 	return (
 		<div className="min-h-screen bg-background">
 			<Header />
@@ -86,16 +88,18 @@ function NotFoundPage({ error }: { error?: string | null }) {
 							<div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
 								<AlertTriangle className="h-6 w-6 text-destructive" />
 							</div>
-							<CardTitle>{error ? "无权限访问" : "工具未找到"}</CardTitle>
+							<CardTitle>
+								{error ? t("toolDetail.noAccess") : t("toolDetail.notFound")}
+							</CardTitle>
 							<CardDescription>
-								{error || "抱歉，您访问的工具不存在或已被移除。"}
+								{error || t("toolDetail.notFound.description")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="text-center space-y-4">
 							<Link to="/">
 								<Button className="gap-2">
 									<ArrowLeft className="h-4 w-4" />
-									返回首页
+									{t("toolDetail.backHome")}
 								</Button>
 							</Link>
 						</CardContent>

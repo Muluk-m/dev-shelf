@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { RegisterForm } from "~/components/auth/register-form";
 import { LanguageToggle } from "~/components/language-toggle";
+import { useDocumentTitle } from "~/hooks/use-document-title";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
 export function meta() {
@@ -11,6 +12,7 @@ export function meta() {
 export default function RegisterPage() {
 	const userInfo = useUserInfoStore((s) => s.userInfo);
 	const navigate = useNavigate();
+	useDocumentTitle("meta.register");
 
 	useEffect(() => {
 		if (userInfo) {

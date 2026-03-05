@@ -1,5 +1,53 @@
+import i18next from "~/lib/i18n";
 import type { Tool, ToolCategory } from "~/types/tool";
 import type { UserInfo } from "~/types/user-info";
+
+function getApiErrorMessage(error: unknown, fallbackKey: string): string {
+	if (error instanceof TypeError) {
+		return i18next.t("error.network");
+	}
+	if (error instanceof ApiError) {
+		const statusMap: Record<number, string> = {
+			401: "error.unauthorized",
+			403: "error.forbidden",
+			500: "error.serverError",
+			502: "error.serverUnavailable",
+			503: "error.serverUnavailable",
+		};
+		const key = statusMap[error.status];
+		if (key) return i18next.t(key);
+		if (error.serverMessage) return error.serverMessage;
+		return i18next.t(fallbackKey);
+	}
+	if (error instanceof Error && error.message) {
+		return error.message;
+	}
+	return i18next.t("error.unknown");
+}
+
+class ApiError extends Error {
+	status: number;
+	serverMessage: string | undefined;
+
+	constructor(status: number, serverMessage?: string) {
+		super(serverMessage || `HTTP ${status}`);
+		this.status = status;
+		this.serverMessage = serverMessage;
+	}
+}
+
+async function handleResponse<T>(
+	response: Response,
+	fallbackKey: string,
+): Promise<T> {
+	if (!response.ok) {
+		const data = (await response.json().catch(() => ({}))) as {
+			error?: string;
+		};
+		throw new ApiError(response.status, data.error);
+	}
+	return response.json();
+}
 
 export interface ToolUsageStat {
 	toolId: string;
@@ -29,19 +77,17 @@ export async function initializeSetup(data: {
 	password: string;
 	displayName?: string;
 }): Promise<{ message: string; user: UserInfo }> {
-	const response = await fetch(`/api/setup/init`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		credentials: "include",
-		body: JSON.stringify(data),
-	});
-	if (!response.ok) {
-		const err = (await response.json().catch(() => ({}))) as {
-			error?: string;
-		};
-		throw new Error(err.error || "Setup initialization failed");
+	try {
+		const response = await fetch(`/api/setup/init`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify(data),
+		});
+		return await handleResponse(response, "setup.failed");
+	} catch (error) {
+		throw new Error(getApiErrorMessage(error, "setup.failed"));
 	}
-	return response.json();
 }
 
 // --- Admin API functions ---
@@ -71,15 +117,12 @@ export async function resetUserPassword(
 	userId: string,
 	newPassword: string,
 ): Promise<{ message: string }> {
-	const response = await fetch(
-		`/api/admin/users/${userId}/reset-password`,
-		{
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			credentials: "include",
-			body: JSON.stringify({ newPassword }),
-		},
-	);
+	const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify({ newPassword }),
+	});
 	if (!response.ok) {
 		const err = (await response.json().catch(() => ({}))) as {
 			error?: string;
@@ -93,15 +136,12 @@ export async function updateUserRole(
 	userId: string,
 	role: "admin" | "user",
 ): Promise<{ message: string }> {
-	const response = await fetch(
-		`/api/admin/users/${userId}/role`,
-		{
-			method: "PUT",
-			headers: { "Content-Type": "application/json" },
-			credentials: "include",
-			body: JSON.stringify({ role }),
-		},
-	);
+	const response = await fetch(`/api/admin/users/${userId}/role`, {
+		method: "PUT",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify({ role }),
+	});
 	if (!response.ok) {
 		const err = (await response.json().catch(() => ({}))) as {
 			error?: string;
@@ -117,19 +157,17 @@ export async function login(
 	username: string,
 	password: string,
 ): Promise<{ user: UserInfo }> {
-	const response = await fetch(`/api/auth/login`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		credentials: "include",
-		body: JSON.stringify({ username, password }),
-	});
-	if (!response.ok) {
-		const data = (await response.json().catch(() => ({}))) as {
-			error?: string;
-		};
-		throw new Error(data.error || "Login failed");
+	try {
+		const response = await fetch(`/api/auth/login`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ username, password }),
+		});
+		return await handleResponse(response, "auth.login.failed");
+	} catch (error) {
+		throw new Error(getApiErrorMessage(error, "auth.login.failed"));
 	}
-	return response.json();
 }
 
 export async function register(
@@ -137,19 +175,17 @@ export async function register(
 	password: string,
 	displayName?: string,
 ): Promise<{ user: UserInfo }> {
-	const response = await fetch(`/api/auth/register`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		credentials: "include",
-		body: JSON.stringify({ username, password, displayName }),
-	});
-	if (!response.ok) {
-		const data = (await response.json().catch(() => ({}))) as {
-			error?: string;
-		};
-		throw new Error(data.error || "Registration failed");
+	try {
+		const response = await fetch(`/api/auth/register`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ username, password, displayName }),
+		});
+		return await handleResponse(response, "auth.register.failed");
+	} catch (error) {
+		throw new Error(getApiErrorMessage(error, "auth.register.failed"));
 	}
-	return response.json();
 }
 
 export async function logout(): Promise<void> {
@@ -176,37 +212,33 @@ export async function changePassword(
 	currentPassword: string,
 	newPassword: string,
 ): Promise<{ message: string }> {
-	const response = await fetch(`/api/auth/change-password`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		credentials: "include",
-		body: JSON.stringify({ currentPassword, newPassword }),
-	});
-	if (!response.ok) {
-		const data = (await response.json().catch(() => ({}))) as {
-			error?: string;
-		};
-		throw new Error(data.error || "Failed to change password");
+	try {
+		const response = await fetch(`/api/auth/change-password`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ currentPassword, newPassword }),
+		});
+		return await handleResponse(response, "settings.password.failed");
+	} catch (error) {
+		throw new Error(getApiErrorMessage(error, "settings.password.failed"));
 	}
-	return response.json();
 }
 
 export async function updateProfile(
 	displayName: string,
 ): Promise<{ user: UserInfo }> {
-	const response = await fetch(`/api/auth/profile`, {
-		method: "PUT",
-		headers: { "Content-Type": "application/json" },
-		credentials: "include",
-		body: JSON.stringify({ displayName }),
-	});
-	if (!response.ok) {
-		const data = (await response.json().catch(() => ({}))) as {
-			error?: string;
-		};
-		throw new Error(data.error || "Failed to update profile");
+	try {
+		const response = await fetch(`/api/auth/profile`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ displayName }),
+		});
+		return await handleResponse(response, "settings.profile.failed");
+	} catch (error) {
+		throw new Error(getApiErrorMessage(error, "settings.profile.failed"));
 	}
-	return response.json();
 }
 
 // --- Export API functions ---
@@ -376,14 +408,24 @@ export async function deleteCategory(id: string): Promise<{ message: string }> {
 
 export async function uploadFiles(
 	formData: FormData,
-): Promise<{ files: Array<{ key: string; urls: Record<string, string>; name: string; size: number; type: string }> }> {
+): Promise<{
+	files: Array<{
+		key: string;
+		urls: Record<string, string>;
+		name: string;
+		size: number;
+		type: string;
+	}>;
+}> {
 	const response = await fetch(`/api/uploads`, {
 		method: "POST",
 		credentials: "include",
 		body: formData,
 	});
 	if (!response.ok) {
-		const error = (await response.json().catch(() => ({ error: "Upload failed" }))) as { error: string };
+		const error = (await response
+			.json()
+			.catch(() => ({ error: "Upload failed" }))) as { error: string };
 		throw new Error(error.error || "Failed to upload files");
 	}
 	return response.json();
@@ -409,9 +451,7 @@ export async function recordToolUsage(toolId: string): Promise<void> {
 }
 
 export async function getToolUsageStats(limit = 8): Promise<ToolUsageStat[]> {
-	const response = await fetch(
-		`/api/tools/analytics/usage?limit=${limit}`,
-	);
+	const response = await fetch(`/api/tools/analytics/usage?limit=${limit}`);
 	if (!response.ok) {
 		throw new Error("Failed to fetch tool usage stats");
 	}

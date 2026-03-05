@@ -1,5 +1,13 @@
-import { ChevronLeft, ChevronRight, Home, Shield, Users, Wrench } from "lucide-react";
+import {
+	ChevronLeft,
+	ChevronRight,
+	Home,
+	Shield,
+	Users,
+	Wrench,
+} from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { LanguageToggle } from "~/components/language-toggle";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -11,7 +19,6 @@ import {
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { UserProfile } from "~/components/user-profile";
-import { useI18n } from "~/hooks/use-i18n";
 import { cn } from "~/lib/utils";
 import logo from "../../../public/logo.svg";
 
@@ -30,7 +37,7 @@ export function AdminLayout({
 }: AdminLayoutProps) {
 	const location = useLocation();
 	const [collapsed, setCollapsed] = useState(false);
-	const { t } = useI18n();
+	const { t } = useTranslation();
 
 	const sidebarNavItems = [
 		{ title: t("admin.tools"), href: "/admin", icon: Wrench },
@@ -105,7 +112,9 @@ export function AdminLayout({
 									</Link>
 								</TooltipTrigger>
 								{collapsed && (
-									<TooltipContent side="right">{t("admin.backToHome")}</TooltipContent>
+									<TooltipContent side="right">
+										{t("admin.backToHome")}
+									</TooltipContent>
 								)}
 							</Tooltip>
 

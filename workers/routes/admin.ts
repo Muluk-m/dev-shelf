@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { getUserById, updateUserPassword } from "../../lib/database/auth";
 import { getAllUsers, updateUserRole } from "../../lib/database/users";
-import { hashPassword } from "../utils/auth";
 import { requireAdmin } from "../middleware/rbac";
+import { hashPassword } from "../utils/auth";
 
 const adminRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -96,10 +96,7 @@ adminRouter.put("/users/:id/role", async (c) => {
 
 		// Prevent admin from demoting themselves
 		if (targetUserId === currentUserId) {
-			return c.json(
-				{ error: "Cannot change your own role" },
-				400,
-			);
+			return c.json({ error: "Cannot change your own role" }, 400);
 		}
 
 		// Verify target user exists

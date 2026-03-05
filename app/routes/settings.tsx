@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Header } from "~/components/layout/header";
@@ -14,7 +15,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
-import { useI18n } from "~/hooks/use-i18n";
+import { useDocumentTitle } from "~/hooks/use-document-title";
 import { changePassword, updateProfile } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
@@ -25,7 +26,8 @@ export function meta() {
 export default function SettingsPage() {
 	const { userInfo, setUserInfo } = useUserInfoStore();
 	const navigate = useNavigate();
-	const { t } = useI18n();
+	const { t } = useTranslation();
+	useDocumentTitle("meta.settings");
 
 	useEffect(() => {
 		if (!userInfo) {
@@ -45,15 +47,10 @@ export default function SettingsPage() {
 					<h1 className="text-2xl font-bold tracking-tight">
 						{t("settings.title")}
 					</h1>
-					<p className="text-muted-foreground mt-1">
-						{t("settings.subtitle")}
-					</p>
+					<p className="text-muted-foreground mt-1">{t("settings.subtitle")}</p>
 				</div>
 
-				<ProfileSection
-					userInfo={userInfo}
-					onProfileUpdated={setUserInfo}
-				/>
+				<ProfileSection userInfo={userInfo} onProfileUpdated={setUserInfo} />
 				<ChangePasswordSection />
 			</main>
 		</div>
@@ -64,13 +61,23 @@ function ProfileSection({
 	userInfo,
 	onProfileUpdated,
 }: {
-	userInfo: { id: string; username: string; displayName: string; role: "admin" | "user" };
-	onProfileUpdated: (user: { id: string; username: string; displayName: string; role: "admin" | "user" }) => void;
+	userInfo: {
+		id: string;
+		username: string;
+		displayName: string;
+		role: "admin" | "user";
+	};
+	onProfileUpdated: (user: {
+		id: string;
+		username: string;
+		displayName: string;
+		role: "admin" | "user";
+	}) => void;
 }) {
 	const [displayName, setDisplayName] = useState(userInfo.displayName);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const { t } = useI18n();
+	const { t } = useTranslation();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -99,9 +106,7 @@ function ProfileSection({
 		<Card>
 			<CardHeader>
 				<CardTitle>{t("settings.profile.title")}</CardTitle>
-				<CardDescription>
-					{t("settings.profile.subtitle")}
-				</CardDescription>
+				<CardDescription>{t("settings.profile.subtitle")}</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
 				<CardContent className="space-y-4">
@@ -112,14 +117,14 @@ function ProfileSection({
 					)}
 					<div className="space-y-2">
 						<Label>{t("settings.profile.username")}</Label>
-						<p className="text-sm text-muted-foreground">
-							{userInfo.username}
-						</p>
+						<p className="text-sm text-muted-foreground">{userInfo.username}</p>
 					</div>
 					<div className="space-y-2">
 						<Label>{t("settings.profile.role")}</Label>
 						<div>
-							<Badge variant={userInfo.role === "admin" ? "default" : "secondary"}>
+							<Badge
+								variant={userInfo.role === "admin" ? "default" : "secondary"}
+							>
 								{userInfo.role === "admin"
 									? t("settings.profile.roleAdmin")
 									: t("settings.profile.roleUser")}
@@ -128,7 +133,9 @@ function ProfileSection({
 					</div>
 					<Separator />
 					<div className="space-y-2">
-						<Label htmlFor="displayName">{t("settings.profile.displayName")}</Label>
+						<Label htmlFor="displayName">
+							{t("settings.profile.displayName")}
+						</Label>
 						<Input
 							id="displayName"
 							type="text"
@@ -138,7 +145,9 @@ function ProfileSection({
 						/>
 					</div>
 					<Button type="submit" disabled={loading}>
-						{loading ? t("settings.profile.saving") : t("settings.profile.save")}
+						{loading
+							? t("settings.profile.saving")
+							: t("settings.profile.save")}
 					</Button>
 				</CardContent>
 			</form>
@@ -152,7 +161,7 @@ function ChangePasswordSection() {
 	const [confirmNewPassword, setConfirmNewPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const { t } = useI18n();
+	const { t } = useTranslation();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -180,9 +189,7 @@ function ChangePasswordSection() {
 			setConfirmNewPassword("");
 		} catch (err) {
 			const message =
-				err instanceof Error
-					? err.message
-					: t("settings.password.failed");
+				err instanceof Error ? err.message : t("settings.password.failed");
 			setError(message);
 		} finally {
 			setLoading(false);
@@ -193,9 +200,7 @@ function ChangePasswordSection() {
 		<Card>
 			<CardHeader>
 				<CardTitle>{t("settings.password.title")}</CardTitle>
-				<CardDescription>
-					{t("settings.password.subtitle")}
-				</CardDescription>
+				<CardDescription>{t("settings.password.subtitle")}</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
 				<CardContent className="space-y-4">
@@ -242,7 +247,9 @@ function ChangePasswordSection() {
 						/>
 					</div>
 					<Button type="submit" disabled={loading}>
-						{loading ? t("settings.password.loading") : t("settings.password.submit")}
+						{loading
+							? t("settings.password.loading")
+							: t("settings.password.submit")}
 					</Button>
 				</CardContent>
 			</form>

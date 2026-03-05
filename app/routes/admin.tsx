@@ -13,6 +13,7 @@ import {
 	Wrench,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CategoryForm } from "~/components/admin/category-form";
 import { CategoryList } from "~/components/admin/category-list";
 import { ToolForm } from "~/components/admin/tool-form";
@@ -30,6 +31,7 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { useDocumentTitle } from "~/hooks/use-document-title";
 import {
 	createCategory,
 	createTool,
@@ -61,9 +63,17 @@ interface StatCardProps {
 	icon: React.ReactNode;
 	trend?: number;
 	color: "blue" | "purple" | "emerald" | "amber";
+	vsLastWeek?: string;
 }
 
-function StatCard({ title, value, icon, trend, color }: StatCardProps) {
+function StatCard({
+	title,
+	value,
+	icon,
+	trend,
+	color,
+	vsLastWeek,
+}: StatCardProps) {
 	const colorStyles = {
 		blue: {
 			bg: "bg-blue-50 dark:bg-blue-950/30",
@@ -135,7 +145,7 @@ function StatCard({ title, value, icon, trend, color }: StatCardProps) {
 						>
 							{Math.abs(trend)}%
 						</span>
-						<span className="text-sm text-slate-500">较上周</span>
+						<span className="text-sm text-slate-500">{vsLastWeek}</span>
 					</div>
 				)}
 			</CardHeader>
@@ -146,6 +156,8 @@ function StatCard({ title, value, icon, trend, color }: StatCardProps) {
 }
 
 export default function AdminPage() {
+	const { t } = useTranslation();
+	useDocumentTitle("meta.admin");
 	const [tools, setTools] = useState<Tool[]>([]);
 	const [categories, setCategories] = useState<ToolCategory[]>([]);
 	const [usageStats, setUsageStats] = useState<ToolUsageStat[]>([]);
@@ -344,10 +356,10 @@ export default function AdminPage() {
 
 	const statusOptions: Array<{ value: "all" | Tool["status"]; label: string }> =
 		[
-			{ value: "all", label: "全部" },
-			{ value: "active", label: "正常" },
-			{ value: "maintenance", label: "维护中" },
-			{ value: "deprecated", label: "已废弃" },
+			{ value: "all", label: t("admin.filter.all") },
+			{ value: "active", label: t("admin.filter.active") },
+			{ value: "maintenance", label: t("admin.filter.maintenance") },
+			{ value: "deprecated", label: t("admin.filter.deprecated") },
 		];
 
 	const handleStatusToggle = (value: "all" | Tool["status"]) => {
@@ -379,26 +391,30 @@ export default function AdminPage() {
 
 	const viewOptions = useMemo(
 		() => [
-			{ value: "all" as const, label: "全部工具", count: tools.length },
+			{
+				value: "all" as const,
+				label: t("admin.view.all"),
+				count: tools.length,
+			},
 			{
 				value: "internal" as const,
-				label: "内部工具",
+				label: t("admin.view.internal"),
 				count: internalTools.length,
 			},
 			{
 				value: "external" as const,
-				label: "外部工具",
+				label: t("admin.view.external"),
 				count: externalTools.length,
 			},
 		],
-		[tools.length, internalTools.length, externalTools.length],
+		[tools.length, internalTools.length, externalTools.length, t],
 	);
 
 	return (
 		<ProtectedRoute requiredRoles="developer">
 			<AdminLayout
-				title="工具管理"
-				description="管理和配置平台工具，支持添加自定义工具"
+				title={t("admin.layout.title")}
+				description={t("admin.layout.description")}
 				actions={
 					<div className="flex gap-2">
 						<Button
@@ -409,14 +425,14 @@ export default function AdminPage() {
 							className="gap-2"
 						>
 							<Download className="h-4 w-4" />
-							导出数据
+							{t("admin.export")}
 						</Button>
 						<Button
 							onClick={() => setIsFormOpen(true)}
 							className="gap-2 shadow-lg shadow-primary/25"
 						>
 							<Plus className="h-4 w-4" />
-							添加工具
+							{t("admin.addTool")}
 						</Button>
 					</div>
 				}
@@ -425,25 +441,25 @@ export default function AdminPage() {
 					{/* 统计卡片 */}
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 						<StatCard
-							title="总工具数"
+							title={t("admin.stat.totalTools")}
 							value={tools.length}
 							icon={<Layers className="h-6 w-6" />}
 							color="blue"
 						/>
 						<StatCard
-							title="分类数"
+							title={t("admin.stat.categories")}
 							value={categories.length}
 							icon={<FolderOpen className="h-6 w-6" />}
 							color="purple"
 						/>
 						<StatCard
-							title="内部工具"
+							title={t("admin.stat.internal")}
 							value={internalTools.length}
 							icon={<Wrench className="h-6 w-6" />}
 							color="emerald"
 						/>
 						<StatCard
-							title="外部工具"
+							title={t("admin.stat.external")}
 							value={externalTools.length}
 							icon={<ExternalLink className="h-6 w-6" />}
 							color="amber"
@@ -458,21 +474,21 @@ export default function AdminPage() {
 								className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm px-4 py-2"
 							>
 								<Wrench className="h-4 w-4 mr-2" />
-								工具管理
+								{t("admin.tab.tools")}
 							</TabsTrigger>
 							<TabsTrigger
 								value="usage"
 								className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm px-4 py-2"
 							>
 								<TrendingUp className="h-4 w-4 mr-2" />
-								使用看板
+								{t("admin.tab.usage")}
 							</TabsTrigger>
 							<TabsTrigger
 								value="categories"
 								className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm px-4 py-2"
 							>
 								<FolderOpen className="h-4 w-4 mr-2" />
-								分类管理
+								{t("admin.tab.categories")}
 							</TabsTrigger>
 						</TabsList>
 
@@ -485,13 +501,13 @@ export default function AdminPage() {
 										<Input
 											value={searchTerm}
 											onChange={(event) => setSearchTerm(event.target.value)}
-											placeholder="搜索工具名称、标签或描述..."
+											placeholder={t("admin.search.placeholder")}
 											className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary/20"
 										/>
 									</div>
 									<div className="flex flex-wrap items-center gap-2">
 										<span className="text-xs uppercase tracking-wide text-slate-500 font-medium">
-											状态筛选
+											{t("admin.filter.label")}
 										</span>
 										{statusOptions.map((option) => (
 											<Button
@@ -567,7 +583,9 @@ export default function AdminPage() {
 										<div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
 											<Activity className="h-6 w-6 text-slate-400" />
 										</div>
-										<p className="text-slate-500">暂无使用记录</p>
+										<p className="text-slate-500">
+											{t("admin.noUsageRecords")}
+										</p>
 									</CardContent>
 								</Card>
 							) : (
@@ -578,9 +596,11 @@ export default function AdminPage() {
 												<Flame className="h-5 w-5" />
 											</div>
 											<div>
-												<CardTitle className="text-lg">最近使用热点</CardTitle>
+												<CardTitle className="text-lg">
+													{t("admin.usageHotspot.title")}
+												</CardTitle>
 												<CardDescription>
-													关注调用次数较多的工具，及时评估容量与支持
+													{t("admin.usageHotspot.description")}
 												</CardDescription>
 											</div>
 										</div>
@@ -613,13 +633,18 @@ export default function AdminPage() {
 													<div>
 														<p className="text-sm font-medium">{stat.name}</p>
 														<p className="text-xs text-slate-500">
-															{stat.usageCount} 次使用 ·{" "}
-															{stat.isInternal ? "内部" : "外部"}
+															{t("admin.usageCount", {
+																count: stat.usageCount,
+															})}{" "}
+															·{" "}
+															{stat.isInternal
+																? t("admin.toolType.internal")
+																: t("admin.toolType.external")}
 														</p>
 													</div>
 												</div>
 												<div className="text-xs text-slate-500">
-													最后使用：
+													{t("admin.lastUsed")}
 													{stat.lastUsed
 														? stat.lastUsed.replace("T", " ")
 														: "--"}
@@ -634,9 +659,11 @@ export default function AdminPage() {
 						<TabsContent value="categories" className="space-y-4 mt-6">
 							<div className="flex justify-between items-center">
 								<div>
-									<h3 className="text-lg font-semibold">分类管理</h3>
+									<h3 className="text-lg font-semibold">
+										{t("admin.categories.title")}
+									</h3>
 									<p className="text-sm text-slate-500">
-										管理工具分类，用于组织和筛选工具
+										{t("admin.categories.description")}
 									</p>
 								</div>
 								<Button
@@ -644,7 +671,7 @@ export default function AdminPage() {
 									className="gap-2 shadow-lg shadow-primary/25"
 								>
 									<Plus className="h-4 w-4" />
-									添加分类
+									{t("admin.addCategory")}
 								</Button>
 							</div>
 							<CategoryList
@@ -664,7 +691,7 @@ export default function AdminPage() {
 					onClose={handleFormClose}
 					onSubmit={editingTool ? handleUpdateTool : handleAddTool}
 					initialData={editingTool}
-					title={editingTool ? "编辑工具" : "添加工具"}
+					title={editingTool ? t("admin.editTool") : t("admin.addTool")}
 					loading={formLoading}
 				/>
 
@@ -673,7 +700,9 @@ export default function AdminPage() {
 					onClose={handleCategoryFormClose}
 					onSubmit={editingCategory ? handleUpdateCategory : handleAddCategory}
 					initialData={editingCategory}
-					title={editingCategory ? "编辑分类" : "添加分类"}
+					title={
+						editingCategory ? t("admin.editCategory") : t("admin.addCategory")
+					}
 					loading={categoryFormLoading}
 				/>
 			</AdminLayout>

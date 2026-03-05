@@ -9,6 +9,7 @@ import {
 	Video,
 } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { useToast } from "~/components/ui/use-toast";
@@ -60,6 +61,7 @@ function classifyFile(file: File): UploadPreview["kind"] {
 }
 
 export default function FileUploaderTool() {
+	const { t } = useTranslation();
 	const [items, setItems] = useState<UploadPreview[]>([]);
 	const [uploaded, setUploaded] = useState<UploadedItem[]>([]);
 	const [isDragging, setDragging] = useState(false);
@@ -137,12 +139,17 @@ export default function FileUploaderTool() {
 				}),
 			);
 			toast({
-				title: "上传成功",
-				description: `已上传 ${data.files.length} 个文件`,
+				title: t("tools.fileUploader.success.title"),
+				description: t("tools.fileUploader.success.description", {
+					count: data.files.length,
+				}),
 			});
 			setItems([]);
 		} catch (e: any) {
-			toast({ title: "上传失败", description: e?.message || "请稍后重试" });
+			toast({
+				title: t("tools.fileUploader.error.title"),
+				description: e?.message || t("tools.fileUploader.error.retry"),
+			});
 		} finally {
 			setUploading(false);
 		}
@@ -152,7 +159,7 @@ export default function FileUploaderTool() {
 		if (!url) return;
 		try {
 			await navigator.clipboard.writeText(url);
-			toast({ title: `${name} 已复制到剪贴板` });
+			toast({ title: t("tools.fileUploader.copied", { name }) });
 			// 添加到已复制列表，1秒后移除
 			const key = `${name}`;
 			setCopiedItems((prev) => new Set(prev).add(key));
@@ -177,8 +184,8 @@ export default function FileUploaderTool() {
 		<div className="space-y-6">
 			<ToolPageHeader
 				icon={<Upload className="h-5 w-5" />}
-				title="图片资源上传（CDN）"
-				description="上传和管理文件，支持预览和 URL 生成"
+				title={t("tools.fileUploader.title")}
+				description={t("tools.fileUploader.description")}
 			/>
 
 			<div
@@ -196,9 +203,11 @@ export default function FileUploaderTool() {
 				}
 			>
 				<Upload className="h-10 w-10 text-muted-foreground" />
-				<p className="text-sm text-muted-foreground">拖放文件到此，或</p>
+				<p className="text-sm text-muted-foreground">
+					{t("tools.fileUploader.dropzone.text")}
+				</p>
 				<Button type="button" variant="secondary" onClick={onChooseClick}>
-					选择文件
+					{t("tools.fileUploader.dropzone.button")}
 				</Button>
 				<input
 					ref={inputRef}
@@ -213,15 +222,19 @@ export default function FileUploaderTool() {
 				<div className="space-y-4">
 					<div className="flex items-center justify-between">
 						<p className="text-sm text-muted-foreground">
-							待上传：{items.length} 个文件，合计{" "}
-							{(totalSize / 1024).toFixed(1)} KB
+							{t("tools.fileUploader.pending.count", {
+								count: items.length,
+								size: (totalSize / 1024).toFixed(1),
+							})}
 						</p>
 						<div className="flex gap-2">
 							<Button variant="ghost" onClick={clearAll}>
-								<Trash2 className="h-4 w-4" /> 清空
+								<Trash2 className="h-4 w-4" /> {t("tools.fileUploader.clear")}
 							</Button>
 							<Button onClick={upload} disabled={isUploading}>
-								{isUploading ? "上传中..." : "开始上传"}
+								{isUploading
+									? t("tools.fileUploader.uploading")
+									: t("tools.fileUploader.upload")}
 							</Button>
 						</div>
 					</div>
@@ -284,7 +297,9 @@ export default function FileUploaderTool() {
 
 			{uploaded.length > 0 && (
 				<div className="space-y-3">
-					<h2 className="text-lg font-medium">上传结果</h2>
+					<h2 className="text-lg font-medium">
+						{t("tools.fileUploader.results")}
+					</h2>
 					<ul className="flex justify-start flex-wrap">
 						{uploaded.map((f, i) => (
 							<li key={i} className="mr-2 mb-2 p-3 border">

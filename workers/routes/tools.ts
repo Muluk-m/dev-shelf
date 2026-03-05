@@ -22,7 +22,7 @@ function getCacheContext(c: any): CacheContext {
 // 获取初始化数据（工具、分类、使用统计）
 toolsRouter.get("/init", async (c) => {
 	try {
-		const userId = (c.get("userId" as never) as string | null);
+		const userId = c.get("userId" as never) as string | null;
 
 		// 并行获取所有数据
 		const [allTools, toolCategories, usageStats] = await Promise.all([
@@ -67,7 +67,7 @@ toolsRouter.get("/analytics/usage", async (c) => {
 // 获取所有工具
 toolsRouter.get("/", async (c) => {
 	try {
-		const userId = (c.get("userId" as never) as string | null);
+		const userId = c.get("userId" as never) as string | null;
 
 		// 获取所有工具（带缓存）
 		const allTools = await toolsDb.getTools(c.env.DB, getCacheContext(c));
@@ -109,7 +109,7 @@ toolsRouter.post("/:id/usage", async (c) => {
 toolsRouter.get("/:id/access", async (c) => {
 	try {
 		const toolIdOrSlug = c.req.param("id");
-		const userId = (c.get("userId" as never) as string | null);
+		const userId = c.get("userId" as never) as string | null;
 
 		// 获取所有工具
 		const allTools = await toolsDb.getTools(c.env.DB, getCacheContext(c));
@@ -161,7 +161,7 @@ toolsRouter.get("/:id/access", async (c) => {
 toolsRouter.get("/:id", async (c) => {
 	try {
 		const toolId = c.req.param("id");
-		const userId = (c.get("userId" as never) as string | null);
+		const userId = c.get("userId" as never) as string | null;
 
 		// 检查访问权限
 		const accessCheck = await checkToolAccess(c.env.DB, toolId, userId);

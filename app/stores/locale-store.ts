@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { Locale } from "~/i18n/translations";
+
+export type Locale = "zh-CN" | "en";
 
 interface LocaleState {
 	locale: Locale;
@@ -11,7 +12,12 @@ export const useLocaleStore = create<LocaleState>()(
 	persist(
 		(set) => ({
 			locale: "zh-CN",
-			setLocale: (locale) => set({ locale }),
+			setLocale: (locale) => {
+				import("~/lib/i18n").then(({ default: i18next }) => {
+					i18next.changeLanguage(locale);
+				});
+				set({ locale });
+			},
 		}),
 		{
 			name: "locale",

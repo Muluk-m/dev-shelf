@@ -1,5 +1,6 @@
 import { Check, Copy, Link, RefreshCw, Repeat } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -13,7 +14,8 @@ import type { Route } from "./+types/tools.url-encoder";
 export const toolMeta: BuiltinToolMeta = {
 	id: "url-encoder",
 	name: "URL 编解码",
-	description: "Encode and decode URLs with encodeURIComponent and decodeURIComponent",
+	description:
+		"Encode and decode URLs with encodeURIComponent and decodeURIComponent",
 	icon: "Link",
 	category: "builtin",
 	tags: ["url", "encode", "decode"],
@@ -31,6 +33,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function URLEncoderPage() {
+	const { t } = useTranslation();
 	const [mode, setMode] = useState<"encode" | "decode">("encode");
 	const [input, setInput] = useState("");
 	const [output, setOutput] = useState("");
@@ -60,7 +63,11 @@ export default function URLEncoderPage() {
 			}
 			setError("");
 		} catch (err) {
-			setError(`转换失败：${(err as Error).message}`);
+			setError(
+				t("tools.urlEncoder.error.convert", {
+					message: (err as Error).message,
+				}),
+			);
 			setOutput("");
 		}
 	}, [input, mode, encodeComponent]);
@@ -79,7 +86,9 @@ export default function URLEncoderPage() {
 			setCopied(true);
 			setTimeout(() => setCopied(false), 2000);
 		} catch (err) {
-			setError(`复制失败：${(err as Error).message}`);
+			setError(
+				t("tools.urlEncoder.error.copy", { message: (err as Error).message }),
+			);
 		}
 	};
 
@@ -97,21 +106,21 @@ export default function URLEncoderPage() {
 					<ToolPageHeader
 						icon={<Link className="h-5 w-5" />}
 						title="URL 编解码工具"
-						description="支持 URL 编码/解码、encodeURI 和 encodeURIComponent 两种模式，处理特殊字符和中文"
+						description={t("tools.urlEncoder.description")}
 					/>
 
 					<Card className="flex-1 flex flex-col min-h-0">
 						<CardHeader className="pb-3">
 							<CardTitle className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<span>转换面板</span>
+								<span>{t("tools.urlEncoder.panelTitle")}</span>
 								<div className="flex items-center gap-2">
 									<Button variant="outline" size="sm" onClick={handleSwap}>
 										<Repeat className="mr-2 h-4 w-4" />
-										交换输入与输出
+										{t("tools.urlEncoder.swap")}
 									</Button>
 									<Button variant="outline" size="sm" onClick={reset}>
 										<RefreshCw className="mr-2 h-4 w-4" />
-										清空
+										{t("tools.urlEncoder.clear")}
 									</Button>
 								</div>
 							</CardTitle>
@@ -127,14 +136,20 @@ export default function URLEncoderPage() {
 								className="flex-1 flex flex-col"
 							>
 								<TabsList className="grid w-full grid-cols-2">
-									<TabsTrigger value="encode">URL 编码</TabsTrigger>
-									<TabsTrigger value="decode">URL 解码</TabsTrigger>
+									<TabsTrigger value="encode">
+										{t("tools.urlEncoder.tabs.encode")}
+									</TabsTrigger>
+									<TabsTrigger value="decode">
+										{t("tools.urlEncoder.tabs.decode")}
+									</TabsTrigger>
 								</TabsList>
 
 								<div className="flex-1 grid grid-cols-1 gap-4 lg:grid-cols-2 min-h-0 mt-4">
 									<div className="flex flex-col space-y-3 min-h-0">
 										<Label htmlFor="url-input" className="text-sm">
-											{mode === "encode" ? "待编码文本" : "URL 编码字符串"}
+											{mode === "encode"
+												? t("tools.urlEncoder.input.encode")
+												: t("tools.urlEncoder.input.decode")}
 										</Label>
 										<Textarea
 											id="url-input"
@@ -151,11 +166,13 @@ export default function URLEncoderPage() {
 										{mode === "encode" && (
 											<div className="flex items-center justify-between rounded-md border p-2">
 												<div>
-													<p className="text-sm font-medium">编码模式</p>
+													<p className="text-sm font-medium">
+														{t("tools.urlEncoder.encodeMode.label")}
+													</p>
 													<p className="text-xs text-muted-foreground">
 														{encodeComponent
-															? "encodeURIComponent - 编码所有特殊字符"
-															: "encodeURI - 保留 URL 结构字符"}
+															? t("tools.urlEncoder.encodeMode.component")
+															: t("tools.urlEncoder.encodeMode.uri")}
 													</p>
 												</div>
 												<div className="flex items-center gap-2">
@@ -174,14 +191,14 @@ export default function URLEncoderPage() {
 
 									<div className="flex flex-col space-y-3 min-h-0">
 										<Label htmlFor="url-output" className="text-sm">
-											转换结果
+											{t("tools.urlEncoder.output.label")}
 										</Label>
 										<Textarea
 											id="url-output"
 											value={output}
 											readOnly
 											className="flex-1 font-mono text-sm resize-none"
-											placeholder="结果将在此显示"
+											placeholder={t("tools.urlEncoder.output.placeholder")}
 										/>
 
 										<div className="flex gap-2">
@@ -195,12 +212,12 @@ export default function URLEncoderPage() {
 												{copied ? (
 													<>
 														<Check className="mr-2 h-4 w-4 text-green-600" />
-														已复制
+														{t("tools.urlEncoder.copied")}
 													</>
 												) : (
 													<>
 														<Copy className="mr-2 h-4 w-4" />
-														复制结果
+														{t("tools.urlEncoder.copy")}
 													</>
 												)}
 											</Button>

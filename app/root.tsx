@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useLocaleStore } from "~/stores/locale-store";
 import {
 	isRouteErrorResponse,
 	Links,
@@ -16,6 +15,8 @@ import { Toaster } from "~/components/ui/sonner";
 import { CommandPanelProvider } from "~/context/command-panel-context";
 import { useSetupStatus } from "~/hooks/use-setup-status";
 import { useToolsInit } from "~/hooks/use-tools-query";
+import i18next from "~/lib/i18n";
+import { useLocaleStore } from "~/stores/locale-store";
 import { useToolsStore } from "~/stores/tools-store";
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -105,6 +106,9 @@ function AppContent() {
 
 	useEffect(() => {
 		document.documentElement.lang = locale;
+		if (i18next.language !== locale) {
+			i18next.changeLanguage(locale);
+		}
 	}, [locale]);
 
 	// Use cached tools immediately, query will update in background

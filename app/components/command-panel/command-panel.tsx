@@ -17,6 +17,7 @@ import {
 	Wrench,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { ToolIcon } from "~/components/tool-icon";
 import { Badge } from "~/components/ui/badge";
 import {
 	Dialog,
@@ -174,11 +175,9 @@ export function CommandPanel({
 															>
 																<div className="flex-shrink-0">
 																	{command.iconUrl ? (
-																		<img
-																			src={command.iconUrl}
-																			alt={command.title}
-																			className="h-6 w-6 rounded-sm object-cover"
-																			loading="lazy"
+																		<ToolIcon
+																			icon={command.iconUrl}
+																			className="h-5 w-5 text-muted-foreground"
 																		/>
 																	) : (
 																		<IconComponent className="h-4 w-4 text-muted-foreground" />

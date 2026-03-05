@@ -1,5 +1,6 @@
 import { GitCompare, RefreshCcw } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -158,6 +159,7 @@ function renderNode(n: DiffNode, onlyDiff: boolean, level: number): ReactNode {
 }
 
 export default function JsonDiffTool() {
+	const { t } = useTranslation();
 	const [left, setLeft] = useState<string>("");
 	const [right, setRight] = useState<string>("");
 	const [onlyDiff, setOnlyDiff] = useState<boolean>(false);
@@ -170,12 +172,12 @@ export default function JsonDiffTool() {
 		try {
 			a = left.trim() ? (JSON.parse(left) as JsonValue) : null;
 		} catch (_e) {
-			errL = "左侧 JSON 解析失败";
+			errL = t("tools.jsonDiff.error.left");
 		}
 		try {
 			b = right.trim() ? (JSON.parse(right) as JsonValue) : null;
 		} catch (_e) {
-			errR = "右侧 JSON 解析失败";
+			errR = t("tools.jsonDiff.error.right");
 		}
 
 		if (errL || errR)
@@ -219,7 +221,7 @@ export default function JsonDiffTool() {
 					<ToolPageHeader
 						icon={<GitCompare className="h-5 w-5" />}
 						title="JSON Diff"
-						description="比较两个 JSON 对象并查看差异"
+						description={t("tools.jsonDiff.description")}
 					/>
 
 					<div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
@@ -227,9 +229,9 @@ export default function JsonDiffTool() {
 							<Card className="flex-1 flex flex-col min-h-0">
 								<CardHeader className="pb-3 flex-shrink-0">
 									<CardTitle className="text-base flex items-center justify-between">
-										<span>JSON A (原始)</span>
+										<span>{t("tools.jsonDiff.leftTitle")}</span>
 										<Button variant="ghost" size="sm" onClick={formatLeft}>
-											格式化
+											{t("tools.jsonDiff.format")}
 										</Button>
 									</CardTitle>
 								</CardHeader>
@@ -237,7 +239,7 @@ export default function JsonDiffTool() {
 									<Textarea
 										value={left}
 										onChange={(e) => setLeft(e.target.value)}
-										placeholder="粘贴第一个 JSON..."
+										placeholder={t("tools.jsonDiff.leftPlaceholder")}
 										className={`flex-1 font-mono text-sm resize-none min-h-[200px] ${
 											errorLeft ? "border-destructive" : ""
 										}`}
@@ -253,14 +255,14 @@ export default function JsonDiffTool() {
 							<Card className="flex-1 flex flex-col min-h-0">
 								<CardHeader className="pb-3 flex-shrink-0">
 									<CardTitle className="text-base flex items-center justify-between">
-										<span>JSON B (修改后)</span>
+										<span>{t("tools.jsonDiff.rightTitle")}</span>
 										<div className="flex gap-2">
 											<Button variant="ghost" size="sm" onClick={formatRight}>
-												格式化
+												{t("tools.jsonDiff.format")}
 											</Button>
 											<Button variant="outline" size="sm" onClick={swapInputs}>
 												<RefreshCcw className="h-3 w-3 mr-1" />
-												交换
+												{t("tools.jsonDiff.swap")}
 											</Button>
 										</div>
 									</CardTitle>
@@ -269,7 +271,7 @@ export default function JsonDiffTool() {
 									<Textarea
 										value={right}
 										onChange={(e) => setRight(e.target.value)}
-										placeholder="粘贴第二个 JSON..."
+										placeholder={t("tools.jsonDiff.rightPlaceholder")}
 										className={`flex-1 font-mono text-sm resize-none min-h-[200px] ${
 											errorRight ? "border-destructive" : ""
 										}`}
@@ -286,10 +288,10 @@ export default function JsonDiffTool() {
 						<Card className="lg:w-1/2 flex-1 flex flex-col min-h-0">
 							<CardHeader className="pb-3 flex-shrink-0">
 								<CardTitle className="text-base flex items-center justify-between">
-									<span>差异结果</span>
+									<span>{t("tools.jsonDiff.result")}</span>
 									<div className="flex items-center gap-2">
 										<span className="text-sm text-muted-foreground">
-											仅显示差异
+											{t("tools.jsonDiff.onlyDiff")}
 										</span>
 										<Switch checked={onlyDiff} onCheckedChange={setOnlyDiff} />
 									</div>
@@ -299,11 +301,15 @@ export default function JsonDiffTool() {
 								<div className="flex gap-4 text-sm mb-4">
 									<div className="flex items-center gap-2">
 										<div className="w-3 h-3 bg-green-500/20 border border-green-500 rounded" />
-										<span className="text-muted-foreground">新增</span>
+										<span className="text-muted-foreground">
+											{t("tools.jsonDiff.added")}
+										</span>
 									</div>
 									<div className="flex items-center gap-2">
 										<div className="w-3 h-3 bg-red-500/20 border border-red-500 rounded" />
-										<span className="text-muted-foreground">删除</span>
+										<span className="text-muted-foreground">
+											{t("tools.jsonDiff.removed")}
+										</span>
 									</div>
 								</div>
 								<pre
@@ -315,7 +321,7 @@ export default function JsonDiffTool() {
 								>
 									{rendered ?? (
 										<span className="text-muted-foreground">
-											在左侧输入两个 JSON 进行比较
+											{t("tools.jsonDiff.placeholder")}
 										</span>
 									)}
 								</pre>

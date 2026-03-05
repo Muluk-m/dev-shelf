@@ -1,4 +1,5 @@
 import { Command, Home, Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { LanguageToggle } from "~/components/language-toggle";
 import { SearchInput } from "~/components/search/search-input";
@@ -6,7 +7,6 @@ import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { UserProfile } from "~/components/user-profile";
 import { useCommandPanelContext } from "~/context/command-panel-context";
-import { useI18n } from "~/hooks/use-i18n";
 import { usePermissions } from "~/hooks/use-permissions";
 import { cn } from "~/lib/utils";
 import logo from "../../../public/logo.svg";
@@ -33,7 +33,7 @@ export function Header({
 	const commandPanel = useCommandPanelContext();
 	const { hasRole } = usePermissions();
 	const location = useLocation();
-	const { t } = useI18n();
+	const { t } = useTranslation();
 	const handleOpenCommandPanel = onOpenCommandPanel ?? commandPanel?.openPanel;
 
 	const isActive = (path: string) => location.pathname === path;
@@ -65,35 +65,37 @@ export function Header({
 
 						{/* Navigation */}
 						<nav className="hidden md:flex items-center gap-1">
-							<Link to="/">
+							<Button
+								variant="ghost"
+								size="sm"
+								asChild
+								className={cn(
+									"gap-2 rounded-lg transition-all duration-200",
+									isActive("/") &&
+										"bg-primary/10 text-primary hover:bg-primary/15",
+								)}
+							>
+								<Link to="/">
+									<Home className="h-4 w-4" />
+									{t("nav.home")}
+								</Link>
+							</Button>
+							{hasRole("admin") && (
 								<Button
 									variant="ghost"
 									size="sm"
+									asChild
 									className={cn(
 										"gap-2 rounded-lg transition-all duration-200",
-										isActive("/") &&
+										isActive("/admin") &&
 											"bg-primary/10 text-primary hover:bg-primary/15",
 									)}
 								>
-									<Home className="h-4 w-4" />
-									{t("nav.home")}
-								</Button>
-							</Link>
-							{hasRole("admin") && (
-								<Link to="/admin">
-									<Button
-										variant="ghost"
-										size="sm"
-										className={cn(
-											"gap-2 rounded-lg transition-all duration-200",
-											isActive("/admin") &&
-												"bg-primary/10 text-primary hover:bg-primary/15",
-										)}
-									>
+									<Link to="/admin">
 										<Settings className="h-4 w-4" />
 										{t("nav.admin")}
-									</Button>
-								</Link>
+									</Link>
+								</Button>
 							)}
 						</nav>
 					</div>

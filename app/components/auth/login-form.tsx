@@ -1,5 +1,6 @@
 import { Lock, User } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -13,7 +14,6 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useI18n } from "~/hooks/use-i18n";
 import { login } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
@@ -25,7 +25,7 @@ export function LoginForm() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 	const setUserInfo = useUserInfoStore((s) => s.setUserInfo);
-	const { t } = useI18n();
+	const { t } = useTranslation();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -60,9 +60,7 @@ export function LoginForm() {
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">
 				<CardTitle className="text-2xl">{t("auth.login.title")}</CardTitle>
-				<CardDescription>
-					{t("auth.login.subtitle")}
-				</CardDescription>
+				<CardDescription>{t("auth.login.subtitle")}</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
 				<CardContent className="space-y-4">
@@ -104,11 +102,7 @@ export function LoginForm() {
 					</div>
 				</CardContent>
 				<CardFooter className="flex flex-col gap-4">
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={loading}
-					>
+					<Button type="submit" className="w-full" disabled={loading}>
 						{loading ? t("auth.login.loading") : t("auth.login.submit")}
 					</Button>
 					<p className="text-sm text-muted-foreground text-center">

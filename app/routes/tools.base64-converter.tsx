@@ -1,5 +1,6 @@
 import { Binary, Check, Copy, RefreshCw, Repeat } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -59,6 +60,7 @@ const decodeBase64 = (value: string) => {
 };
 
 export default function Base64ConverterPage() {
+	const { t } = useTranslation();
 	const [mode, setMode] = useState<"encode" | "decode">("encode");
 	const [input, setInput] = useState("");
 	const [output, setOutput] = useState("");
@@ -90,7 +92,9 @@ export default function Base64ConverterPage() {
 			}
 			setError("");
 		} catch (err) {
-			setError(`转换失败：${(err as Error).message}`);
+			setError(
+				t("tools.base64.error.convert", { message: (err as Error).message }),
+			);
 			setOutput("");
 		}
 	}, [input, mode, wrapLines, lineLength]);
@@ -109,7 +113,9 @@ export default function Base64ConverterPage() {
 			setCopied(true);
 			setTimeout(() => setCopied(false), 2000);
 		} catch (err) {
-			setError(`复制失败：${(err as Error).message}`);
+			setError(
+				t("tools.base64.error.copy", { message: (err as Error).message }),
+			);
 		}
 	};
 
@@ -127,21 +133,21 @@ export default function Base64ConverterPage() {
 					<ToolPageHeader
 						icon={<Binary className="h-5 w-5" />}
 						title="Base64 编解码工具"
-						description="支持文本编码/解码、按列换行以及结果一键复制，方便处理日志和令牌"
+						description={t("tools.base64.description")}
 					/>
 
 					<Card className="flex-1 flex flex-col min-h-0">
 						<CardHeader className="pb-3">
 							<CardTitle className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<span>转换面板</span>
+								<span>{t("tools.base64.panelTitle")}</span>
 								<div className="flex items-center gap-2">
 									<Button variant="outline" size="sm" onClick={handleSwap}>
 										<Repeat className="mr-2 h-4 w-4" />
-										交换输入与输出
+										{t("tools.base64.swap")}
 									</Button>
 									<Button variant="outline" size="sm" onClick={reset}>
 										<RefreshCw className="mr-2 h-4 w-4" />
-										清空
+										{t("tools.base64.clear")}
 									</Button>
 								</div>
 							</CardTitle>
@@ -157,14 +163,20 @@ export default function Base64ConverterPage() {
 								className="flex-1 flex flex-col"
 							>
 								<TabsList className="grid w-full grid-cols-2">
-									<TabsTrigger value="encode">Base64 编码</TabsTrigger>
-									<TabsTrigger value="decode">Base64 解码</TabsTrigger>
+									<TabsTrigger value="encode">
+										{t("tools.base64.tabs.encode")}
+									</TabsTrigger>
+									<TabsTrigger value="decode">
+										{t("tools.base64.tabs.decode")}
+									</TabsTrigger>
 								</TabsList>
 
 								<div className="flex-1 grid grid-cols-1 gap-4 lg:grid-cols-2 min-h-0 mt-4">
 									<div className="flex flex-col space-y-3 min-h-0">
 										<Label htmlFor="base64-input" className="text-sm">
-											{mode === "encode" ? "待编码文本" : "Base64 字符串"}
+											{mode === "encode"
+												? t("tools.base64.input.encode")
+												: t("tools.base64.input.decode")}
 										</Label>
 										<Textarea
 											id="base64-input"
@@ -173,17 +185,19 @@ export default function Base64ConverterPage() {
 											className="flex-1 font-mono text-sm resize-none"
 											placeholder={
 												mode === "encode"
-													? "粘贴需要编码的内容，例如 JSON、日志或明文"
-													: "粘贴 Base64 字符串，例如 token、配置或日志片段"
+													? t("tools.base64.input.encodePlaceholder")
+													: t("tools.base64.input.decodePlaceholder")
 											}
 										/>
 
 										{mode === "encode" && (
 											<div className="flex items-center justify-between rounded-md border p-2">
 												<div>
-													<p className="text-sm font-medium">启用换行</p>
+													<p className="text-sm font-medium">
+														{t("tools.base64.wrapLines.label")}
+													</p>
 													<p className="text-xs text-muted-foreground">
-														超过指定列长后自动换行
+														{t("tools.base64.wrapLines.hint")}
 													</p>
 												</div>
 												<div className="flex items-center gap-2">
@@ -210,14 +224,14 @@ export default function Base64ConverterPage() {
 
 									<div className="flex flex-col space-y-3 min-h-0">
 										<Label htmlFor="base64-output" className="text-sm">
-											转换结果
+											{t("tools.base64.output.label")}
 										</Label>
 										<Textarea
 											id="base64-output"
 											value={output}
 											readOnly
 											className="flex-1 font-mono text-sm resize-none"
-											placeholder="结果将在此显示"
+											placeholder={t("tools.base64.output.placeholder")}
 										/>
 
 										<div className="flex gap-2">
@@ -231,12 +245,12 @@ export default function Base64ConverterPage() {
 												{copied ? (
 													<>
 														<Check className="mr-2 h-4 w-4 text-green-600" />
-														已复制
+														{t("tools.base64.copied")}
 													</>
 												) : (
 													<>
 														<Copy className="mr-2 h-4 w-4" />
-														复制结果
+														{t("tools.base64.copy")}
 													</>
 												)}
 											</Button>
@@ -256,11 +270,9 @@ export default function Base64ConverterPage() {
 					{/* 使用提示 - 紧凑版 */}
 					<Card className="flex-shrink-0">
 						<CardContent className="pt-3 space-y-1 text-xs text-muted-foreground">
-							<p>• 编码/解码均采用 UTF-8，可处理多语言字符和 emoji。</p>
-							<p>• 解码前自动移除空白字符，方便从日志、配置中直接粘贴。</p>
-							<p>
-								• 处理 JWT、URL Safe Base64 时，可在结果中手动替换 `+` `/` `=`。
-							</p>
+							<p>{t("tools.base64.tips.utf8")}</p>
+							<p>{t("tools.base64.tips.whitespace")}</p>
+							<p>{t("tools.base64.tips.jwtNote")}</p>
 						</CardContent>
 					</Card>
 				</div>

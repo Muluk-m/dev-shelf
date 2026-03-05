@@ -1,6 +1,7 @@
 import { Download, QrCode } from "lucide-react";
 import QRCodeStyling, { type Extension, type Options } from "qr-code-styling";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -46,6 +47,7 @@ type DotsShape =
 type CornerShape = "square" | "dot";
 
 export default function QRCodeMaker() {
+	const { t } = useTranslation();
 	const [text, setText] = useState<string>("https://example.com");
 	const [size, setSize] = useState<number>(300);
 	const [margin, setMargin] = useState<number>(10);
@@ -136,18 +138,20 @@ export default function QRCodeMaker() {
 				<div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
 					<ToolPageHeader
 						icon={<QrCode className="h-5 w-5" />}
-						title="二维码生成器"
-						description="生成可自定义样式的二维码，支持多种形状、渐变色和下载格式"
+						title={t("tools.qrGenerator.title")}
+						description={t("tools.qrGenerator.description")}
 					/>
 
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
 						<Card className="flex flex-col">
 							<CardHeader className="pb-4">
-								<CardTitle className="text-base">配置选项</CardTitle>
+								<CardTitle className="text-base">
+									{t("tools.qrGenerator.config.title")}
+								</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-6 flex-1">
 								<div className="space-y-2">
-									<Label htmlFor="text">内容 / URL</Label>
+									<Label htmlFor="text">{t("tools.qrGenerator.content")}</Label>
 									<Input
 										id="text"
 										value={text}
@@ -158,7 +162,7 @@ export default function QRCodeMaker() {
 
 								<div className="grid grid-cols-2 gap-4">
 									<div className="space-y-2">
-										<Label htmlFor="size">尺寸 (px)</Label>
+										<Label htmlFor="size">{t("tools.qrGenerator.size")}</Label>
 										<Input
 											id="size"
 											type="number"
@@ -176,7 +180,9 @@ export default function QRCodeMaker() {
 										/>
 									</div>
 									<div className="space-y-2">
-										<Label htmlFor="margin">边距</Label>
+										<Label htmlFor="margin">
+											{t("tools.qrGenerator.margin")}
+										</Label>
 										<Input
 											id="margin"
 											type="number"
@@ -197,7 +203,9 @@ export default function QRCodeMaker() {
 
 								<div className="grid grid-cols-2 gap-4">
 									<div className="space-y-2">
-										<Label htmlFor="bgColor">背景色</Label>
+										<Label htmlFor="bgColor">
+											{t("tools.qrGenerator.bgColor")}
+										</Label>
 										<div className="flex gap-2">
 											<Input
 												id="bgColor"
@@ -214,7 +222,9 @@ export default function QRCodeMaker() {
 										</div>
 									</div>
 									<div className="space-y-2">
-										<Label htmlFor="fgColor">前景色</Label>
+										<Label htmlFor="fgColor">
+											{t("tools.qrGenerator.fgColor")}
+										</Label>
 										<div className="flex gap-2">
 											<Input
 												id="fgColor"
@@ -234,7 +244,9 @@ export default function QRCodeMaker() {
 
 								<div className="space-y-3">
 									<div className="flex items-center justify-between">
-										<Label htmlFor="gradient">渐变色</Label>
+										<Label htmlFor="gradient">
+											{t("tools.qrGenerator.gradient")}
+										</Label>
 										<Switch
 											id="gradient"
 											checked={gradient}
@@ -245,7 +257,7 @@ export default function QRCodeMaker() {
 										<div className="grid grid-cols-2 gap-4 pl-4 border-l-2 border-primary/20">
 											<div className="space-y-2">
 												<Label className="text-xs text-muted-foreground">
-													起始色
+													{t("tools.qrGenerator.gradStart")}
 												</Label>
 												<div className="flex gap-2">
 													<Input
@@ -263,7 +275,7 @@ export default function QRCodeMaker() {
 											</div>
 											<div className="space-y-2">
 												<Label className="text-xs text-muted-foreground">
-													结束色
+													{t("tools.qrGenerator.gradEnd")}
 												</Label>
 												<div className="flex gap-2">
 													<Input
@@ -284,7 +296,7 @@ export default function QRCodeMaker() {
 								</div>
 
 								<div className="space-y-2">
-									<Label>方块形状</Label>
+									<Label>{t("tools.qrGenerator.dotsShape")}</Label>
 									<Select
 										value={dotsShape}
 										onValueChange={(value) => setDotsShape(value as DotsShape)}
@@ -309,7 +321,7 @@ export default function QRCodeMaker() {
 
 								<div className="grid grid-cols-2 gap-4">
 									<div className="space-y-2">
-										<Label>定位角 (外)</Label>
+										<Label>{t("tools.qrGenerator.cornerOuter")}</Label>
 										<Select
 											value={cornersSquareShape}
 											onValueChange={(value) =>
@@ -326,7 +338,7 @@ export default function QRCodeMaker() {
 										</Select>
 									</div>
 									<div className="space-y-2">
-										<Label>定位角 (内)</Label>
+										<Label>{t("tools.qrGenerator.cornerInner")}</Label>
 										<Select
 											value={cornersDotShape}
 											onValueChange={(value) =>
@@ -348,7 +360,9 @@ export default function QRCodeMaker() {
 
 						<Card className="flex flex-col">
 							<CardHeader className="pb-4">
-								<CardTitle className="text-base">预览</CardTitle>
+								<CardTitle className="text-base">
+									{t("tools.qrGenerator.preview")}
+								</CardTitle>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col items-center justify-center gap-6">
 								<div
@@ -376,7 +390,7 @@ export default function QRCodeMaker() {
 									</Select>
 									<Button onClick={download} className="flex-1 gap-2">
 										<Download className="h-4 w-4" />
-										下载
+										{t("tools.qrGenerator.download")}
 									</Button>
 								</div>
 							</CardContent>

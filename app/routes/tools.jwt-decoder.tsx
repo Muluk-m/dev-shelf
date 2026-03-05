@@ -6,6 +6,7 @@ import {
 	ShieldAlert,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ToolPageHeader } from "~/components/tool-page-header";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -77,7 +78,10 @@ function base64UrlDecode(input: string): string {
 	}
 }
 
-function checkExpiration(payload?: Record<string, unknown>): ExpirationStatus {
+function checkExpiration(
+	payload: Record<string, unknown> | undefined,
+	t: (key: string) => string,
+): ExpirationStatus {
 	if (!payload?.exp || typeof payload.exp !== "number") {
 		return { isExpired: false };
 	}
@@ -99,9 +103,12 @@ function checkExpiration(payload?: Record<string, unknown>): ExpirationStatus {
 	const minutes = Math.floor((diff % 3600) / 60);
 
 	let timeUntilExpiry = "";
-	if (days > 0) timeUntilExpiry += `${days}天 `;
-	if (hours > 0) timeUntilExpiry += `${hours}小时 `;
-	if (minutes > 0 || days === 0) timeUntilExpiry += `${minutes}分钟`;
+	if (days > 0)
+		timeUntilExpiry += `${days}${t("tools.jwtDecoder.timeUnit.days")} `;
+	if (hours > 0)
+		timeUntilExpiry += `${hours}${t("tools.jwtDecoder.timeUnit.hours")} `;
+	if (minutes > 0 || days === 0)
+		timeUntilExpiry += `${minutes}${t("tools.jwtDecoder.timeUnit.minutes")}`;
 
 	return {
 		isExpired: false,
@@ -111,7 +118,10 @@ function checkExpiration(payload?: Record<string, unknown>): ExpirationStatus {
 	};
 }
 
-function parseJwt(token: string): {
+function parseJwt(
+	token: string,
+	t: (key: string) => string,
+): {
 	data: JwtParts | null;
 	error: string | null;
 } {
@@ -120,7 +130,7 @@ function parseJwt(token: string): {
 	if (parts.length !== 3) {
 		return {
 			data: null,
-			error: "JWT 必须包含三段（header.payload.signature）",
+			error: t("tools.jwtDecoder.error.threeSegments"),
 		};
 	}
 	try {
@@ -129,20 +139,21 @@ function parseJwt(token: string): {
 		const signature = parts[2];
 		return { data: { header, payload, signature }, error: null };
 	} catch (_e) {
-		return { data: null, error: "无效的 JWT：解析失败或 Base64URL 非法" };
+		return { data: null, error: t("tools.jwtDecoder.error.parseFailed") };
 	}
 }
 
 export default function JwtDecoderPage() {
+	const { t } = useTranslation();
 	const [jwt, setJwt] = useState(
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 	);
 
-	const { data, error } = useMemo(() => parseJwt(jwt), [jwt]);
+	const { data, error } = useMemo(() => parseJwt(jwt, t), [jwt, t]);
 
 	const expiration = useMemo(
-		() => checkExpiration(data?.payload),
-		[data?.payload],
+		() => checkExpiration(data?.payload, t),
+		[data?.payload, t],
 	);
 
 	const renderObjectRows = (obj?: Record<string, unknown>) => {
@@ -167,18 +178,18 @@ export default function JwtDecoderPage() {
 						<ToolPageHeader
 							icon={<KeyRound className="h-5 w-5" />}
 							title="JWT 解析器"
-							description="解析 JSON Web Token，展示 Header、Payload 和签名"
+							description={t("tools.jwtDecoder.description")}
 						/>
 
 						<Card className="mb-4">
 							<CardContent className="pt-4">
 								<div className="mb-2 text-sm text-muted-foreground">
-									待解析的 JWT
+									{t("tools.jwtDecoder.inputLabel")}
 								</div>
 								<Textarea
 									value={jwt}
 									onChange={(e) => setJwt(e.target.value)}
-									placeholder="在此粘贴你的 JWT (header.payload.signature)"
+									placeholder={t("tools.jwtDecoder.inputPlaceholder")}
 									className={`font-mono text-sm min-h-28 ${
 										error ? "border-destructive bg-destructive/10" : ""
 									}`}
@@ -186,7 +197,7 @@ export default function JwtDecoderPage() {
 								{error && (
 									<div className="flex items-center gap-2 text-destructive mt-2 text-sm">
 										<ShieldAlert className="h-4 w-4" />
-										无效的 JWT
+										{t("tools.jwtDecoder.invalidJwt")}
 									</div>
 								)}
 							</CardContent>
@@ -224,12 +235,14 @@ export default function JwtDecoderPage() {
 												{expiration.isExpired ? (
 													<>
 														<AlertTriangle className="h-3 w-3" />
-														已过期
+														{t("tools.jwtDecoder.expired")}
 													</>
 												) : (
 													<>
 														<BadgeCheck className="h-3 w-3" />
-														{expiration.timeUntilExpiry}后过期
+														{t("tools.jwtDecoder.expiresIn", {
+															time: expiration.timeUntilExpiry,
+														})}
 													</>
 												)}
 											</Badge>
@@ -244,7 +257,9 @@ export default function JwtDecoderPage() {
 														: "bg-muted text-muted-foreground"
 												}`}
 											>
-												过期时间: {expiration.expiresAt}
+												{t("tools.jwtDecoder.expiresAt", {
+													date: expiration.expiresAt,
+												})}
 											</div>
 										)}
 										<Table>
@@ -271,7 +286,7 @@ export default function JwtDecoderPage() {
 										</div>
 										<div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
 											<Clipboard className="h-3 w-3" />
-											签名仅用于展示，未进行校验
+											{t("tools.jwtDecoder.signatureNote")}
 										</div>
 									</CardContent>
 								</Card>

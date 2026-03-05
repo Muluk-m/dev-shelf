@@ -1,10 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import {
-	getUserInfo,
-	logout as logoutApi,
-} from "~/lib/api";
+import { getUserInfo, logout as logoutApi } from "~/lib/api";
 import type { UserInfo } from "~/types/user-info";
 
 interface UserInfoState {

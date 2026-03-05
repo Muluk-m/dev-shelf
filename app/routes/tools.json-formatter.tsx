@@ -9,6 +9,7 @@ import {
 	Upload,
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -197,6 +198,7 @@ function JsonViewer({ src, ...props }: any) {
 }
 
 export default function JsonFormatterPage() {
+	const { t } = useTranslation();
 	const [searchParams] = useSearchParams();
 	const [input, setInput] = useState("");
 	const [output, setOutput] = useState("");
@@ -290,7 +292,11 @@ export default function JsonFormatterPage() {
 			setOutput(formatted);
 			setError("");
 		} catch (err) {
-			setError(`JSON 格式错误: ${(err as Error).message}`);
+			setError(
+				t("tools.jsonFormatter.error.parse", {
+					message: (err as Error).message,
+				}),
+			);
 			setOutput("");
 		}
 	}, [input]);
@@ -308,7 +314,11 @@ export default function JsonFormatterPage() {
 			setQueryResult(result);
 			setQueryError("");
 		} catch (err) {
-			setQueryError(`查询错误: ${(err as Error).message}`);
+			setQueryError(
+				t("tools.jsonFormatter.error.query", {
+					message: (err as Error).message,
+				}),
+			);
 			setQueryResult(null);
 		}
 	}, [jsonPathQuery, parsedJson]);
@@ -320,7 +330,11 @@ export default function JsonFormatterPage() {
 			setOutput(minified);
 			setError("");
 		} catch (err) {
-			setError(`JSON 格式错误: ${(err as Error).message}`);
+			setError(
+				t("tools.jsonFormatter.error.parse", {
+					message: (err as Error).message,
+				}),
+			);
 			setOutput("");
 		}
 	};
@@ -566,13 +580,13 @@ export default function JsonFormatterPage() {
 		try {
 			a = JSON.parse(leftJson) as JsonValue;
 		} catch (_e) {
-			errL = "JSON A 解析失败";
+			errL = t("tools.jsonFormatter.error.leftParse");
 		}
 
 		try {
 			b = JSON.parse(rightJson) as JsonValue;
 		} catch (_e) {
-			errR = "JSON B 解析失败";
+			errR = t("tools.jsonFormatter.error.rightParse");
 		}
 
 		if (errL || errR) {
@@ -605,8 +619,8 @@ export default function JsonFormatterPage() {
 				<div className="max-w-7xl mx-auto flex flex-col h-full space-y-4 w-full">
 					<ToolPageHeader
 						icon={<Braces className="h-5 w-5" />}
-						title="JSON 工具箱"
-						description="格式化、查询、对比和可视化 JSON 数据"
+						title={t("tools.jsonFormatter.title")}
+						description={t("tools.jsonFormatter.description")}
 					/>
 
 					{/* 主功能 Tabs */}
@@ -618,19 +632,27 @@ export default function JsonFormatterPage() {
 						<TabsList className="grid w-full grid-cols-4">
 							<TabsTrigger value="format" className="flex items-center gap-2">
 								<Edit3 className="h-4 w-4" />
-								<span className="hidden sm:inline">格式化</span>
+								<span className="hidden sm:inline">
+									{t("tools.jsonFormatter.tabs.format")}
+								</span>
 							</TabsTrigger>
 							<TabsTrigger value="query" className="flex items-center gap-2">
 								<Search className="h-4 w-4" />
-								<span className="hidden sm:inline">查询</span>
+								<span className="hidden sm:inline">
+									{t("tools.jsonFormatter.tabs.query")}
+								</span>
 							</TabsTrigger>
 							<TabsTrigger value="search" className="flex items-center gap-2">
 								<Search className="h-4 w-4" />
-								<span className="hidden sm:inline">查找替换</span>
+								<span className="hidden sm:inline">
+									{t("tools.jsonFormatter.tabs.search")}
+								</span>
 							</TabsTrigger>
 							<TabsTrigger value="diff" className="flex items-center gap-2">
 								<GitCompare className="h-4 w-4" />
-								<span className="hidden sm:inline">比较</span>
+								<span className="hidden sm:inline">
+									{t("tools.jsonFormatter.tabs.diff")}
+								</span>
 							</TabsTrigger>
 						</TabsList>
 
@@ -644,7 +666,7 @@ export default function JsonFormatterPage() {
 								<Card className="flex flex-col min-h-0">
 									<CardHeader className="pb-3">
 										<CardTitle className="flex items-center justify-between text-base">
-											<span>输入 JSON</span>
+											<span>{t("tools.jsonFormatter.input.title")}</span>
 											<div className="flex gap-2">
 												<Button
 													variant="ghost"
@@ -652,7 +674,9 @@ export default function JsonFormatterPage() {
 													onClick={() => setIsEditingInput(!isEditingInput)}
 												>
 													<Edit3 className="h-4 w-4 mr-2" />
-													{isEditingInput ? "预览" : "编辑"}
+													{isEditingInput
+														? t("tools.jsonFormatter.input.preview")
+														: t("tools.jsonFormatter.input.edit")}
 												</Button>
 												<Button
 													variant="outline"
@@ -660,7 +684,7 @@ export default function JsonFormatterPage() {
 													onClick={triggerFileUpload}
 												>
 													<Upload className="h-4 w-4 mr-2" />
-													上传
+													{t("tools.jsonFormatter.input.upload")}
 												</Button>
 												<input
 													id="file-upload"
@@ -677,7 +701,7 @@ export default function JsonFormatterPage() {
 											<Textarea
 												value={input}
 												onChange={(e) => setInput(e.target.value)}
-												placeholder="在此输入或粘贴 JSON 数据..."
+												placeholder={t("tools.jsonFormatter.input.placeholder")}
 												className="flex-1 font-mono text-sm resize-none min-h-[400px]"
 											/>
 										) : (
@@ -704,7 +728,7 @@ export default function JsonFormatterPage() {
 												className="flex-1"
 												disabled={!input.trim()}
 											>
-												压缩
+												{t("tools.jsonFormatter.input.minify")}
 											</Button>
 											<Button
 												onClick={copyInputToDiffLeft}
@@ -713,7 +737,7 @@ export default function JsonFormatterPage() {
 												disabled={!input.trim()}
 											>
 												<GitCompare className="h-4 w-4 mr-2" />
-												对比
+												{t("tools.jsonFormatter.input.compare")}
 											</Button>
 										</div>
 									</CardContent>
@@ -723,7 +747,7 @@ export default function JsonFormatterPage() {
 								<Card className="flex flex-col min-h-0">
 									<CardHeader className="pb-3">
 										<CardTitle className="flex items-center justify-between text-base">
-											<span>格式化结果</span>
+											<span>{t("tools.jsonFormatter.output.title")}</span>
 											<div className="flex gap-2">
 												<Button
 													variant="outline"
@@ -732,7 +756,7 @@ export default function JsonFormatterPage() {
 													disabled={!output}
 												>
 													<Copy className="h-4 w-4 mr-2" />
-													复制
+													{t("tools.jsonFormatter.output.copy")}
 												</Button>
 												<Button
 													variant="outline"
@@ -741,7 +765,7 @@ export default function JsonFormatterPage() {
 													disabled={!output}
 												>
 													<Download className="h-4 w-4 mr-2" />
-													下载
+													{t("tools.jsonFormatter.output.download")}
 												</Button>
 											</div>
 										</CardTitle>
@@ -771,7 +795,7 @@ export default function JsonFormatterPage() {
 											</div>
 										) : (
 											<div className="flex items-center justify-center h-full text-muted-foreground">
-												<p>输入有效的 JSON 数据查看格式化结果</p>
+												<p>{t("tools.jsonFormatter.output.placeholder")}</p>
 											</div>
 										)}
 									</CardContent>
@@ -786,11 +810,15 @@ export default function JsonFormatterPage() {
 						>
 							<Card className="flex-shrink-0">
 								<CardHeader className="pb-3">
-									<CardTitle className="text-base">JSONPath 查询</CardTitle>
+									<CardTitle className="text-base">
+										{t("tools.jsonFormatter.query.title")}
+									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div className="space-y-2">
-										<Label htmlFor="jsonpath-input">查询表达式</Label>
+										<Label htmlFor="jsonpath-input">
+											{t("tools.jsonFormatter.query.label")}
+										</Label>
 										<Input
 											id="jsonpath-input"
 											value={jsonPathQuery}
@@ -808,7 +836,7 @@ export default function JsonFormatterPage() {
 
 									<div className="space-y-2">
 										<Label className="text-sm text-muted-foreground">
-											常用查询示例（点击应用）
+											{t("tools.jsonFormatter.query.examples")}
 										</Label>
 										<div className="flex flex-wrap gap-2">
 											<Button
@@ -847,7 +875,7 @@ export default function JsonFormatterPage() {
 							<Card className="flex-1 flex flex-col min-h-0">
 								<CardHeader className="pb-3">
 									<CardTitle className="flex items-center justify-between text-base">
-										<span>查询结果</span>
+										<span>{t("tools.jsonFormatter.query.result")}</span>
 										{queryResult && (
 											<Button
 												variant="outline"
@@ -857,7 +885,7 @@ export default function JsonFormatterPage() {
 												}
 											>
 												<Copy className="h-4 w-4 mr-2" />
-												复制
+												{t("tools.jsonFormatter.query.copy")}
 											</Button>
 										)}
 									</CardTitle>
@@ -881,7 +909,7 @@ export default function JsonFormatterPage() {
 										</div>
 									) : (
 										<div className="flex items-center justify-center h-full text-muted-foreground">
-											<p>输入 JSONPath 查询表达式查看结果</p>
+											<p>{t("tools.jsonFormatter.query.resultPlaceholder")}</p>
 										</div>
 									)}
 								</CardContent>
@@ -895,27 +923,37 @@ export default function JsonFormatterPage() {
 						>
 							<Card className="flex-shrink-0">
 								<CardHeader className="pb-3">
-									<CardTitle className="text-base">查找和替换</CardTitle>
+									<CardTitle className="text-base">
+										{t("tools.jsonFormatter.search.title")}
+									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 										<div className="space-y-2">
-											<Label htmlFor="search-input">查找</Label>
+											<Label htmlFor="search-input">
+												{t("tools.jsonFormatter.search.findLabel")}
+											</Label>
 											<Input
 												id="search-input"
 												value={searchText}
 												onChange={(e) => setSearchText(e.target.value)}
-												placeholder="输入要查找的文本..."
+												placeholder={t(
+													"tools.jsonFormatter.search.findPlaceholder",
+												)}
 												className="font-mono"
 											/>
 										</div>
 										<div className="space-y-2">
-											<Label htmlFor="replace-input">替换为</Label>
+											<Label htmlFor="replace-input">
+												{t("tools.jsonFormatter.search.replaceLabel")}
+											</Label>
 											<Input
 												id="replace-input"
 												value={replaceText}
 												onChange={(e) => setReplaceText(e.target.value)}
-												placeholder="输入替换文本..."
+												placeholder={t(
+													"tools.jsonFormatter.search.replacePlaceholder",
+												)}
 												className="font-mono"
 											/>
 										</div>
@@ -938,7 +976,7 @@ export default function JsonFormatterPage() {
 													htmlFor="case-sensitive"
 													className="cursor-pointer"
 												>
-													区分大小写
+													{t("tools.jsonFormatter.search.caseSensitive")}
 												</Label>
 											</div>
 
@@ -954,13 +992,13 @@ export default function JsonFormatterPage() {
 													}
 												/>
 												<Label htmlFor="regex" className="cursor-pointer">
-													正则表达式
+													{t("tools.jsonFormatter.search.regex")}
 												</Label>
 											</div>
 										</div>
 
 										<div className="space-y-2">
-											<Label>搜索范围</Label>
+											<Label>{t("tools.jsonFormatter.search.scope")}</Label>
 											<RadioGroup
 												value={searchOptions.searchIn}
 												onValueChange={(value) =>
@@ -976,7 +1014,7 @@ export default function JsonFormatterPage() {
 														htmlFor="search-all"
 														className="cursor-pointer"
 													>
-														全部
+														{t("tools.jsonFormatter.search.scopeAll")}
 													</Label>
 												</div>
 												<div className="flex items-center space-x-2">
@@ -985,7 +1023,7 @@ export default function JsonFormatterPage() {
 														htmlFor="search-keys"
 														className="cursor-pointer"
 													>
-														仅键名
+														{t("tools.jsonFormatter.search.scopeKeys")}
 													</Label>
 												</div>
 												<div className="flex items-center space-x-2">
@@ -994,7 +1032,7 @@ export default function JsonFormatterPage() {
 														htmlFor="search-values"
 														className="cursor-pointer"
 													>
-														仅值
+														{t("tools.jsonFormatter.search.scopeValues")}
 													</Label>
 												</div>
 											</RadioGroup>
@@ -1003,7 +1041,9 @@ export default function JsonFormatterPage() {
 
 									<div className="flex items-center justify-between">
 										<div className="text-sm text-muted-foreground">
-											找到 {matchedCount} 个匹配项
+											{t("tools.jsonFormatter.search.matchCount", {
+												count: matchedCount,
+											})}
 										</div>
 										<div className="flex gap-2">
 											<Button
@@ -1012,7 +1052,7 @@ export default function JsonFormatterPage() {
 												onClick={() => performReplace(false)}
 												disabled={!searchText || matchedCount === 0}
 											>
-												替换
+												{t("tools.jsonFormatter.search.replace")}
 											</Button>
 											<Button
 												variant="outline"
@@ -1020,7 +1060,7 @@ export default function JsonFormatterPage() {
 												onClick={() => performReplace(true)}
 												disabled={!searchText || matchedCount === 0}
 											>
-												全部替换
+												{t("tools.jsonFormatter.search.replaceAll")}
 											</Button>
 										</div>
 									</div>
@@ -1029,7 +1069,9 @@ export default function JsonFormatterPage() {
 
 							<Card className="flex-1 flex flex-col min-h-0">
 								<CardHeader className="pb-3">
-									<CardTitle className="text-base">预览</CardTitle>
+									<CardTitle className="text-base">
+										{t("tools.jsonFormatter.search.previewTitle")}
+									</CardTitle>
 								</CardHeader>
 								<CardContent className="flex-1 overflow-auto">
 									{highlightedJson ? (
@@ -1049,7 +1091,9 @@ export default function JsonFormatterPage() {
 										</div>
 									) : (
 										<div className="flex items-center justify-center h-full text-muted-foreground">
-											<p>请在"格式化"标签页输入有效的 JSON 数据</p>
+											<p>
+												{t("tools.jsonFormatter.search.previewPlaceholder")}
+											</p>
 										</div>
 									)}
 								</CardContent>
@@ -1065,13 +1109,17 @@ export default function JsonFormatterPage() {
 								{/* Left JSON Input */}
 								<Card className="flex flex-col min-h-0">
 									<CardHeader className="pb-3">
-										<CardTitle className="text-base">JSON A (原始)</CardTitle>
+										<CardTitle className="text-base">
+											{t("tools.jsonFormatter.diff.leftTitle")}
+										</CardTitle>
 									</CardHeader>
 									<CardContent className="flex-1 flex flex-col pt-0 space-y-3 min-h-0">
 										<Textarea
 											value={leftJson}
 											onChange={(e) => setLeftJson(e.target.value)}
-											placeholder="输入或粘贴第一个 JSON..."
+											placeholder={t(
+												"tools.jsonFormatter.diff.leftPlaceholder",
+											)}
 											className={`flex-1 font-mono text-sm resize-none min-h-[300px] ${
 												leftError ? "border-destructive" : ""
 											}`}
@@ -1087,13 +1135,17 @@ export default function JsonFormatterPage() {
 								{/* Right JSON Input */}
 								<Card className="flex flex-col min-h-0">
 									<CardHeader className="pb-3">
-										<CardTitle className="text-base">JSON B (修改后)</CardTitle>
+										<CardTitle className="text-base">
+											{t("tools.jsonFormatter.diff.rightTitle")}
+										</CardTitle>
 									</CardHeader>
 									<CardContent className="flex-1 flex flex-col pt-0 space-y-3 min-h-0">
 										<Textarea
 											value={rightJson}
 											onChange={(e) => setRightJson(e.target.value)}
-											placeholder="输入或粘贴第二个 JSON..."
+											placeholder={t(
+												"tools.jsonFormatter.diff.rightPlaceholder",
+											)}
 											className={`flex-1 font-mono text-sm resize-none min-h-[300px] ${
 												rightError ? "border-destructive" : ""
 											}`}
@@ -1111,10 +1163,10 @@ export default function JsonFormatterPage() {
 							<Card className="flex-1 flex flex-col min-h-0">
 								<CardHeader className="pb-3">
 									<CardTitle className="flex items-center justify-between text-base">
-										<span>差异分析</span>
+										<span>{t("tools.jsonFormatter.diff.result")}</span>
 										<div className="flex items-center gap-2">
 											<span className="text-sm text-muted-foreground">
-												仅显示差异
+												{t("tools.jsonFormatter.diff.onlyDiff")}
 											</span>
 											<Switch
 												checked={onlyShowDiff}
@@ -1129,11 +1181,11 @@ export default function JsonFormatterPage() {
 											<div className="flex gap-4 text-sm">
 												<div className="flex items-center gap-2">
 													<div className="w-3 h-3 bg-green-500/20 border border-green-500 rounded" />
-													<span>新增</span>
+													<span>{t("tools.jsonFormatter.diff.added")}</span>
 												</div>
 												<div className="flex items-center gap-2">
 													<div className="w-3 h-3 bg-red-500/20 border border-red-500 rounded" />
-													<span>删除</span>
+													<span>{t("tools.jsonFormatter.diff.removed")}</span>
 												</div>
 											</div>
 
@@ -1149,7 +1201,7 @@ export default function JsonFormatterPage() {
 										</div>
 									) : (
 										<div className="flex items-center justify-center h-full text-muted-foreground">
-											<p>请在上方输入两个有效的 JSON 进行比较</p>
+											<p>{t("tools.jsonFormatter.diff.placeholder")}</p>
 										</div>
 									)}
 								</CardContent>

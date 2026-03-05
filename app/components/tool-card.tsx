@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { ToolIcon } from "~/components/tool-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -94,16 +95,7 @@ export function ToolCard({ tool, onViewDetails }: ToolCardProps) {
 					{/* Icon Container */}
 					<div className="relative flex-shrink-0">
 						<div className="tool-card-icon transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/20">
-							{tool.icon ? (
-								<Avatar className="h-7 w-7">
-									<AvatarImage src={tool.icon} className="object-contain" />
-									<AvatarFallback className="text-xs bg-transparent">
-										{tool.name.charAt(0)}
-									</AvatarFallback>
-								</Avatar>
-							) : (
-								<Code className="h-6 w-6" />
-							)}
+							<ToolIcon icon={tool.icon} className="h-6 w-6" />
 						</div>
 						{/* Status indicator dot */}
 						<div

@@ -4,10 +4,10 @@ import {
 	Globe,
 	Search,
 	Server,
-	Settings,
 	Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ToolIcon } from "~/components/tool-icon";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -160,15 +160,10 @@ export function ToolList({
 									<div className="flex items-start justify-between">
 										<div className="flex items-start gap-3">
 											<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-												{tool.icon ? (
-													<img
-														src={tool.icon}
-														alt={tool.name}
-														className="h-6 w-6"
-													/>
-												) : (
-													<Settings className="h-5 w-5 text-primary" />
-												)}
+												<ToolIcon
+													icon={tool.icon}
+													className="h-5 w-5 text-primary"
+												/>
 											</div>
 											<div className="space-y-1">
 												<h3 className="text-base font-semibold leading-tight">

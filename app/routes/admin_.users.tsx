@@ -5,12 +5,7 @@ import { AdminLayout } from "~/components/layout/admin-layout";
 import { ProtectedRoute } from "~/components/protected-route";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -36,11 +31,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "~/components/ui/table";
-import {
-	getAdminUsers,
-	resetUserPassword,
-	updateUserRole,
-} from "~/lib/api";
+import { getAdminUsers, resetUserPassword, updateUserRole } from "~/lib/api";
 import { useUserInfoStore } from "~/stores/user-info-store";
 
 export function meta() {
@@ -91,7 +82,10 @@ function AdminUsersContent() {
 		fetchUsers();
 	}, [fetchUsers]);
 
-	const handleRoleChange = async (userId: string, newRole: "admin" | "user") => {
+	const handleRoleChange = async (
+		userId: string,
+		newRole: "admin" | "user",
+	) => {
 		try {
 			await updateUserRole(userId, newRole);
 			setUsers((prev) =>
@@ -192,7 +186,9 @@ function AdminUsersContent() {
 											<TableCell>{user.displayName || "-"}</TableCell>
 											<TableCell>
 												<Badge
-													variant={user.role === "admin" ? "destructive" : "secondary"}
+													variant={
+														user.role === "admin" ? "destructive" : "secondary"
+													}
 													className={
 														user.role === "admin"
 															? "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-950"
