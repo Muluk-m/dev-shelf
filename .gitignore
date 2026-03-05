@@ -13,3 +13,12 @@
 !.dev.vars.example
 
 .env
+
+# Test artifacts & screenshots
+.playwright-cli/
+.playwright-mcp/
+*.png
+
+# AI tool configs
+.codex/
+.opencode/
