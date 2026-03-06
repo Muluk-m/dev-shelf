@@ -1,4 +1,4 @@
-import { Lock, User } from "lucide-react";
+import { Lock, Sparkles, User } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -67,6 +67,26 @@ export function LoginForm() {
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
 				<CardContent className="space-y-4">
+					{/* Demo account hint */}
+					<button
+						type="button"
+						onClick={() => {
+							setUsername("admin@test.com");
+							setPassword("admin123456");
+						}}
+						className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/5 border border-amber-500/20 hover:from-amber-500/15 hover:to-orange-500/10 transition-all cursor-pointer group"
+					>
+						<Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0" />
+						<div className="flex-1 text-left text-xs">
+							<div className="font-medium text-foreground">{t("auth.login.demoHint")}</div>
+							<div className="text-muted-foreground mt-0.5">
+								admin@test.com / admin123456
+							</div>
+						</div>
+						<span className="text-[10px] text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
+							{t("auth.login.demoFill")}
+						</span>
+					</button>
 					{error && (
 						<div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
 							{error}
