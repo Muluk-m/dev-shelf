@@ -51,6 +51,12 @@
 
   "home.titleSuffix": "Platform",
   "home.category.builtin": "Built-in Tools",
+  "home.category.development": "Development Tools",
+  "home.category.testing": "Testing Tools",
+  "home.category.deployment": "Deployment Tools",
+  "home.category.monitoring": "Monitoring Tools",
+  "home.category.database": "Database Tools",
+  "home.category.communication": "Collaboration Tools",
   "home.subtitle": "One place for all tools. {{count}} tools integrated.",
   "home.search.placeholder": "Search by name, description, or tags...",
   "home.sidebar.favorites": "Favorites",

@@ -20,6 +20,12 @@ const BUILTIN_I18N_MAP: Record<string, string> = {
 
 const CATEGORY_I18N_MAP: Record<string, string> = {
 	builtin: "home.category.builtin",
+	development: "home.category.development",
+	testing: "home.category.testing",
+	deployment: "home.category.deployment",
+	monitoring: "home.category.monitoring",
+	database: "home.category.database",
+	communication: "home.category.communication",
 };
 
 export function getToolName(tool: Tool, t: TFunction): string {

@@ -51,6 +51,12 @@
 
   "home.titleSuffix": "平台",
   "home.category.builtin": "内置工具",
+  "home.category.development": "开发工具",
+  "home.category.testing": "测试工具",
+  "home.category.deployment": "部署工具",
+  "home.category.monitoring": "监控工具",
+  "home.category.database": "数据库工具",
+  "home.category.communication": "协作工具",
   "home.subtitle": "统一入口，高效协作。集成 {{count}} 款常用开发工具",
   "home.search.placeholder": "搜索工具名称、描述或标签...",
   "home.sidebar.favorites": "我的收藏",
