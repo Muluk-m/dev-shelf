@@ -45,7 +45,10 @@ export function LoginForm() {
 			const { user } = await login(username, password);
 			setUserInfo(user);
 			toast.success(t("auth.login.success"));
-			const redirectTo = searchParams.get("redirectTo") || "/";
+			const raw = searchParams.get("redirectTo") || "/";
+			// Only allow relative paths to prevent open redirect
+			const redirectTo =
+				raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
 			navigate(redirectTo);
 		} catch (err) {
 			const message =

@@ -261,13 +261,6 @@ export async function getToolCategories(): Promise<ToolCategory[]> {
 	const response = await fetch(`/api/categories`);
 
 	if (!response.ok) {
-		const cloneResponse = response.clone();
-		console.log(
-			"getToolCategories",
-			cloneResponse.status,
-			cloneResponse.statusText,
-			cloneResponse.text(),
-		);
 		throw new Error("Failed to fetch tool categories");
 	}
 	return response.json();
@@ -406,9 +399,7 @@ export async function deleteCategory(id: string): Promise<{ message: string }> {
 	return response.json();
 }
 
-export async function uploadFiles(
-	formData: FormData,
-): Promise<{
+export async function uploadFiles(formData: FormData): Promise<{
 	files: Array<{
 		key: string;
 		urls: Record<string, string>;

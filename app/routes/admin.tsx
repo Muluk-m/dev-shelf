@@ -411,7 +411,7 @@ export default function AdminPage() {
 	);
 
 	return (
-		<ProtectedRoute requiredRoles="developer">
+		<ProtectedRoute requiredRoles="admin">
 			<AdminLayout
 				title={t("admin.layout.title")}
 				description={t("admin.layout.description")}

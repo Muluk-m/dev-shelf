@@ -33,8 +33,7 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 				console.error("Auth configuration error:", error);
 				return c.json(
 					{
-						error:
-							"JWT_SECRET is not configured. Create `.dev.vars` with `JWT_SECRET=...` for local dev, or set the Worker secret in Cloudflare.",
+						error: "Server configuration error",
 					},
 					500,
 				);
@@ -60,8 +59,7 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 		console.error("Auth configuration error:", error);
 		return c.json(
 			{
-				error:
-					"JWT_SECRET is not configured. Create `.dev.vars` with `JWT_SECRET=...` for local dev, or set the Worker secret in Cloudflare.",
+				error: "Server configuration error",
 			},
 			500,
 		);

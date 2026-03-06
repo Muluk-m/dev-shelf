@@ -12,7 +12,16 @@ import { uploadsRouter } from "./routes/uploads";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
-app.use("*", cors(), authMiddleware);
+app.use(
+	"*",
+	cors({
+		origin: (origin) => origin || "",
+		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+		allowHeaders: ["Content-Type", "Authorization"],
+		credentials: true,
+	}),
+	authMiddleware,
+);
 
 // API routes
 app.route("/api/auth", auth);

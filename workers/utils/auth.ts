@@ -85,8 +85,17 @@ export async function verifyPassword(
 		HASH_BITS,
 	);
 
-	const computedB64 = btoa(String.fromCharCode(...new Uint8Array(derivedBits)));
-	return computedB64 === hashB64;
+	const computed = new Uint8Array(derivedBits);
+	const expected = Uint8Array.from(atob(hashB64), (c) => c.charCodeAt(0));
+
+	if (computed.length !== expected.length) return false;
+
+	// Timing-safe comparison using XOR accumulation
+	let diff = 0;
+	for (let i = 0; i < computed.length; i++) {
+		diff |= computed[i] ^ expected[i];
+	}
+	return diff === 0;
 }
 
 /**

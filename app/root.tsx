@@ -52,6 +52,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 									var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 									var appliedTheme = theme === 'system' || !theme ? systemTheme : theme;
 									document.documentElement.classList.add(appliedTheme);
+									var ls = localStorage.getItem('locale');
+									if (ls) { try { var l = JSON.parse(ls).state.locale; if (l) document.documentElement.lang = l; } catch(e){} }
 								} catch (e) {}
 							})();
 						`,

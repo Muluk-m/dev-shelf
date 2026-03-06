@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { requireAuth } from "../middleware/rbac";
 
 export type UploadFile = {
 	key: string;
@@ -7,6 +8,18 @@ export type UploadFile = {
 	size: number;
 	type: string;
 };
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = new Set([
+	"image/jpeg",
+	"image/png",
+	"image/gif",
+	"image/webp",
+	"image/svg+xml",
+	"application/pdf",
+	"text/plain",
+	"application/json",
+]);
 
 function sanitizeFilename(input: string) {
 	return input
@@ -28,12 +41,8 @@ function getExtensionFromType(
 		"image/gif": "gif",
 		"image/webp": "webp",
 		"image/svg+xml": "svg",
-		"video/mp4": "mp4",
-		"video/webm": "webm",
+		"application/pdf": "pdf",
 		"text/plain": "txt",
-		"text/css": "css",
-		"text/javascript": "js",
-		"application/javascript": "js",
 		"application/json": "json",
 	};
 	return map[contentType] || fallback;
@@ -41,8 +50,12 @@ function getExtensionFromType(
 
 export const uploadsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
-uploadsRouter.post("/", async (c) => {
+uploadsRouter.post("/", requireAuth, async (c) => {
 	try {
+		if (!c.env.ASSETS_BUCKET) {
+			return c.json({ error: "File storage is not configured" }, 503);
+		}
+
 		const formData = await c.req.formData();
 		const files: File[] = [];
 
@@ -54,6 +67,19 @@ uploadsRouter.post("/", async (c) => {
 
 		if (files.length === 0) {
 			return c.json({ error: "No files provided" }, 400);
+		}
+
+		// Validate files
+		for (const file of files) {
+			if (file.size > MAX_FILE_SIZE) {
+				return c.json({ error: `File "${file.name}" exceeds 10MB limit` }, 400);
+			}
+			if (file.type && !ALLOWED_TYPES.has(file.type)) {
+				return c.json(
+					{ error: `File type "${file.type}" is not allowed` },
+					400,
+				);
+			}
 		}
 
 		const baseDir = "uploads/cdn_source/images";
@@ -69,7 +95,9 @@ uploadsRouter.post("/", async (c) => {
 			const key = `${baseDir}/${basename}-${stamp}.${ext}`;
 
 			await c.env.ASSETS_BUCKET.put(key, file.stream(), {
-				httpMetadata: { contentType: file.type || "application/octet-stream" },
+				httpMetadata: {
+					contentType: file.type || "application/octet-stream",
+				},
 				customMetadata: { originalName },
 			});
 

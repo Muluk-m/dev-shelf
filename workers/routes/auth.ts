@@ -164,6 +164,8 @@ auth.post("/login", async (c) => {
 		// Look up user
 		const user = await getUserByUsername(c.env.DB, username);
 		if (!user) {
+			// Run a dummy hash to prevent timing-based username enumeration
+			await hashPassword(password);
 			return c.json({ error: "Invalid credentials" }, 401);
 		}
 

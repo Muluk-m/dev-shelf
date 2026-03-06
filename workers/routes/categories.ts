@@ -1,7 +1,15 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import type { CacheContext } from "../../lib/cache-manager";
 import * as toolsDb from "../../lib/database/tools";
 import { requireAdmin } from "../middleware/rbac";
+
+const categorySchema = z.object({
+	name: z.string().min(1).max(100),
+	description: z.string().max(500).default(""),
+	icon: z.string().max(100).default(""),
+	color: z.string().max(20).default(""),
+});
 
 const categoriesRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -32,10 +40,16 @@ categoriesRouter.get("/", async (c) => {
 // 创建分类 (admin only)
 categoriesRouter.post("/", requireAdmin, async (c) => {
 	try {
-		const categoryData = await c.req.json();
+		const body = await c.req.json();
+		const result = categorySchema.safeParse(body);
+		if (!result.success) {
+			const errors = result.error.issues.map((i) => i.message);
+			return c.json({ error: "Validation failed", details: errors }, 400);
+		}
+
 		const categoryId = await toolsDb.createToolCategory(
 			c.env.DB,
-			categoryData,
+			result.data,
 			getCacheContext(c),
 		);
 
@@ -53,11 +67,17 @@ categoriesRouter.post("/", requireAdmin, async (c) => {
 categoriesRouter.put("/:id", requireAdmin, async (c) => {
 	try {
 		const id = c.req.param("id");
-		const categoryData = await c.req.json();
+		const body = await c.req.json();
+		const result = categorySchema.safeParse(body);
+		if (!result.success) {
+			const errors = result.error.issues.map((i) => i.message);
+			return c.json({ error: "Validation failed", details: errors }, 400);
+		}
+
 		await toolsDb.updateToolCategory(
 			c.env.DB,
 			id,
-			categoryData,
+			result.data,
 			getCacheContext(c),
 		);
 

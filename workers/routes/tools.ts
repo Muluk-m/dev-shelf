@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import type { CacheContext } from "../../lib/cache-manager";
 import {
 	checkToolAccess,
@@ -6,6 +7,25 @@ import {
 } from "../../lib/database/tool-permissions";
 import * as toolsDb from "../../lib/database/tools";
 import { requireAdmin } from "../middleware/rbac";
+
+const environmentSchema = z.object({
+	name: z.string().max(100),
+	label: z.string().max(100).default(""),
+	url: z.string().max(2000),
+	isExternal: z.boolean().default(false),
+});
+
+const toolSchema = z.object({
+	name: z.string().min(1).max(200),
+	description: z.string().min(1).max(2000),
+	category: z.string().min(1).max(100),
+	icon: z.string().max(500).default(""),
+	status: z.enum(["active", "maintenance", "deprecated"]).default("active"),
+	isInternal: z.boolean().default(true),
+	permissionId: z.string().max(100).optional(),
+	environments: z.array(environmentSchema).default([]),
+	tags: z.array(z.string().max(50)).default([]),
+});
 
 const toolsRouter = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -189,22 +209,16 @@ toolsRouter.get("/:id", async (c) => {
 // 创建工具 (admin only)
 toolsRouter.post("/", requireAdmin, async (c) => {
 	try {
-		const toolData = (await c.req.json()) as any;
-
-		// 验证必要字段
-		if (!toolData.name || !toolData.description || !toolData.category) {
-			return c.json({ error: "Missing required fields" }, 400);
+		const body = await c.req.json();
+		const result = toolSchema.safeParse(body);
+		if (!result.success) {
+			const errors = result.error.issues.map((i) => i.message);
+			return c.json({ error: "Validation failed", details: errors }, 400);
 		}
 
-		// 设置默认值
 		const tool = {
-			...toolData,
+			...result.data,
 			lastUpdated: new Date().toISOString().split("T")[0],
-			status: toolData.status || "active",
-			isInternal:
-				toolData.isInternal !== undefined ? toolData.isInternal : true,
-			environments: toolData.environments || [],
-			tags: toolData.tags || [],
 		};
 
 		const toolId = await toolsDb.createTool(c.env.DB, tool, getCacheContext(c));
@@ -220,9 +234,13 @@ toolsRouter.post("/", requireAdmin, async (c) => {
 toolsRouter.put("/:id", requireAdmin, async (c) => {
 	try {
 		const toolId = c.req.param("id");
-		const toolData = (await c.req.json()) as any;
+		const body = await c.req.json();
+		const result = toolSchema.safeParse(body);
+		if (!result.success) {
+			const errors = result.error.issues.map((i) => i.message);
+			return c.json({ error: "Validation failed", details: errors }, 400);
+		}
 
-		// 验证工具是否存在
 		const existingTool = await toolsDb.getToolById(
 			c.env.DB,
 			toolId,
@@ -232,19 +250,9 @@ toolsRouter.put("/:id", requireAdmin, async (c) => {
 			return c.json({ error: "Tool not found" }, 404);
 		}
 
-		// 验证必要字段
-		if (!toolData.name || !toolData.description || !toolData.category) {
-			return c.json({ error: "Missing required fields" }, 400);
-		}
-
-		// 设置更新值
 		const tool = {
-			...toolData,
+			...result.data,
 			lastUpdated: new Date().toISOString().split("T")[0],
-			isInternal:
-				toolData.isInternal !== undefined ? toolData.isInternal : true,
-			environments: toolData.environments || [],
-			tags: toolData.tags || [],
 		};
 
 		await toolsDb.updateTool(c.env.DB, toolId, tool, getCacheContext(c));
