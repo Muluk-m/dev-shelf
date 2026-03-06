@@ -124,6 +124,18 @@ function buildSql(tools: BuiltinToolMeta[]): string {
 		lines.push(
 			`  ('${escape(tool.id)}', '${escape(tool.name)}', '${escape(tool.description)}', '${escape(tool.category)}', '${escape(tool.icon)}', 1, 1, 'active', datetime('now'));`,
 		);
+
+		// Ensure a production environment entry exists (internal route)
+		lines.push(
+			`DELETE FROM tool_environments WHERE tool_id = '${escape(tool.id)}';`,
+		);
+		lines.push(
+			`INSERT INTO tool_environments (tool_id, name, label, url, is_external) VALUES`,
+		);
+		lines.push(
+			`  ('${escape(tool.id)}', 'production', '打开', '/tools/${escape(tool.id)}', 0);`,
+		);
+
 		// Remove existing tags then re-insert (handles tag changes on re-seed)
 		lines.push(`DELETE FROM tool_tags WHERE tool_id = '${escape(tool.id)}';`);
 		for (const tag of tool.tags) {

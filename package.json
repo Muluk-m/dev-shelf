@@ -84,10 +84,10 @@
 	"scripts": {
 		"build": "react-router build",
 		"cf-typegen": "wrangler types",
-		"deploy": "npm run build && wrangler d1 migrations apply DB --remote && wrangler deploy",
+		"deploy": "npm run build && wrangler d1 migrations apply DB --remote && tsx scripts/seed-builtin-tools.ts -- --remote && wrangler deploy",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
-		"dev": "wrangler d1 migrations apply DB --local && react-router dev",
+		"dev": "wrangler d1 migrations apply DB --local && tsx scripts/seed-builtin-tools.ts && react-router dev",
 		"preview": "npm run build && vite preview",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
 		"db:migrate": "wrangler d1 migrations apply DB --remote",
