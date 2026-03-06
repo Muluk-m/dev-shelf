@@ -66,6 +66,15 @@ export default function Home() {
 		updateFilters({ category: selectedCategory || undefined });
 	}, [selectedCategory, updateFilters]);
 
+	// 分类排序：builtin 置顶，其余保持原有顺序
+	const sortedCategories = useMemo(() => {
+		return [...toolCategories].sort((a, b) => {
+			if (a.id === "builtin") return -1;
+			if (b.id === "builtin") return 1;
+			return 0;
+		});
+	}, [toolCategories]);
+
 	const toolCounts = useMemo(() => {
 		return tools.reduce(
 			(acc, tool) => {
@@ -332,10 +341,65 @@ export default function Home() {
 									</span>
 								</button>
 
-								{toolCategories.map((category) => {
+								{sortedCategories.map((category) => {
 									const IconComponent = getIconComponent(category.icon);
 									const isSelected = selectedCategory === category.id;
 									const count = toolCounts[category.id] || 0;
+									const isBuiltin = category.id === "builtin";
+
+									if (isBuiltin) {
+										return (
+											<button
+												key={category.id}
+												type="button"
+												onClick={() => handleCategoryChange(category.id)}
+												className={cn(
+													"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer",
+													isSelected
+														? "ring-2 ring-indigo-500/30"
+														: "bg-gradient-to-r from-indigo-500/10 to-violet-500/5 border border-indigo-500/20 hover:from-indigo-500/15 hover:to-violet-500/10",
+												)}
+												style={
+													isSelected
+														? {
+																backgroundColor: category.color,
+																color: "white",
+																boxShadow: `0 4px 14px -3px ${category.color}50`,
+															}
+														: undefined
+												}
+											>
+												<div
+													className={cn(
+														"flex h-6 w-6 items-center justify-center rounded-lg flex-shrink-0",
+														isSelected
+															? "bg-white/20"
+															: "bg-indigo-500/15",
+													)}
+												>
+													<IconComponent
+														className="h-3.5 w-3.5"
+														style={{
+															color: isSelected ? "white" : category.color,
+														}}
+													/>
+												</div>
+												<span className="flex-1 text-left">
+													{getCategoryName(category, t)}
+												</span>
+												<span
+													className={cn(
+														"text-xs px-2 py-0.5 rounded-md",
+														isSelected
+															? "bg-white/20"
+															: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+													)}
+												>
+													{count}
+												</span>
+											</button>
+										);
+									}
 
 									return (
 										<button
@@ -358,6 +422,10 @@ export default function Home() {
 													: undefined
 											}
 										>
+											<span
+												className="flex-shrink-0 w-1.5 h-1.5 rounded-full"
+												style={{ backgroundColor: isSelected ? "white" : category.color }}
+											/>
 											<IconComponent
 												className="h-4 w-4"
 												style={{
@@ -401,8 +469,9 @@ export default function Home() {
 								>
 									{t("home.all", { count: tools.length })}
 								</button>
-								{toolCategories.map((category) => {
+								{sortedCategories.map((category) => {
 									const isSelected = selectedCategory === category.id;
+									const isBuiltin = category.id === "builtin";
 									return (
 										<button
 											key={category.id}
@@ -412,12 +481,16 @@ export default function Home() {
 												"flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer",
 												isSelected
 													? "text-white"
-													: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+													: isBuiltin
+														? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/15"
+														: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 											)}
 											style={
 												isSelected
 													? { backgroundColor: category.color }
-													: undefined
+													: !isBuiltin
+														? { borderBottom: `2px solid ${category.color}` }
+														: undefined
 											}
 										>
 											{getCategoryName(category, t)} (
