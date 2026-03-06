@@ -168,10 +168,11 @@ try {
 	// Invalidate KV cache so the new tools are visible immediately
 	const newVersion = Date.now().toString();
 	const kvKeys = ["tools:cache:version", "categories:cache:version"];
+	const kvFlag = isRemote ? "" : "--local";
 	for (const key of kvKeys) {
 		try {
 			execSync(
-				`wrangler kv key put "${key}" "${newVersion}" --namespace-id=43902c8bb47b4c3a85e07eeb57eb1168 ${isRemote ? "--remote" : "--local"}`,
+				`wrangler kv key put "${key}" "${newVersion}" --namespace-id=43902c8bb47b4c3a85e07eeb57eb1168 ${kvFlag}`,
 				{ stdio: "inherit" },
 			);
 		} catch {
