@@ -124,7 +124,7 @@ export function LoginForm() {
 						</div>
 					</div>
 				</CardContent>
-				<CardFooter className="flex flex-col gap-4">
+				<CardFooter className="flex flex-col gap-4 pt-2">
 					<Button type="submit" className="w-full" disabled={loading}>
 						{loading ? t("auth.login.loading") : t("auth.login.submit")}
 					</Button>
