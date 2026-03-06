@@ -164,6 +164,21 @@ try {
 	execSync(`wrangler d1 execute DB ${target} --file="${sqlFile}"`, {
 		stdio: "inherit",
 	});
+
+	// Invalidate KV cache so the new tools are visible immediately
+	const newVersion = Date.now().toString();
+	const kvKeys = ["tools:cache:version", "categories:cache:version"];
+	for (const key of kvKeys) {
+		try {
+			execSync(
+				`wrangler kv key put "${key}" "${newVersion}" --namespace-id=43902c8bb47b4c3a85e07eeb57eb1168 ${isRemote ? "--remote" : "--local"}`,
+				{ stdio: "inherit" },
+			);
+		} catch {
+			console.warn(`⚠ Failed to update KV key "${key}" — cache may be stale`);
+		}
+	}
+
 	console.log(`\n✓ Done! ${builtinTools.length} built-in tools seeded.\n`);
 	if (!isRemote) {
 		console.log("  Tip: run with --remote to seed production D1.\n");
