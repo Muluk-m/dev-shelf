@@ -1,4 +1,4 @@
-import { Command, Home, Settings } from "lucide-react";
+import { Command, Github, Home, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { LanguageToggle } from "~/components/language-toggle";
@@ -128,6 +128,20 @@ export function Header({
 						</div>
 
 						<div className="flex items-center gap-2 pl-2 border-l border-border/50">
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-8 w-8 text-muted-foreground hover:text-foreground"
+								asChild
+							>
+								<a
+									href="https://github.com/Muluk-m/dev-shelf"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Github className="h-4 w-4" />
+								</a>
+							</Button>
 							<LanguageToggle />
 							<ThemeToggle />
 							<UserProfile />
