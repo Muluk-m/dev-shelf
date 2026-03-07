@@ -21,8 +21,7 @@ Manage your team's developer tools, internal links, and environment URLs in one 
 
 ---
 
-<!-- TODO: Add screenshot here -->
-<!-- ![DevShelf Screenshot](docs/screenshot.png) -->
+![DevShelf Screenshot](docs/screenshot.png)
 
 ## Why DevShelf?
 

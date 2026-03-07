@@ -21,8 +21,7 @@
 
 ---
 
-<!-- TODO: 添加产品截图 -->
-<!-- ![DevShelf 截图](docs/screenshot.png) -->
+![DevShelf 截图](docs/screenshot.png)
 
 ## 为什么选择 DevShelf？
 
